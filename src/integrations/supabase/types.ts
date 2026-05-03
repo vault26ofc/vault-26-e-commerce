@@ -14,16 +14,569 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      addresses: {
+        Row: {
+          city: string
+          created_at: string
+          full_name: string
+          id: string
+          is_default: boolean
+          line1: string
+          line2: string | null
+          phone: string
+          pincode: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          full_name: string
+          id?: string
+          is_default?: boolean
+          line1: string
+          line2?: string | null
+          phone: string
+          pincode: string
+          state: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_default?: boolean
+          line1?: string
+          line2?: string | null
+          phone?: string
+          pincode?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      brands: {
+        Row: {
+          banner_image: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          logo: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          banner_image?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          banner_image?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          logo?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      cart_items: {
+        Row: {
+          cart_id: string
+          created_at: string
+          id: string
+          quantity: number
+          variant_id: string
+        }
+        Insert: {
+          cart_id: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          variant_id: string
+        }
+        Update: {
+          cart_id?: string
+          created_at?: string
+          id?: string
+          quantity?: number
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_items_cart_id_fkey"
+            columns: ["cart_id"]
+            isOneToOne: false
+            referencedRelation: "carts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cart_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carts: {
+        Row: {
+          coupon_id: string | null
+          created_at: string
+          id: string
+          session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          coupon_id?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          coupon_id?: string | null
+          created_at?: string
+          id?: string
+          session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          id: string
+          image: string | null
+          is_active: boolean
+          name: string
+          parent_id: string | null
+          slug: string
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name: string
+          parent_id?: string | null
+          slug: string
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          id?: string
+          image?: string | null
+          is_active?: boolean
+          name?: string
+          parent_id?: string | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          min_order: number
+          type: Database["public"]["Enums"]["coupon_type"]
+          used_count: number
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order?: number
+          type: Database["public"]["Enums"]["coupon_type"]
+          used_count?: number
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          min_order?: number
+          type?: Database["public"]["Enums"]["coupon_type"]
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          id: string
+          image: string | null
+          order_id: string
+          price_at_purchase: number
+          product_name: string
+          quantity: number
+          variant_id: string | null
+          variant_label: string | null
+        }
+        Insert: {
+          id?: string
+          image?: string | null
+          order_id: string
+          price_at_purchase: number
+          product_name: string
+          quantity: number
+          variant_id?: string | null
+          variant_label?: string | null
+        }
+        Update: {
+          id?: string
+          image?: string | null
+          order_id?: string
+          price_at_purchase?: number
+          product_name?: string
+          quantity?: number
+          variant_id?: string | null
+          variant_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          cod_advance_amount: number | null
+          cod_advance_paid: boolean
+          coupon_code: string | null
+          created_at: string
+          discount: number
+          email: string
+          id: string
+          notes: string | null
+          order_number: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          shipping: number
+          shipping_address: Json
+          status: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          cod_advance_amount?: number | null
+          cod_advance_paid?: boolean
+          coupon_code?: string | null
+          created_at?: string
+          discount?: number
+          email: string
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          shipping?: number
+          shipping_address: Json
+          status?: Database["public"]["Enums"]["order_status"]
+          subtotal: number
+          total: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          cod_advance_amount?: number | null
+          cod_advance_paid?: boolean
+          coupon_code?: string | null
+          created_at?: string
+          discount?: number
+          email?: string
+          id?: string
+          notes?: string | null
+          order_number?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          shipping?: number
+          shipping_address?: Json
+          status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      product_variants: {
+        Row: {
+          color: string | null
+          color_hex: string | null
+          compare_price: number | null
+          created_at: string
+          id: string
+          price: number
+          product_id: string
+          size: string | null
+          sku: string | null
+          stock: number
+        }
+        Insert: {
+          color?: string | null
+          color_hex?: string | null
+          compare_price?: number | null
+          created_at?: string
+          id?: string
+          price: number
+          product_id: string
+          size?: string | null
+          sku?: string | null
+          stock?: number
+        }
+        Update: {
+          color?: string | null
+          color_hex?: string | null
+          compare_price?: number | null
+          created_at?: string
+          id?: string
+          price?: number
+          product_id?: string
+          size?: string | null
+          sku?: string | null
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          brand_id: string | null
+          care: string | null
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          images: string[]
+          is_active: boolean
+          is_featured: boolean
+          material: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          brand_id?: string | null
+          care?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          is_active?: boolean
+          is_featured?: boolean
+          material?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          brand_id?: string | null
+          care?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          images?: string[]
+          is_active?: boolean
+          is_featured?: boolean
+          material?: string | null
+          name?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          phone: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          name?: string | null
+          phone?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "customer"
+      coupon_type: "PERCENT" | "FLAT"
+      order_status: "PENDING" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED"
+      payment_method: "RAZORPAY" | "COD"
+      payment_status: "PENDING" | "PAID" | "FAILED" | "REFUNDED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +703,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "customer"],
+      coupon_type: ["PERCENT", "FLAT"],
+      order_status: ["PENDING", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"],
+      payment_method: ["RAZORPAY", "COD"],
+      payment_status: ["PENDING", "PAID", "FAILED", "REFUNDED"],
+    },
   },
 } as const
