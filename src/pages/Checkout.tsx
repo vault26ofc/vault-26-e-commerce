@@ -73,6 +73,43 @@ export default function Checkout() {
   const total = Math.max(0, sub - discount) + shipping;
   const codAdvance = total > codThreshold ? Math.round(total * codAdvancePct / 100) : 0;
 
+  const loadRazorpay = () => new Promise<boolean>((resolve) => {
+    if ((window as any).Razorpay) return resolve(true);
+    const s = document.createElement('script');
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+
+  const payWithRazorpay = (order: any, amount: number) => new Promise<void>(async (resolve, reject) => {
+    const ok = await loadRazorpay();
+    if (!ok) return reject(new Error('Razorpay failed to load'));
+    const { data, error } = await supabase.functions.invoke('razorpay-create-order', {
+      body: { amount, receipt: order.order_number },
+    });
+    if (error || !data?.order) return reject(new Error(data?.error || 'Could not create payment'));
+    const rzp = new (window as any).Razorpay({
+      key: data.key_id,
+      amount: data.order.amount,
+      currency: data.order.currency,
+      order_id: data.order.id,
+      name: 'Vault 26',
+      description: `Order ${order.order_number}`,
+      prefill: { name: addr.full_name, email: addr.email, contact: addr.phone },
+      theme: { color: '#000000' },
+      handler: async (resp: any) => {
+        const { data: v, error: ve } = await supabase.functions.invoke('razorpay-verify-payment', {
+          body: { ...resp, order_id: order.id },
+        });
+        if (ve || !v?.success) return reject(new Error('Payment verification failed'));
+        resolve();
+      },
+      modal: { ondismiss: () => reject(new Error('Payment cancelled')) },
+    });
+    rzp.open();
+  });
+
   const placeOrder = async () => {
     setPlacing(true);
     try {
@@ -94,7 +131,7 @@ export default function Checkout() {
         shipping,
         total,
         payment_method: payment,
-        payment_status: payment === 'COD' && codAdvance === 0 ? 'PENDING' : 'PENDING',
+        payment_status: 'PENDING',
         cod_advance_amount: payment === 'COD' ? codAdvance : 0,
         coupon_code: couponCode,
       }).select().single();
@@ -104,7 +141,12 @@ export default function Checkout() {
       const { error: itemsErr } = await supabase.from('order_items').insert(orderItems.map((it) => ({ ...it, order_id: order.id })));
       if (itemsErr) throw itemsErr;
 
-      // For RAZORPAY/COD-with-advance we'd integrate Razorpay here. For now mark as placed and clear.
+      if (payment === 'RAZORPAY') {
+        await payWithRazorpay(order, total);
+      } else if (payment === 'COD' && codAdvance > 0) {
+        await payWithRazorpay(order, codAdvance);
+      }
+
       toast.success('Order placed');
       clear();
       navigate(`/order-success/${order.id}`);
