@@ -60,6 +60,19 @@ export default function ProductDetail() {
     return cp.length ? Math.min(...cp) : null;
   }, [variants]);
 
+  useSEO(product ? {
+    title: `${product.name} — Vault 26`,
+    description: (product.description || `Shop ${product.name} from Vault 26.`).slice(0, 160),
+    image: product.images?.[0],
+    type: 'product',
+    jsonLd: {
+      '@context': 'https://schema.org', '@type': 'Product',
+      name: product.name, image: product.images, description: product.description,
+      brand: product.brands?.name ? { '@type': 'Brand', name: product.brands.name } : undefined,
+      offers: { '@type': 'Offer', priceCurrency: 'INR', price: minPrice, availability: variants.some((v: any) => v.stock > 0) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' },
+    },
+  } : { title: 'Loading… — Vault 26' });
+
   if (!product) {
     return <div className="container-px py-20 grid lg:grid-cols-2 gap-10"><div className="aspect-[3/4] bg-muted animate-pulse" /><div className="space-y-4"><div className="h-6 w-32 bg-muted animate-pulse" /><div className="h-10 w-3/4 bg-muted animate-pulse" /></div></div>;
   }
