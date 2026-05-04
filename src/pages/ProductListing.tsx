@@ -3,10 +3,15 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { useSEO } from '@/lib/useSEO';
 
 type Mode = 'category' | 'brand' | 'search';
 
 export default function ProductListing({ mode }: { mode: Mode }) {
+  useSEO({
+    title: 'Shop — Vault 26',
+    description: 'Browse the latest premium clothing pieces from Vault 26.',
+  });
   const { slug } = useParams();
   const [params] = useSearchParams();
   const q = params.get('q') || '';
