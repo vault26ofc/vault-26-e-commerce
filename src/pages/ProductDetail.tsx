@@ -7,6 +7,7 @@ import { inr } from '@/lib/format';
 import { toast } from 'sonner';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import { cn } from '@/lib/utils';
+import { useSEO } from '@/lib/useSEO';
 
 export default function ProductDetail() {
   const { slug } = useParams();

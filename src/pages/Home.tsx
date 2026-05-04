@@ -4,8 +4,15 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Truck, Shield, RefreshCw, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
+import { useSEO } from '@/lib/useSEO';
 
 export default function Home() {
+  useSEO({
+    title: 'Vault 26 — Quiet luxury essentials, made in India',
+    description: 'A curated wardrobe of premium minimalist clothing — outerwear, shirts, trousers and knitwear. Free shipping over ₹999.',
+    image: 'https://lovable.dev/opengraph-image-p98pqg.png',
+    jsonLd: { '@context': 'https://schema.org', '@type': 'Store', name: 'Vault 26', url: typeof window !== 'undefined' ? window.location.origin : '' },
+  });
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [byBrand, setByBrand] = useState<Record<string, ProductCardData[]>>({});
