@@ -30,7 +30,6 @@ Deno.serve(async (req) => {
       .from("orders")
       .update({
         payment_status: "PAID",
-        status: "CONFIRMED",
         razorpay_order_id,
         razorpay_payment_id,
         cod_advance_paid: true,
