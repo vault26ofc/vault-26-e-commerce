@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
 import { toast } from 'sonner';
@@ -27,7 +28,7 @@ export default function AdminOrders() {
       </div>
       <div className="border border-border overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-secondary"><tr>{['Order','Email','Total','Payment','Status','Date'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
+          <thead className="bg-secondary"><tr>{['Order','Email','Total','Payment','Status','Date','Invoice'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map((o) => (
               <tr key={o.id} className="border-t border-border">
@@ -41,6 +42,7 @@ export default function AdminOrders() {
                   </select>
                 </td>
                 <td className="p-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                <td className="p-3"><Link to={`/invoice/${o.id}`} target="_blank" className="text-xs underline">Open</Link></td>
               </tr>
             ))}
           </tbody>
