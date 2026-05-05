@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Heart, ShoppingBag, Search, User, Menu, X } from 'lucide-react';
 import { useCart, useWishlist } from '@/lib/store';
 import { useAuth } from '@/lib/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const NAV = [
-  { label: 'New', to: '/category/shirts' },
-  { label: 'Outerwear', to: '/category/outerwear' },
-  { label: 'Shirts', to: '/category/shirts' },
-  { label: 'Trousers', to: '/category/trousers' },
-  { label: 'Knitwear', to: '/category/knitwear' },
-  { label: 'Brands', to: '/brand/vault-noir' },
+  { label: 'New Drops', to: '/category/shirts' },
+  { label: 'Men', to: '/category/men' },
+  { label: 'Women', to: '/category/women' },
+  { label: 'Lookbook', to: '#lookbook' },
+  { label: 'About', to: '#about' },
 ];
+
+const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
 export default function Navbar() {
   const cartCount = useCart((s) => s.items.reduce((n, i) => n + i.quantity, 0));
@@ -24,84 +25,194 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState('');
-  const [announcement, setAnnouncement] = useState<{ text: string; active: boolean } | null>(null);
-  const [bannerVisible, setBannerVisible] = useState(true);
   const navigate = useNavigate();
+  const loc = useLocation();
+  const isHome = loc.pathname === '/';
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => setScrolled(window.scrollY > 60);
     onScroll();
-    window.addEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    supabase.from('settings').select('value').eq('key', 'announcement').maybeSingle().then(({ data }) => {
-      if (data?.value) setAnnouncement(data.value as any);
-    });
-  }, []);
+  const showGlass = scrolled || !isHome;
 
   return (
     <>
-      {announcement?.active && bannerVisible && (
-        <div className="bg-primary text-primary-foreground text-xs py-2 px-4 flex items-center justify-center gap-3 relative">
-          <span className="tracking-wide">{announcement.text}</span>
-          <button onClick={() => setBannerVisible(false)} className="absolute right-3 opacity-70 hover:opacity-100"><X className="h-3 w-3" /></button>
-        </div>
-      )}
-      <header className={cn('sticky top-0 z-40 backdrop-blur transition-all', scrolled ? 'bg-background/90 border-b border-border' : 'bg-background/70')}>
-        <div className="container-px h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 lg:hidden">
-            <button onClick={() => setMobileOpen(true)} aria-label="Menu"><Menu className="h-5 w-5" /></button>
-          </div>
-          <Link to="/" className="font-display text-xl tracking-[0.15em] uppercase">Vault 26</Link>
-          <nav className="hidden lg:flex items-center gap-7 text-sm">
-            {NAV.map((n) => (
-              <NavLink key={n.label} to={n.to} className={({ isActive }) => cn('link-underline tracking-wide', isActive && 'text-accent')}>{n.label}</NavLink>
-            ))}
+      <header 
+        className={cn(
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
+          showGlass ? 'bg-white/85 backdrop-blur-xl border-b border-black/5 py-4' : 'bg-transparent py-7'
+        )}
+      >
+        <div className="container-px flex items-center justify-between">
+          
+          {/* Brand */}
+          <Link to="/" className="flex items-center h-10 md:h-16 group">
+            <img 
+              src={LOGO_URL} 
+              alt="VAULT 26" 
+              className={cn(
+                "h-full w-auto object-contain transition-all duration-500",
+                showGlass ? "brightness-0" : "brightness-0 invert"
+              )}
+            />
+          </Link>
+
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center gap-10">
+            {NAV.map((n) => {
+              const isHash = n.to.startsWith('#');
+              return (
+                <NavLink 
+                  key={n.label} 
+                  to={isHash && isHome ? n.to : isHash ? `/${n.to}` : n.to}
+                  onClick={(e) => {
+                    if (isHash && isHome) {
+                      e.preventDefault();
+                      const el = document.querySelector(n.to);
+                      el?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className={({ isActive }) => cn(
+                    "relative text-[12px] font-ui font-light tracking-[0.25em] uppercase transition-colors duration-300 group py-1",
+                    showGlass ? "text-black/60 hover:text-black" : "text-white/80 hover:text-white",
+                    isActive && !isHash && (showGlass ? "text-black" : "text-white")
+                  )}
+                >
+                  {n.label}
+                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-accent group-hover:w-full transition-all duration-400" />
+                </NavLink>
+              );
+            })}
           </nav>
-          <div className="flex items-center gap-4">
-            <button onClick={() => setSearchOpen((v) => !v)} aria-label="Search" className="btn-press"><Search className="h-5 w-5" /></button>
-            <Link to="/wishlist" aria-label="Wishlist" className="relative btn-press hidden md:block">
-              <Heart className="h-5 w-5" />
-              {wishCount > 0 && <span className="absolute -top-1.5 -right-1.5 bg-accent text-accent-foreground text-[10px] h-4 w-4 rounded-full flex items-center justify-center">{wishCount}</span>}
+
+          {/* Right Utilities */}
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => setSearchOpen(true)}
+              className={cn(
+                "flex items-center gap-2 transition-colors duration-300 group",
+                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+              )}
+              aria-label="Search"
+            >
+              <Search className="w-4 h-4" strokeWidth={1.5} />
+              <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">Search</span>
+            </button>
+
+            <div className={cn("hidden md:block w-[1px] h-4 transition-colors duration-500", showGlass ? "bg-black/10" : "bg-white/20")} />
+
+            <Link 
+              to="/wishlist" 
+              className={cn(
+                "relative flex items-center gap-2 transition-colors duration-300 hidden md:flex",
+                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+              )}
+            >
+              <Heart className="w-4 h-4" strokeWidth={1.5} />
+              {wishCount > 0 && <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] h-3 w-3 rounded-full flex items-center justify-center font-bold">{wishCount}</span>}
             </Link>
-            <Link to={user ? '/account' : '/login'} aria-label="Account" className="btn-press hidden md:block"><User className="h-5 w-5" /></Link>
-            <button onClick={() => setDrawer(true)} aria-label="Cart" className="relative btn-press">
-              <ShoppingBag className="h-5 w-5" />
-              {cartCount > 0 && <span className="absolute -top-1.5 -right-1.5 bg-accent text-accent-foreground text-[10px] h-4 w-4 rounded-full flex items-center justify-center">{cartCount}</span>}
+
+            <button 
+              onClick={() => setDrawer(true)}
+              className={cn(
+                "relative flex items-center gap-2 transition-colors duration-300",
+                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+              )}
+              aria-label="Bag"
+            >
+              <ShoppingBag className="w-4 h-4" strokeWidth={1.5} />
+              <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">Bag</span>
+              {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] h-3 w-3 rounded-full flex items-center justify-center font-bold">{cartCount}</span>}
+            </button>
+
+            <button 
+              onClick={() => setMobileOpen(true)} 
+              className={cn("lg:hidden transition-colors", showGlass ? "text-black" : "text-white")}
+            >
+              <Menu className="w-6 h-6" />
             </button>
           </div>
         </div>
-        {searchOpen && (
-          <div className="border-t border-border bg-background">
-            <form
-              onSubmit={(e) => { e.preventDefault(); navigate(`/search?q=${encodeURIComponent(q)}`); setSearchOpen(false); }}
-              className="container-px py-4 flex items-center gap-3">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Vault 26…" className="flex-1 bg-transparent outline-none text-sm" />
-              <button type="button" onClick={() => setSearchOpen(false)} className="text-xs eyebrow">Close</button>
-            </form>
-          </div>
-        )}
+
+        {/* Search Overlay */}
+        <AnimatePresence>
+          {searchOpen && (
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="absolute inset-0 bg-white z-[60] flex items-center px-6 lg:px-20"
+            >
+              <Search className="w-5 h-5 text-black/30" />
+              <form 
+                className="flex-1 h-full"
+                onSubmit={(e) => { 
+                  e.preventDefault(); 
+                  if (q.trim()) {
+                    navigate(`/search?q=${encodeURIComponent(q.trim())}`); 
+                    setSearchOpen(false); 
+                    setQ('');
+                  }
+                }}
+              >
+                <input 
+                  autoFocus
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder="SEARCH THE ARCHIVE..." 
+                  className="w-full h-full bg-transparent border-none outline-none text-[12px] tracking-[0.3em] px-6 font-ui font-bold uppercase"
+                />
+              </form>
+              <button 
+                onClick={() => setSearchOpen(false)} 
+                className="text-[10px] tracking-[0.2em] font-ui uppercase font-bold text-black/40 hover:text-accent transition-colors"
+              >
+                Close
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
       </header>
 
-      {/* Mobile drawer */}
-      {mobileOpen && (
-        <div className="fixed inset-0 z-50 bg-background animate-fade-up">
-          <div className="container-px h-16 flex items-center justify-between border-b border-border">
-            <span className="font-display text-xl tracking-[0.15em] uppercase">Vault 26</span>
-            <button onClick={() => setMobileOpen(false)}><X className="h-5 w-5" /></button>
-          </div>
-          <nav className="container-px py-8 flex flex-col gap-5 text-2xl font-display">
-            {NAV.map((n) => (
-              <Link key={n.label} to={n.to} onClick={() => setMobileOpen(false)} className="border-b border-border pb-3">{n.label}</Link>
-            ))}
-            <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="border-b border-border pb-3">Wishlist</Link>
-            <Link to={user ? '/account' : '/login'} onClick={() => setMobileOpen(false)} className="border-b border-border pb-3">{user ? 'Account' : 'Sign in'}</Link>
-          </nav>
-        </div>
-      )}
+
+
+      {/* Mobile Nav Overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[60] bg-white flex flex-col"
+          >
+            <div className="container-px py-7 flex items-center justify-between border-b border-black/5">
+              <img src={LOGO_URL} alt="VAULT 26" className="h-10 w-auto brightness-0" />
+              <button onClick={() => setMobileOpen(false)}><X className="w-6 h-6" /></button>
+            </div>
+            <nav className="container-px py-12 flex flex-col gap-8">
+              {NAV.map((n) => (
+                <Link 
+                  key={n.label} 
+                  to={n.to} 
+                  onClick={() => setMobileOpen(false)}
+                  className="text-4xl font-display font-light tracking-tight hover:text-accent transition-colors"
+                >
+                  {n.label}
+                </Link>
+              ))}
+              <div className="h-px bg-black/5 my-4" />
+              <Link to="/account" onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">Account</Link>
+              <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">Wishlist</Link>
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
+

@@ -13,13 +13,13 @@ export default function StoreLayout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout" initial={false}>
         <motion.main
           key={loc.pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.25 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
           className="flex-1 pb-20 lg:pb-0"
         >
           <Outlet />
