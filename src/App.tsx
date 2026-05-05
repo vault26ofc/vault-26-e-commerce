@@ -18,6 +18,8 @@ import Dashboard from "@/pages/admin/Dashboard";
 import AdminOrders from "@/pages/admin/AdminOrders";
 import AdminProducts from "@/pages/admin/AdminProducts";
 import { AdminCoupons, AdminCustomers, AdminSettings } from "@/pages/admin/AdminMisc";
+import AdminInvoiceTemplate from "@/pages/admin/AdminInvoiceTemplate";
+import Invoice from "@/pages/Invoice";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,12 +46,14 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
+          <Route path="/invoice/:id" element={<Invoice />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="invoice-template" element={<AdminInvoiceTemplate />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
-import { LayoutDashboard, ShoppingBag, Package, Tag, Users, Settings as SettingsIcon, Ticket } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Tag, Users, Settings as SettingsIcon, Ticket, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -10,6 +10,7 @@ const NAV = [
   { to: '/admin/products', icon: Package, label: 'Products' },
   { to: '/admin/coupons', icon: Ticket, label: 'Coupons' },
   { to: '/admin/customers', icon: Users, label: 'Customers' },
+  { to: '/admin/invoice-template', icon: FileText, label: 'Invoice' },
   { to: '/admin/settings', icon: SettingsIcon, label: 'Settings' },
 ];
 
