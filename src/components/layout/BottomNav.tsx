@@ -12,16 +12,31 @@ const items = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-30 lg:hidden bg-background/95 backdrop-blur border-t border-border">
-      <div className="grid grid-cols-5">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] lg:hidden bg-white/80 backdrop-blur-xl border-t border-black/5 pb-2">
+      <div className="grid grid-cols-5 h-16">
         {items.map((it) => (
-          <NavLink key={it.label} to={it.to} end={it.to === '/'}
-            className={({ isActive }) => cn('flex flex-col items-center justify-center py-2.5 text-[10px] gap-1', isActive ? 'text-accent' : 'text-muted-foreground')}>
-            <it.icon className="h-4.5 w-4.5" />
-            <span className="uppercase tracking-wider">{it.label}</span>
+          <NavLink 
+            key={it.label} 
+            to={it.to} 
+            end={it.to === '/'}
+            className={({ isActive }) => cn(
+              'flex flex-col items-center justify-center gap-1 transition-all duration-300 relative h-full', 
+              isActive ? 'text-accent' : 'text-black/30 hover:text-black'
+            )}
+          >
+            {({ isActive }) => (
+              <>
+                <it.icon className="h-5 w-5" strokeWidth={isActive ? 2 : 1.5} />
+                <span className="text-[9px] font-ui font-bold uppercase tracking-[0.2em]">{it.label}</span>
+                {isActive && (
+                  <div className="absolute bottom-1 w-1 h-1 rounded-full bg-accent" />
+                )}
+              </>
+            )}
           </NavLink>
         ))}
       </div>
     </nav>
   );
 }
+

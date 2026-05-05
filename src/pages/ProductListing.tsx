@@ -4,12 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Mode = 'category' | 'brand' | 'search';
 
 export default function ProductListing({ mode }: { mode: Mode }) {
   useSEO({
-    title: 'Shop — Vault 26',
+    title: 'Archive — Shop Vault 26',
     description: 'Browse the latest premium clothing pieces from Vault 26.',
   });
   const { slug } = useParams();
@@ -57,53 +58,113 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   }, [slug, mode, q, sort, maxPrice]);
 
   return (
-    <div className="container-px py-10">
-      <div className="mb-8">
-        <span className="eyebrow">{mode === 'brand' ? 'Brand' : mode === 'search' ? 'Search' : 'Category'}</span>
-        <h1 className="display-2 mt-2">{title}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{products.length} {products.length === 1 ? 'piece' : 'pieces'}</p>
+    <div className="container-px py-24 min-h-screen bg-white">
+      <div className="mb-12">
+        <span className="eyebrow block mb-4">{mode === 'brand' ? 'Brand Archive' : mode === 'search' ? 'Search Results' : 'Category Archive'}</span>
+        <h1 className="display-2 font-elegant font-light uppercase tracking-tight">{title}</h1>
+        <p className="text-[11px] tracking-[0.2em] font-ui text-black/40 mt-4 uppercase">{products.length} {products.length === 1 ? 'piece' : 'pieces'} FOUND IN ARCHIVE</p>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-y border-border py-3 mb-8 sticky top-16 bg-background/90 backdrop-blur z-20">
-        <button onClick={() => setFiltersOpen(true)} className="inline-flex items-center gap-2 text-xs uppercase tracking-widest">
+      <div className="flex items-center justify-between gap-3 border-y border-black/5 py-6 mb-12 sticky top-[80px] bg-white/90 backdrop-blur-xl z-20">
+        <button 
+          onClick={() => setFiltersOpen(true)} 
+          className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold hover:text-accent transition-colors"
+        >
           <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
         </button>
-        <select value={sort} onChange={(e) => setSort(e.target.value as any)}
-          className="bg-transparent text-xs uppercase tracking-widest outline-none cursor-pointer">
-          <option value="newest">Newest</option>
-          <option value="price_asc">Price: Low → High</option>
-          <option value="price_desc">Price: High → Low</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] tracking-[0.3em] font-ui font-light text-black/30 hidden md:block">SORT BY:</span>
+          <select 
+            value={sort} 
+            onChange={(e) => setSort(e.target.value as any)}
+            className="bg-transparent text-[10px] tracking-[0.3em] font-ui font-bold uppercase outline-none cursor-pointer hover:text-accent transition-colors"
+          >
+            <option value="newest">Latest Drops</option>
+            <option value="price_asc">Price: Low → High</option>
+            <option value="price_desc">Price: High → Low</option>
+          </select>
+        </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] bg-muted animate-pulse" />)}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-4 animate-pulse">
+              <div className="aspect-[3/4] bg-muted" />
+              <div className="h-4 bg-muted w-3/4" />
+              <div className="h-4 bg-muted w-1/4" />
+            </div>
+          ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="text-center py-20 text-muted-foreground">No pieces match — try another filter.</div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10">
-          {products.map((p) => <ProductCard key={p.id} p={p} />)}
+        <div className="text-center py-40">
+           <p className="text-sm font-ui font-light tracking-[0.2em] text-black/40 uppercase">No pieces match — try another filter.</p>
         </div>
+      ) : (
+        <motion.div 
+          layout
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16"
+        >
+          {products.map((p) => <ProductCard key={p.id} p={p} />)}
+        </motion.div>
       )}
 
-      {filtersOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setFiltersOpen(false)}>
-          <aside onClick={(e) => e.stopPropagation()} className="absolute right-0 top-0 h-full w-full sm:w-[380px] bg-background p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-              <span className="font-display text-lg">Filters</span>
-              <button onClick={() => setFiltersOpen(false)}><X className="h-5 w-5" /></button>
-            </div>
-            <div>
-              <div className="eyebrow mb-2">Max price</div>
-              <input type="range" min={500} max={20000} step={500} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-foreground" />
-              <div className="text-sm mt-1">Up to ₹{maxPrice.toLocaleString('en-IN')}</div>
-            </div>
-            <button onClick={() => setFiltersOpen(false)} className="mt-auto bg-foreground text-background py-3 text-xs uppercase tracking-widest">Show {products.length} pieces</button>
-          </aside>
-        </div>
-      )}
+      {/* Filters Sidebar */}
+      <AnimatePresence>
+        {filtersOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm" 
+              onClick={() => setFiltersOpen(false)} 
+            />
+            <motion.aside 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()} 
+              className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white z-[70] p-10 flex flex-col shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-12 border-b border-black/5 pb-8">
+                <span className="text-[12px] tracking-[0.4em] uppercase font-ui font-bold">Filter Archive</span>
+                <button 
+                  onClick={() => setFiltersOpen(false)}
+                  className="hover:rotate-90 transition-transform duration-500"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-12">
+                <div>
+                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-6 text-black/40">Maximum Value</div>
+                  <input 
+                    type="range" 
+                    min={500} 
+                    max={20000} 
+                    step={500} 
+                    value={maxPrice} 
+                    onChange={(e) => setMaxPrice(Number(e.target.value))} 
+                    className="w-full h-1 bg-black/10 rounded-full appearance-none cursor-pointer accent-accent" 
+                  />
+                  <div className="text-xl font-elegant font-light mt-4 italic">Up to ₹{maxPrice.toLocaleString('en-IN')}</div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setFiltersOpen(false)} 
+                className="mt-auto bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
+              >
+                Refine {products.length} Pieces
+              </button>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+

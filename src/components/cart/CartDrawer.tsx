@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X, Minus, Plus, Trash2 } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/lib/store';
 import { inr } from '@/lib/format';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export default function CartDrawer() {
   const { items, drawerOpen, setDrawer, setQty, remove, couponCode, setCoupon, subtotal } = useCart();
@@ -28,7 +29,6 @@ export default function CartDrawer() {
   const total = Math.max(0, sub - discount) + shipping;
 
   useEffect(() => {
-    // recompute discount when coupon or subtotal changes
     if (!couponCode) { setDiscount(0); return; }
     supabase.from('coupons').select('*').eq('code', couponCode).eq('is_active', true).maybeSingle().then(({ data }) => {
       if (!data) { setDiscount(0); return; }
@@ -41,83 +41,180 @@ export default function CartDrawer() {
   const apply = async () => {
     if (!code.trim()) return;
     const { data } = await supabase.from('coupons').select('*').eq('code', code.trim().toUpperCase()).eq('is_active', true).maybeSingle();
-    if (!data) { toast.error('Invalid coupon'); return; }
+    if (!data) { toast.error('Invalid Voucher'); return; }
     if (sub < Number(data.min_order)) { toast.error(`Minimum order ${inr(Number(data.min_order))}`); return; }
     setCoupon(data.code);
-    toast.success(`Coupon applied — saved ${data.type === 'PERCENT' ? data.value + '%' : inr(Number(data.value))}`);
+    toast.success(`Voucher Applied: ${data.type === 'PERCENT' ? data.value + '%' : inr(Number(data.value))} reduction`);
   };
 
   return (
     <AnimatePresence>
       {drawerOpen && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={() => setDrawer(false)} className="fixed inset-0 bg-black/50 z-50" />
-          <motion.aside initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-            className="fixed top-0 right-0 h-full w-full sm:w-[440px] bg-background z-50 flex flex-col">
-            <div className="flex items-center justify-between p-5 border-b border-border">
-              <div className="font-display text-lg">Your Bag <span className="text-muted-foreground text-sm">({items.length})</span></div>
-              <button onClick={() => setDrawer(false)}><X className="h-5 w-5" /></button>
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            onClick={() => setDrawer(false)} 
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]" 
+          />
+          <motion.aside 
+            initial={{ x: '100%' }} 
+            animate={{ x: 0 }} 
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white z-[101] flex flex-col shadow-2xl"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-8 border-b border-black/5">
+              <div className="flex items-center gap-4">
+                <span className="text-[12px] tracking-[0.5em] font-ui font-bold uppercase">Archive Selection</span>
+                <span className="h-5 w-5 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">{items.length}</span>
+              </div>
+              <button 
+                onClick={() => setDrawer(false)}
+                className="hover:rotate-90 transition-transform duration-500"
+              >
+                <X className="h-6 w-6" />
+              </button>
             </div>
+
             {items.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-10 text-center gap-3">
-                <p className="text-muted-foreground">Your bag is empty.</p>
-                <Link to="/category/shirts" onClick={() => setDrawer(false)} className="text-sm uppercase tracking-widest border-b border-foreground pb-1">Continue Shopping</Link>
+              <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+                <div className="w-16 h-16 border border-black/5 rounded-full flex items-center justify-center mb-8">
+                  <ShoppingBag className="w-6 h-6 text-black/20" strokeWidth={1} />
+                </div>
+                <h3 className="text-xl font-elegant font-light italic mb-4">Your archive is empty</h3>
+                <p className="text-[10px] tracking-[0.2em] text-black/40 uppercase font-ui mb-10">Select pieces to add to your collection</p>
+                <Link 
+                  to="/category/shirts" 
+                  onClick={() => setDrawer(false)} 
+                  className="border border-black px-12 py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500"
+                >
+                  Explore Drops
+                </Link>
               </div>
             ) : (
               <>
-                <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
                   {items.map((it) => (
-                    <div key={it.variantId} className="flex gap-4">
-                      <Link to={`/products/${it.slug}`} onClick={() => setDrawer(false)} className="w-20 h-24 bg-muted shrink-0 overflow-hidden">
-                        <img src={it.image} alt={it.name} className="w-full h-full object-cover" />
+                    <div key={it.variantId} className="group flex gap-6">
+                      <Link 
+                        to={`/products/${it.slug}`} 
+                        onClick={() => setDrawer(false)} 
+                        className="w-24 aspect-[3/4] bg-muted overflow-hidden flex-shrink-0"
+                      >
+                        <img 
+                          src={it.image} 
+                          alt={it.name} 
+                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110" 
+                        />
                       </Link>
-                      <div className="flex-1 flex flex-col">
-                        <div className="flex justify-between gap-2">
+                      <div className="flex-1 flex flex-col py-1">
+                        <div className="flex justify-between items-start gap-4 mb-2">
                           <div>
-                            {it.brand && <div className="eyebrow">{it.brand}</div>}
-                            <Link to={`/products/${it.slug}`} onClick={() => setDrawer(false)} className="text-sm font-medium leading-tight">{it.name}</Link>
-                            <div className="text-xs text-muted-foreground mt-0.5">{[it.size, it.color].filter(Boolean).join(' · ')}</div>
+                            {it.brand && <div className="text-[9px] tracking-[0.3em] font-ui font-bold text-accent mb-1 uppercase">{it.brand}</div>}
+                            <Link 
+                              to={`/products/${it.slug}`} 
+                              onClick={() => setDrawer(false)} 
+                              className="text-[12px] font-ui font-bold tracking-[0.1em] uppercase leading-tight hover:text-accent transition-colors"
+                            >
+                              {it.name}
+                            </Link>
+                            <div className="text-[10px] text-black/40 mt-1 uppercase tracking-[0.1em] font-ui">
+                              {[it.size, it.color].filter(Boolean).join(' // ')}
+                            </div>
                           </div>
-                          <button onClick={() => remove(it.variantId)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                          <button 
+                            onClick={() => remove(it.variantId)} 
+                            className="text-black/20 hover:text-accent transition-colors p-1"
+                          >
+                            <Trash2 className="h-4 w-4" strokeWidth={1} />
+                          </button>
                         </div>
                         <div className="mt-auto flex items-center justify-between">
-                          <div className="inline-flex items-center border border-border">
-                            <button onClick={() => setQty(it.variantId, it.quantity - 1)} className="p-1.5"><Minus className="h-3 w-3" /></button>
-                            <span className="px-3 text-sm">{it.quantity}</span>
-                            <button onClick={() => setQty(it.variantId, it.quantity + 1)} className="p-1.5"><Plus className="h-3 w-3" /></button>
+                          <div className="flex items-center border border-black/5 bg-muted/30">
+                            <button 
+                              onClick={() => setQty(it.variantId, it.quantity - 1)} 
+                              className="p-2 hover:bg-black/5 transition-colors"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </button>
+                            <span className="w-8 text-center text-[11px] font-bold font-ui">{it.quantity}</span>
+                            <button 
+                              onClick={() => setQty(it.variantId, it.quantity + 1)} 
+                              className="p-2 hover:bg-black/5 transition-colors"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
                           </div>
-                          <div className="text-sm font-medium">{inr(it.price * it.quantity)}</div>
+                          <div className="text-[12px] font-ui font-bold">{inr(it.price * it.quantity)}</div>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-border p-5 space-y-3">
-                  <div className="flex gap-2">
-                    <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Coupon code"
-                      className="flex-1 border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-foreground" />
-                    <button onClick={apply} className="px-4 text-xs uppercase tracking-widest bg-foreground text-background btn-press">Apply</button>
+
+                <div className="p-8 bg-muted/30 border-t border-black/5 space-y-6">
+                  <div className="flex gap-4">
+                    <input 
+                      value={code} 
+                      onChange={(e) => setCode(e.target.value.toUpperCase())} 
+                      placeholder="ARCHIVE_VOUCHER"
+                      className="flex-1 bg-white border border-black/5 px-4 py-3 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/20" 
+                    />
+                    <button 
+                      onClick={apply} 
+                      className="px-6 bg-black text-white text-[10px] tracking-[0.3em] uppercase font-ui font-bold hover:bg-accent transition-colors"
+                    >
+                      Apply
+                    </button>
                   </div>
+                  
                   {couponCode && (
-                    <div className="text-xs flex justify-between items-center">
-                      <span className="text-accent">{couponCode} applied</span>
-                      <button onClick={() => { setCoupon(null); setCode(''); }} className="text-muted-foreground underline">Remove</button>
+                    <div className="flex items-center justify-between bg-accent/5 p-3">
+                      <span className="text-[10px] tracking-[0.1em] font-ui font-bold text-accent uppercase">{couponCode} ACTIVATED</span>
+                      <button 
+                        onClick={() => { setCoupon(null); setCode(''); }} 
+                        className="text-[9px] tracking-[0.2em] font-ui font-bold text-black/30 hover:text-black uppercase"
+                      >
+                        Dismiss
+                      </button>
                     </div>
                   )}
-                  <div className="space-y-1.5 text-sm border-t border-border pt-3">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{inr(sub)}</span></div>
-                    {discount > 0 && <div className="flex justify-between text-accent"><span>Discount</span><span>−{inr(discount)}</span></div>}
-                    <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? 'Free' : inr(shipping)}</span></div>
-                    <div className="flex justify-between font-medium text-base pt-2 border-t border-border">
-                      <span>Total</span><span>{inr(total)}</span>
+
+                  <div className="space-y-3 pt-2">
+                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/40">
+                      <span>Selection Subtotal</span>
+                      <span className="text-black">{inr(sub)}</span>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-accent">
+                        <span>Voucher Credit</span>
+                        <span>−{inr(discount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/40">
+                      <span>Logistics Estimate</span>
+                      <span className="text-black">{shipping === 0 ? 'COMPLIMENTARY' : inr(shipping)}</span>
+                    </div>
+                    <div className="flex justify-between items-end pt-6 mt-4 border-t border-black">
+                      <span className="text-[12px] tracking-[0.4em] uppercase font-ui font-bold">Total Archive Value</span>
+                      <span className="text-2xl font-ui font-bold tracking-tighter">{inr(total)}</span>
                     </div>
                   </div>
-                  <Link to="/checkout" onClick={() => setDrawer(false)}
-                    className="block w-full text-center bg-foreground text-background py-3.5 text-sm uppercase tracking-widest btn-press hover:bg-accent hover:text-accent-foreground transition-colors">
-                    Proceed to Checkout
+
+                  <Link 
+                    to="/checkout" 
+                    onClick={() => setDrawer(false)}
+                    className="flex items-center justify-center gap-4 w-full bg-black text-white py-6 text-[11px] tracking-[0.5em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 shadow-xl"
+                  >
+                    Secure Order <ArrowRight className="w-4 h-4" />
                   </Link>
+                  
+                  <p className="text-[9px] text-center tracking-[0.3em] text-black/20 uppercase font-ui pb-2">
+                    Tax included // Shipping calculated at next step
+                  </p>
                 </div>
               </>
             )}
@@ -127,3 +224,4 @@ export default function CartDrawer() {
     </AnimatePresence>
   );
 }
+

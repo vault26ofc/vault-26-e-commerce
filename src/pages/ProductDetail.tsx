@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import { cn } from '@/lib/utils';
 import { useSEO } from '@/lib/useSEO';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProductDetail() {
   const { slug } = useParams();
@@ -26,8 +27,14 @@ export default function ProductDetail() {
   useEffect(() => {
     (async () => {
       if (!slug) return;
-      const { data: p } = await supabase.from('products').select('*, brands(name, slug), categories(name, slug, id), product_variants(*)').eq('slug', slug).maybeSingle();
-      if (!p) return;
+      setProduct(null);
+      const { data: p, error } = await supabase.from('products').select('*, brands(name, slug), categories(name, slug, id), product_variants(*)').eq('slug', slug).maybeSingle();
+      
+      if (error || !p) {
+        navigate('/404', { replace: true });
+        return;
+      }
+
       setProduct(p);
       setVariants((p as any).product_variants || []);
       setActiveImg(0);
@@ -44,7 +51,7 @@ export default function ProductDetail() {
         }));
       }
     })();
-  }, [slug]);
+  }, [slug, navigate]);
 
   const colors = useMemo(() => {
     const map = new Map<string, string>();
@@ -55,26 +62,15 @@ export default function ProductDetail() {
   const sizesForColor = useMemo(() => variants.filter((v) => v.color === color), [variants, color]);
   const activeVariant = useMemo(() => variants.find((v) => v.color === color && v.size === size), [variants, color, size]);
   const minPrice = useMemo(() => Math.min(...variants.map((v) => Number(v.price))), [variants]);
-  const minCompare = useMemo(() => {
-    const cp = variants.map((v) => v.compare_price ? Number(v.compare_price) : null).filter(Boolean) as number[];
-    return cp.length ? Math.min(...cp) : null;
-  }, [variants]);
 
   useSEO(product ? {
-    title: `${product.name} — Vault 26`,
+    title: `${product.name} — Vault 26 ARCHIVE`,
     description: (product.description || `Shop ${product.name} from Vault 26.`).slice(0, 160),
     image: product.images?.[0],
-    type: 'product',
-    jsonLd: {
-      '@context': 'https://schema.org', '@type': 'Product',
-      name: product.name, image: product.images, description: product.description,
-      brand: product.brands?.name ? { '@type': 'Brand', name: product.brands.name } : undefined,
-      offers: { '@type': 'Offer', priceCurrency: 'INR', price: minPrice, availability: variants.some((v: any) => v.stock > 0) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' },
-    },
   } : { title: 'Loading… — Vault 26' });
 
   if (!product) {
-    return <div className="container-px py-20 grid lg:grid-cols-2 gap-10"><div className="aspect-[3/4] bg-muted animate-pulse" /><div className="space-y-4"><div className="h-6 w-32 bg-muted animate-pulse" /><div className="h-10 w-3/4 bg-muted animate-pulse" /></div></div>;
+    return <div className="container-px py-40 grid lg:grid-cols-2 gap-20 animate-pulse"><div className="aspect-[3/4] bg-muted" /><div className="space-y-8"><div className="h-4 bg-muted w-32" /><div className="h-12 bg-muted w-3/4" /></div></div>;
   }
 
   const wished = ids.includes(product.id);
@@ -100,23 +96,30 @@ export default function ProductDetail() {
 
   const buyNow = () => { addToCart(); setTimeout(() => navigate('/checkout'), 100); };
 
-  const share = async () => {
-    const url = window.location.href;
-    if (navigator.share) { try { await navigator.share({ title: product.name, url }); } catch {} }
-    else { navigator.clipboard.writeText(url); toast.success('Link copied'); }
-  };
-
   return (
-    <div className="container-px py-8">
-      <div className="grid lg:grid-cols-2 gap-10">
-        <div>
-          <div className="aspect-[3/4] bg-muted overflow-hidden">
+    <div className="container-px py-24 min-h-screen bg-white">
+      <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+        {/* Visuals */}
+        <div className="space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="aspect-[3/4] bg-muted overflow-hidden"
+          >
             <img src={product.images[activeImg]} alt={product.name} className="w-full h-full object-cover" />
-          </div>
+          </motion.div>
           {product.images.length > 1 && (
-            <div className="mt-3 flex gap-2">
+            <div className="grid grid-cols-4 gap-4">
               {product.images.map((img: string, i: number) => (
-                <button key={i} onClick={() => setActiveImg(i)} className={cn('w-20 aspect-[3/4] overflow-hidden border', activeImg === i ? 'border-foreground' : 'border-transparent')}>
+                <button 
+                  key={i} 
+                  onClick={() => setActiveImg(i)} 
+                  className={cn(
+                    'aspect-[3/4] overflow-hidden transition-all duration-500', 
+                    activeImg === i ? 'ring-1 ring-black ring-offset-4' : 'opacity-60 hover:opacity-100'
+                  )}
+                >
                   <img src={img} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -124,93 +127,157 @@ export default function ProductDetail() {
           )}
         </div>
 
-        <div className="lg:sticky lg:top-24 self-start">
-          {product.brands?.name && <Link to={`/brand/${product.brands.slug}`} className="eyebrow link-underline">{product.brands.name}</Link>}
-          <h1 className="font-display text-3xl md:text-4xl mt-2">{product.name}</h1>
-          <div className="mt-3 flex items-center gap-3">
-            <span className="text-xl font-medium">{inr(activeVariant ? Number(activeVariant.price) : minPrice)}</span>
-            {(activeVariant?.compare_price || minCompare) && (
-              <span className="text-muted-foreground line-through text-sm">{inr(Number(activeVariant?.compare_price || minCompare))}</span>
+        {/* Info */}
+        <div className="flex flex-col">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {product.brands?.name && (
+              <Link to={`/brand/${product.brands.slug}`} className="text-[11px] tracking-[0.4em] uppercase font-ui font-bold text-accent mb-4 block">
+                {product.brands.name}
+              </Link>
             )}
-          </div>
-
-          {colors.length > 1 && (
-            <div className="mt-7">
-              <div className="eyebrow mb-2">Color · <span className="text-foreground">{color}</span></div>
-              <div className="flex gap-2">
-                {colors.map((c) => (
-                  <button key={c.color} onClick={() => { setColor(c.color); setSize(null); }}
-                    className={cn('h-9 w-9 rounded-full border-2 transition-all', color === c.color ? 'border-foreground scale-110' : 'border-border')}
-                    style={{ backgroundColor: c.hex }} aria-label={c.color} />
-                ))}
-              </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-elegant font-light tracking-tight mb-6">
+              {product.name}
+            </h1>
+            <div className="flex items-center gap-4 mb-10">
+              <span className="text-2xl font-ui font-bold tracking-tight">
+                {inr(activeVariant ? Number(activeVariant.price) : minPrice)}
+              </span>
+              {(activeVariant?.compare_price || product.product_variants?.[0]?.compare_price) && (
+                <span className="text-black/30 line-through text-sm font-ui tracking-tight italic">
+                  {inr(Number(activeVariant?.compare_price || product.product_variants[0].compare_price))}
+                </span>
+              )}
             </div>
-          )}
 
-          {sizesForColor.length > 0 && (
-            <div className="mt-7">
-              <div className="flex items-center justify-between mb-2">
-                <span className="eyebrow">Size</span>
-                <button className="eyebrow link-underline">Size guide</button>
+            {/* Colors */}
+            {colors.length > 1 && (
+              <div className="mb-10">
+                <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 block">Archive Shade</span>
+                <div className="flex gap-4">
+                  {colors.map((c) => (
+                    <button 
+                      key={c.color} 
+                      onClick={() => { setColor(c.color); setSize(null); }}
+                      className={cn(
+                        'h-10 w-10 rounded-full border border-black/5 transition-all duration-500', 
+                        color === c.color ? 'scale-125 ring-1 ring-black ring-offset-4' : 'hover:scale-110'
+                      )}
+                      style={{ backgroundColor: c.hex }} 
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-5 gap-2">
-                {sizesForColor.map((v) => (
-                  <button key={v.id} onClick={() => v.stock > 0 && setSize(v.size)} disabled={v.stock === 0}
-                    className={cn('py-3 text-sm border transition-colors', size === v.size ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground', v.stock === 0 && 'opacity-40 line-through cursor-not-allowed')}>
-                    {v.size}
+            )}
+
+            {/* Sizes */}
+            {sizesForColor.length > 0 && (
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold">Silhouette / Size</span>
+                  <button className="text-[10px] tracking-[0.2em] uppercase font-ui font-bold border-b border-black pb-0.5">Guide</button>
+                </div>
+                <div className="grid grid-cols-5 gap-3">
+                  {sizesForColor.map((v) => (
+                    <button 
+                      key={v.id} 
+                      onClick={() => v.stock > 0 && setSize(v.size)} 
+                      disabled={v.stock === 0}
+                      className={cn(
+                        'py-4 text-[11px] font-ui font-bold tracking-[0.2em] border transition-all duration-500 uppercase', 
+                        size === v.size ? 'bg-black text-white border-black' : 'border-black/10 hover:border-black', 
+                        v.stock === 0 && 'opacity-20 line-through cursor-not-allowed'
+                      )}
+                    >
+                      {v.size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex flex-col gap-4 mb-12">
+              <div className="flex gap-4">
+                <button 
+                  onClick={addToCart} 
+                  className="flex-1 bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
+                >
+                  Secure Archive Piece
+                </button>
+                <button 
+                  onClick={() => toggle(product.id)}
+                  className="w-16 flex items-center justify-center border border-black/10 hover:border-black transition-colors duration-500"
+                >
+                  <Heart className={cn('h-5 w-5 transition-all', wished && 'fill-accent stroke-accent scale-110')} />
+                </button>
+              </div>
+              <button 
+                onClick={buyNow} 
+                className="w-full border border-black py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500"
+              >
+                Buy Now
+              </button>
+            </div>
+
+            {/* Content Tabs */}
+            <div className="border-t border-black/5">
+              <div className="flex gap-8 border-b border-black/5">
+                {[
+                  { id: 'desc', label: 'THE STORY' },
+                  { id: 'mat', label: 'MATERIAL' },
+                  { id: 'ship', label: 'SHIPPING' }
+                ].map(t => (
+                  <button 
+                    key={t.id} 
+                    onClick={() => setTab(t.id as any)}
+                    className={cn(
+                      'py-5 text-[10px] tracking-[0.3em] font-ui font-bold transition-all duration-500 relative',
+                      tab === t.id ? 'text-black' : 'text-black/30 hover:text-black'
+                    )}
+                  >
+                    {t.label}
+                    {tab === t.id && <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
                   </button>
                 ))}
               </div>
+              <div className="py-8 min-h-[120px]">
+                <p className="text-sm font-ui font-light text-black/50 leading-relaxed uppercase tracking-[0.05em]">
+                  {tab === 'desc' && (product.description || 'A signature Vault 26 piece, made for the everyday wardrobe.')}
+                  {tab === 'mat' && (<>{product.material} // Care: {product.care}</>)}
+                  {tab === 'ship' && (<>Free shipping on orders above ₹999. Dispatched within 24 hours. 7-day easy returns.</>)}
+                </p>
+              </div>
             </div>
-          )}
 
-          <div className="mt-7 flex items-center gap-3">
-            <div className="inline-flex border border-border">
-              <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2.5">−</button>
-              <span className="px-4 py-2.5 text-sm">{qty}</span>
-              <button onClick={() => setQty(qty + 1)} className="px-3 py-2.5">+</button>
-            </div>
-            <button onClick={() => toggle(product.id)} className="h-11 w-11 border border-border hover:border-foreground flex items-center justify-center btn-press">
-              <Heart className={cn('h-4 w-4', wished && 'fill-accent stroke-accent')} />
-            </button>
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <button onClick={addToCart} className="bg-foreground text-background py-4 text-xs uppercase tracking-widest btn-press hover:bg-accent hover:text-accent-foreground transition-colors">Add to Bag</button>
-            <button onClick={buyNow} className="border border-foreground py-4 text-xs uppercase tracking-widest btn-press hover:bg-foreground hover:text-background transition-colors">Buy Now</button>
-          </div>
-
-          <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
-            <button onClick={share} className="inline-flex items-center gap-1.5 link-underline"><Share2 className="h-3.5 w-3.5" /> Share</button>
-            <a href={`https://wa.me/919999999999?text=${encodeURIComponent(`Hi, I'm interested in ${product.name}`)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 link-underline"><MessageCircle className="h-3.5 w-3.5" /> WhatsApp enquiry</a>
-          </div>
-
-          {/* Tabs */}
-          <div className="mt-10 border-t border-border">
-            <div className="flex gap-7 border-b border-border">
-              {[['desc','Description'],['mat','Material & Care'],['ship','Shipping']].map(([k, l]) => (
-                <button key={k} onClick={() => setTab(k as any)} className={cn('py-4 text-xs uppercase tracking-widest', tab === k ? 'text-foreground border-b border-foreground -mb-px' : 'text-muted-foreground')}>{l}</button>
+            {/* Confidence Bar */}
+            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-black/5">
+              {[
+                { Icon: Truck, label: 'GLOBAL_SHIP' },
+                { Icon: RefreshCw, label: 'EASY_EXCHANGE' },
+                { Icon: Shield, label: 'SECURE_TRANS' }
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col items-center gap-3">
+                  <item.Icon className="h-4 w-4 text-black/20" strokeWidth={1} />
+                  <span className="text-[9px] tracking-[0.3em] font-ui font-bold text-black/20 uppercase">{item.label}</span>
+                </div>
               ))}
             </div>
-            <div className="py-5 text-sm text-muted-foreground leading-relaxed min-h-[80px]">
-              {tab === 'desc' && (product.description || 'A signature Vault 26 piece, made for the everyday wardrobe.')}
-              {tab === 'mat' && (<><div>{product.material}</div><div className="mt-2">Care: {product.care}</div></>)}
-              {tab === 'ship' && (<>Free shipping on orders above ₹999. Dispatched within 24 hours. 7-day easy returns.</>)}
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-3 gap-4 text-center text-xs text-muted-foreground">
-            <div className="flex flex-col items-center gap-1.5"><Truck className="h-4 w-4" /> Free shipping ₹999+</div>
-            <div className="flex flex-col items-center gap-1.5"><RefreshCw className="h-4 w-4" /> 7-day returns</div>
-            <div className="flex flex-col items-center gap-1.5"><Shield className="h-4 w-4" /> Secure checkout</div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
+      {/* Related Products */}
       {related.length > 0 && (
-        <section className="mt-24">
-          <h2 className="display-2 mb-8">You may also like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-10">
+        <section className="mt-32 border-t border-black/5 pt-24">
+          <div className="flex items-end justify-between mb-16">
+            <h2 className="display-2 font-elegant font-light italic">Related <span className="text-accent">Pieces</span></h2>
+            <Link to="/search" className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold border-b border-black pb-0.5">Explore All</Link>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-16">
             {related.map((p) => <ProductCard key={p.id} p={p} />)}
           </div>
         </section>
