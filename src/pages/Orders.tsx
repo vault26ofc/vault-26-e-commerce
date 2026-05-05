@@ -57,9 +57,14 @@ export function OrderDetail() {
   const stage = STATUS_LABELS.indexOf(o.status);
   return (
     <div className="container-px py-12 max-w-3xl">
-      <span className="eyebrow">{o.order_number}</span>
-      <h1 className="display-2 mt-2">Order details</h1>
-      <p className="text-sm text-muted-foreground mt-1">Placed on {new Date(o.created_at).toLocaleDateString()}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="eyebrow">{o.order_number}</span>
+          <h1 className="display-2 mt-2">Order details</h1>
+          <p className="text-sm text-muted-foreground mt-1">Placed on {new Date(o.created_at).toLocaleDateString()}</p>
+        </div>
+        <Link to={`/invoice/${o.id}`} target="_blank" className="text-xs uppercase tracking-widest border border-border px-3 py-2 hover:bg-secondary">View invoice</Link>
+      </div>
 
       {/* Timeline */}
       {o.status !== 'CANCELLED' && (
