@@ -57,8 +57,8 @@ export default function AdminInvoiceTemplate() {
 
   return (
     <div className="max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-3xl">Invoice Template</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 className="font-display text-2xl md:text-3xl">Invoice Template</h1>
         {sampleOrderId && (
           <Link
             to={`/invoice/${sampleOrderId}`}
@@ -116,7 +116,7 @@ export default function AdminInvoiceTemplate() {
 
       <button
         onClick={save}
-        className="mt-8 bg-foreground text-background px-6 py-3 text-xs uppercase tracking-widest"
+        className="mt-8 w-full sm:w-auto bg-foreground text-background px-10 py-4 text-xs uppercase tracking-widest hover:bg-accent transition-colors"
       >
         Save template
       </button>

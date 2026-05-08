@@ -48,22 +48,22 @@ export default function Home() {
                 ESTABLISHED MMXXVI // ARCHIVE 01
               </span>
               
-              <h1 className="text-6xl md:text-8xl lg:text-9xl leading-[0.9] text-white font-display mb-12 tracking-tighter">
+              <h1 className="text-5xl md:text-8xl lg:text-9xl leading-[0.9] text-white font-display mb-10 md:mb-12 tracking-tighter">
                 BEYOND <br />
-                <span className="italic ml-8 md:ml-16 font-elegant font-light">TRENDS.</span>
+                <span className="italic ml-6 md:ml-16 font-elegant font-light">TRENDS.</span>
               </h1>
 
               {/* Sleek Minimalist Search Bar (Glassmorphic) */}
-              <div className="relative w-full max-w-[500px] flex items-center h-14 bg-white/5 backdrop-blur-xl border border-white/10 group transition-all duration-500 hover:border-white/30">
-                <div className="pl-6 text-white/40 group-hover:text-accent transition-colors duration-300">
-                  <Search className="w-4 h-4" />
+              <div className="relative w-full max-w-[500px] flex items-center h-12 md:h-14 bg-white/5 backdrop-blur-xl border border-white/10 group transition-all duration-500 hover:border-white/30">
+                <div className="pl-4 md:pl-6 text-white/40 group-hover:text-accent transition-colors duration-300">
+                  <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </div>
                 <input
                   type="text"
                   placeholder="FIND YOUR PIECE..."
-                  className="w-full h-full bg-transparent border-none outline-none text-[11px] px-4 tracking-[0.2em] text-white placeholder:text-white/20 font-ui font-light"
+                  className="w-full h-full bg-transparent border-none outline-none text-[10px] md:text-[11px] px-3 md:px-4 tracking-[0.15em] md:tracking-[0.2em] text-white placeholder:text-white/20 font-ui font-light"
                 />
-                <button className="h-full bg-white text-black px-8 text-[9px] font-bold tracking-[0.2em] hover:bg-accent hover:text-white transition-all duration-500 uppercase font-ui">
+                <button className="h-full bg-white text-black px-6 md:px-8 text-[9px] font-bold tracking-[0.15em] md:tracking-[0.2em] hover:bg-accent hover:text-white transition-all duration-500 uppercase font-ui">
                   EXPLORE
                 </button>
               </div>
@@ -153,7 +153,7 @@ export default function Home() {
                   whileInView={{ y: '0%' }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                  className="block text-accent text-8xl leading-none font-elegant font-light"
+                  className="block text-accent text-6xl md:text-8xl leading-none font-elegant font-light"
                 >
                   26
                 </motion.span>
@@ -166,7 +166,7 @@ export default function Home() {
                     whileInView={{ y: '0%' }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.9, delay: 0.1 + i * 0.12, ease: [0.16, 1, 0.3, 1] }}
-                    className="text-5xl lg:text-6xl leading-tight font-elegant font-normal"
+                    className="text-4xl md:text-6xl leading-tight font-elegant font-normal"
                   >
                     {word}
                   </motion.h3>
@@ -220,14 +220,14 @@ export default function Home() {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="group cursor-pointer flex flex-col"
             >
-              <div className="relative overflow-hidden w-full h-[600px] lg:h-[850px] bg-muted">
+              <div className="relative overflow-hidden w-full h-[450px] md:h-[600px] lg:h-[850px] bg-muted">
                 <img
                   src="https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&q=80&w=1000"
                   alt="Menswear"
                   className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h3 className="text-[20vw] md:text-[10vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
+                  <h3 className="text-[18vw] md:text-[10vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
                     MEN
                   </h3>
                 </div>
@@ -251,14 +251,14 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
               className="group cursor-pointer flex flex-col"
             >
-              <div className="relative overflow-hidden w-full h-[600px] lg:h-[850px] bg-muted">
+              <div className="relative overflow-hidden w-full h-[450px] md:h-[600px] lg:h-[850px] bg-muted">
                 <img
                   src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1000"
                   alt="Womenswear"
                   className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h3 className="text-[20vw] md:text-[10vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
+                  <h3 className="text-[18vw] md:text-[10vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
                     WOMEN
                   </h3>
                 </div>

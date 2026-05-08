@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 export default function EditorialMarquee() {
   return (
     <section className="py-64 container-px bg-white relative overflow-hidden border-y border-black/5">
-      
+
       {/* Background Marquees */}
       <div className="absolute inset-0 flex flex-col justify-around py-20 opacity-[0.02] pointer-events-none select-none">
-        <motion.div 
+        <motion.div
           animate={{ x: ["0%", "-50%"] }}
           transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
           className="whitespace-nowrap text-[20vw] font-bold uppercase tracking-tighter flex font-elegant"
@@ -14,7 +14,7 @@ export default function EditorialMarquee() {
           <span>VAULT 26 &nbsp; ARCHIVE &nbsp; VAULT 26 &nbsp; ARCHIVE &nbsp;</span>
           <span>VAULT 26 &nbsp; ARCHIVE &nbsp; VAULT 26 &nbsp; ARCHIVE &nbsp;</span>
         </motion.div>
-        <motion.div 
+        <motion.div
           animate={{ x: ["-50%", "0%"] }}
           transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
           className="whitespace-nowrap text-[20vw] font-bold italic uppercase tracking-tighter flex opacity-20 font-elegant text-accent"
@@ -26,7 +26,7 @@ export default function EditorialMarquee() {
 
       {/* Massive '26' Watermark */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none select-none">
-        <h4 
+        <h4
           className="text-[60vw] leading-none select-none font-elegant font-bold text-stroke-accent"
         >
           26
@@ -43,19 +43,7 @@ export default function EditorialMarquee() {
 
       {/* Main Content */}
       <div className="max-w-[1600px] mx-auto text-center relative z-10">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-          whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 2, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] lg:w-[800px] pointer-events-none opacity-10"
-        >
-          <img 
-            src="https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png" 
-            alt="" 
-            className="w-full h-auto object-contain brightness-0" 
-          />
-        </motion.div>
+
 
         <div className="overflow-hidden mb-6">
           <motion.h2

@@ -17,16 +17,16 @@ export function AdminCoupons() {
   const toggle = async (c: any) => { await supabase.from('coupons').update({ is_active: !c.is_active }).eq('id', c.id); load(); };
   return (
     <div>
-      <h1 className="font-display text-3xl mb-6">Coupons</h1>
-      <form onSubmit={create} className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6 border border-border p-4">
+      <h1 className="font-display text-2xl md:text-3xl mb-6">Coupons</h1>
+      <form onSubmit={create} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-6 border border-border p-4">
         <input required placeholder="CODE" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="border border-border bg-transparent px-3 py-2 text-sm uppercase" />
         <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="border border-border bg-transparent px-3 py-2 text-sm"><option>PERCENT</option><option>FLAT</option></select>
         <input type="number" placeholder="Value" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} className="border border-border bg-transparent px-3 py-2 text-sm" />
         <input type="number" placeholder="Min order" value={form.min_order} onChange={(e) => setForm({ ...form, min_order: Number(e.target.value) })} className="border border-border bg-transparent px-3 py-2 text-sm" />
-        <button className="bg-foreground text-background text-xs uppercase tracking-widest">Create</button>
+        <button className="bg-foreground text-background py-2 text-xs uppercase tracking-widest hover:bg-accent transition-colors">Create</button>
       </form>
-      <div className="border border-border">
-        <table className="w-full text-sm">
+      <div className="border border-border overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px] md:min-w-0">
           <thead className="bg-secondary"><tr>{['Code','Type','Value','Min','Used','Active'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
           <tbody>
             {coupons.map((c) => (
@@ -51,14 +51,14 @@ export function AdminCustomers() {
   useEffect(() => { supabase.from('profiles').select('*').order('created_at', { ascending: false }).then(({ data }) => setUsers(data || [])); }, []);
   return (
     <div>
-      <h1 className="font-display text-3xl mb-6">Customers</h1>
-      <div className="border border-border">
-        <table className="w-full text-sm">
+      <h1 className="font-display text-2xl md:text-3xl mb-6">Customers</h1>
+      <div className="border border-border overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px] md:min-w-0">
           <thead className="bg-secondary"><tr>{['Name','Email','Phone','Joined'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id} className="border-t border-border">
-                <td className="p-3">{u.name || '—'}</td><td className="p-3">{u.email}</td><td className="p-3">{u.phone || '—'}</td>
+                <td className="p-3 font-medium">{u.name || '—'}</td><td className="p-3">{u.email}</td><td className="p-3">{u.phone || '—'}</td>
                 <td className="p-3 text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
               </tr>
             ))}
@@ -79,7 +79,7 @@ export function AdminSettings() {
   };
   return (
     <div className="max-w-xl">
-      <h1 className="font-display text-3xl mb-6">Settings</h1>
+      <h1 className="font-display text-2xl md:text-3xl mb-6">Settings</h1>
       {[
         { k: 'cod_threshold', l: 'COD pre-payment threshold (₹)', t: 'number' },
         { k: 'cod_advance_percent', l: 'COD advance %', t: 'number' },

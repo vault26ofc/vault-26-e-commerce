@@ -148,7 +148,7 @@ export default function AdminProducts() {
 
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={() => setEditing(null)}>
-          <div className="w-full max-w-2xl bg-background h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full sm:max-w-2xl bg-background h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-border flex justify-between items-center sticky top-0 bg-background z-10">
               <h2 className="font-display text-2xl">{editing.id ? 'Edit product' : 'New product'}</h2>
               <button onClick={() => setEditing(null)}><X className="h-5 w-5" /></button>
@@ -201,16 +201,23 @@ export default function AdminProducts() {
                   <div className="eyebrow">Variants</div>
                   <button onClick={() => setEditing({ ...editing, variants: [...editing.variants, { size: '', color: '', color_hex: '#000000', price: 0, stock: 0 }] })} className="text-xs uppercase tracking-widest">+ Add</button>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {editing.variants.map((v, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_1fr_60px_1fr_1fr_80px_auto] gap-2 items-center">
-                      <input placeholder="Size" value={v.size} onChange={(e) => updateVariant(editing, setEditing, i, { size: e.target.value })} className={inputCls} />
-                      <input placeholder="Color" value={v.color} onChange={(e) => updateVariant(editing, setEditing, i, { color: e.target.value })} className={inputCls} />
-                      <input type="color" value={v.color_hex} onChange={(e) => updateVariant(editing, setEditing, i, { color_hex: e.target.value })} className="h-10 w-full border border-border" />
-                      <input type="number" placeholder="Price" value={v.price} onChange={(e) => updateVariant(editing, setEditing, i, { price: Number(e.target.value) })} className={inputCls} />
-                      <input type="number" placeholder="Compare" value={v.compare_price ?? ''} onChange={(e) => updateVariant(editing, setEditing, i, { compare_price: e.target.value ? Number(e.target.value) : null })} className={inputCls} />
-                      <input type="number" placeholder="Stock" value={v.stock} onChange={(e) => updateVariant(editing, setEditing, i, { stock: Number(e.target.value) })} className={inputCls} />
-                      <button onClick={() => setEditing({ ...editing, variants: editing.variants.filter((_, j) => j !== i) })} className="text-destructive p-1"><Trash2 className="h-4 w-4" /></button>
+                    <div key={i} className="border border-border p-4 space-y-3 relative group">
+                      <button onClick={() => setEditing({ ...editing, variants: editing.variants.filter((_, j) => j !== i) })} className="absolute top-2 right-2 text-destructive p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-4 w-4" /></button>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Size"><input placeholder="Size" value={v.size} onChange={(e) => updateVariant(editing, setEditing, i, { size: e.target.value })} className={inputCls} /></Field>
+                        <Field label="Color"><input placeholder="Color" value={v.color} onChange={(e) => updateVariant(editing, setEditing, i, { color: e.target.value })} className={inputCls} /></Field>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <Field label="Hex"><input type="color" value={v.color_hex} onChange={(e) => updateVariant(editing, setEditing, i, { color_hex: e.target.value })} className="h-10 w-full border border-border" /></Field>
+                        <Field label="Stock"><input type="number" placeholder="Stock" value={v.stock} onChange={(e) => updateVariant(editing, setEditing, i, { stock: Number(e.target.value) })} className={inputCls} /></Field>
+                        <Field label="Delete"><button onClick={() => setEditing({ ...editing, variants: editing.variants.filter((_, j) => j !== i) })} className="w-full h-10 flex items-center justify-center border border-destructive/20 text-destructive hover:bg-destructive/10 transition-colors rounded"><Trash2 className="h-4 w-4" /></button></Field>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Price"><input type="number" placeholder="Price" value={v.price} onChange={(e) => updateVariant(editing, setEditing, i, { price: Number(e.target.value) })} className={inputCls} /></Field>
+                        <Field label="Compare"><input type="number" placeholder="Compare" value={v.compare_price ?? ''} onChange={(e) => updateVariant(editing, setEditing, i, { compare_price: e.target.value ? Number(e.target.value) : null })} className={inputCls} /></Field>
+                      </div>
                     </div>
                   ))}
                 </div>

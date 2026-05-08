@@ -58,11 +58,11 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   }, [slug, mode, q, sort, maxPrice]);
 
   return (
-    <div className="container-px py-24 min-h-screen bg-white">
-      <div className="mb-12">
-        <span className="eyebrow block mb-4">{mode === 'brand' ? 'Brand Archive' : mode === 'search' ? 'Search Results' : 'Category Archive'}</span>
-        <h1 className="display-2 font-elegant font-light uppercase tracking-tight">{title}</h1>
-        <p className="text-[11px] tracking-[0.2em] font-ui text-black/40 mt-4 uppercase">{products.length} {products.length === 1 ? 'piece' : 'pieces'} FOUND IN ARCHIVE</p>
+    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+      <div className="mb-8 md:mb-12">
+        <span className="eyebrow block mb-3 md:mb-4">{mode === 'brand' ? 'Brand Archive' : mode === 'search' ? 'Search Results' : 'Category Archive'}</span>
+        <h1 className="display-2 font-elegant font-light uppercase tracking-tight text-3xl md:text-5xl">{title}</h1>
+        <p className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/40 mt-3 md:mt-4 uppercase">{products.length} {products.length === 1 ? 'piece' : 'pieces'} FOUND IN ARCHIVE</p>
       </div>
 
       <div className="flex items-center justify-between gap-3 border-y border-black/5 py-6 mb-12 sticky top-[80px] bg-white/90 backdrop-blur-xl z-20">

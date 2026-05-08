@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User as UserIcon, Phone } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
 
 const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
@@ -11,12 +11,13 @@ export function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success('Access Granted // Welcome Back');
@@ -45,6 +46,8 @@ export function Login() {
             <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               type="email" 
+              name="email"
+              autoComplete="email"
               required 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
@@ -55,13 +58,26 @@ export function Login() {
           <div className="relative group">
             <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
-              type="password" 
+              type={showPassword ? "text" : "password"} 
+              name="password"
+              autoComplete="current-password"
               required 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="ACCESS_KEY"
-              className="w-full border-b border-black/10 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10"
+              className="w-full border-b border-black/10 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" strokeWidth={1.5} />
+              ) : (
+                <Eye className="w-4 h-4" strokeWidth={1.5} />
+              )}
+            </button>
           </div>
           <button 
             disabled={loading} 
@@ -87,14 +103,15 @@ export function Register() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signUp({
-      email, password,
-      options: { data: { name, phone }, emailRedirectTo: window.location.origin },
+      email: email.trim(), password,
+      options: { data: { name: name.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -123,6 +140,8 @@ export function Register() {
           <div className="relative group">
             <UserIcon className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
+              name="name"
+              autoComplete="name"
               required 
               value={name} 
               onChange={(e) => setName(e.target.value)} 
@@ -134,6 +153,8 @@ export function Register() {
             <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               type="email" 
+              name="email"
+              autoComplete="email"
               required 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
@@ -144,6 +165,8 @@ export function Register() {
           <div className="relative group">
             <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
+              name="phone"
+              autoComplete="tel"
               value={phone} 
               onChange={(e) => setPhone(e.target.value)} 
               placeholder="MOBILE_CONTACT" 
@@ -153,14 +176,27 @@ export function Register() {
           <div className="relative group">
             <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
-              type="password" 
+              type={showPassword ? "text" : "password"} 
+              name="password"
+              autoComplete="new-password"
               required 
               minLength={6} 
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="SET_ACCESS_KEY" 
-              className="w-full border-b border-black/10 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10" 
+              className="w-full border-b border-black/10 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10" 
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" strokeWidth={1.5} />
+              ) : (
+                <Eye className="w-4 h-4" strokeWidth={1.5} />
+              )}
+            </button>
           </div>
           <button 
             disabled={loading} 

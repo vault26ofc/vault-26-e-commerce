@@ -128,6 +128,20 @@ export default function Navbar() {
               {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] h-3 w-3 rounded-full flex items-center justify-center font-bold">{cartCount}</span>}
             </button>
 
+            <Link 
+              to={user ? "/account" : "/login"} 
+              className={cn(
+                "relative flex items-center gap-2 transition-colors duration-300 hidden md:flex",
+                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+              )}
+              aria-label="User Account"
+            >
+              <User className="w-4 h-4" strokeWidth={1.5} />
+              <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">
+                {user ? "Account" : "Sign In"}
+              </span>
+            </Link>
+
             <button 
               onClick={() => setMobileOpen(true)} 
               className={cn("lg:hidden transition-colors", showGlass ? "text-black" : "text-white")}
@@ -206,7 +220,7 @@ export default function Navbar() {
                 </Link>
               ))}
               <div className="h-px bg-black/5 my-4" />
-              <Link to="/account" onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">Account</Link>
+              <Link to={user ? "/account" : "/login"} onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">{user ? "Account" : "Sign In"}</Link>
               <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">Wishlist</Link>
             </nav>
           </motion.div>

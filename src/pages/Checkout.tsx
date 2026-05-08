@@ -164,16 +164,16 @@ export default function Checkout() {
   };
 
   return (
-    <div className="container-px py-24 min-h-screen bg-white">
-      <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_480px] gap-20 lg:gap-32">
+    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+      <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_480px] gap-12 lg:gap-32">
         <div className="flex flex-col">
-          <header className="mb-16">
-            <span className="eyebrow block mb-4">Secure Checkout</span>
-            <h1 className="display-2 italic font-elegant">Finalize <span className="text-accent">Piece</span></h1>
+          <header className="mb-10 md:mb-16">
+            <span className="eyebrow block mb-3 md:mb-4">Secure Checkout</span>
+            <h1 className="display-2 italic font-elegant text-3xl md:text-5xl">Finalize <span className="text-accent">Piece</span></h1>
           </header>
 
           {/* Editorial Stepper */}
-          <div className="flex items-center gap-12 mb-16 border-b border-black/5 pb-8 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-6 md:gap-12 mb-10 md:mb-16 border-b border-black/5 pb-6 md:pb-8 overflow-x-auto scrollbar-hide">
             {[
               { id: 1, label: 'Delivery Location', icon: Truck },
               { id: 2, label: 'Payment Method', icon: CreditCard },
@@ -187,13 +187,13 @@ export default function Checkout() {
                 )}
               >
                 <span className={cn(
-                  'h-8 w-8 rounded-full border border-black flex items-center justify-center text-[10px] font-ui font-bold',
+                  'h-7 w-7 md:h-8 md:w-8 rounded-full border border-black flex items-center justify-center text-[9px] md:text-[10px] font-ui font-bold shrink-0',
                   step === s.id && 'bg-black text-white'
                 )}>
                   {s.id}
                 </span>
-                <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold">{s.label}</span>
-                {s.id < 3 && <div className="w-12 h-[1px] bg-black/10" />}
+                <span className="text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-ui font-bold">{s.label}</span>
+                {s.id < 3 && <div className="w-8 md:w-12 h-[1px] bg-black/10 shrink-0" />}
               </div>
             ))}
           </div>
@@ -211,17 +211,17 @@ export default function Checkout() {
                   if (!r.success) { toast.error(r.error.issues[0].message); return; }
                   setStep(2);
                 }} 
-                className="grid grid-cols-2 gap-8"
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 md:gap-y-8"
               >
                 {[
-                  { k: 'full_name', l: 'Collector Name', c: 'col-span-2' },
-                  { k: 'email', l: 'Identity Email', c: 'col-span-2' },
-                  { k: 'phone', l: 'Contact Number', c: 'col-span-1' },
-                  { k: 'pincode', l: 'Postal Zone', c: 'col-span-1' },
-                  { k: 'line1', l: 'Street Address', c: 'col-span-2' },
-                  { k: 'line2', l: 'Suite / Apt (Optional)', c: 'col-span-2' },
-                  { k: 'city', l: 'City Archive', c: 'col-span-1' },
-                  { k: 'state', l: 'State Territory', c: 'col-span-1' }
+                  { k: 'full_name', l: 'Collector Name', c: 'md:col-span-2' },
+                  { k: 'email', l: 'Identity Email', c: 'md:col-span-2' },
+                  { k: 'phone', l: 'Contact Number', c: 'md:col-span-1' },
+                  { k: 'pincode', l: 'Postal Zone', c: 'md:col-span-1' },
+                  { k: 'line1', l: 'Street Address', c: 'md:col-span-2' },
+                  { k: 'line2', l: 'Suite / Apt (Optional)', c: 'md:col-span-2' },
+                  { k: 'city', l: 'City Archive', c: 'md:col-span-1' },
+                  { k: 'state', l: 'State Territory', c: 'md:col-span-1' }
                 ].map((field) => (
                   <div key={field.k} className={field.c}>
                     <label className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/30 mb-2 block">{field.l}</label>
@@ -233,8 +233,8 @@ export default function Checkout() {
                     />
                   </div>
                 ))}
-                <div className="col-span-2 pt-8">
-                  <button type="submit" className="w-full bg-black text-white py-6 text-[11px] tracking-[0.5em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 flex items-center justify-center gap-3">
+                <div className="md:col-span-2 pt-6 md:pt-8">
+                  <button type="submit" className="w-full bg-black text-white py-5 md:py-6 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.5em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 flex items-center justify-center gap-3">
                     Continue to Archive Logistics <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -271,11 +271,11 @@ export default function Checkout() {
                     </div>
                   </button>
                 ))}
-                <div className="flex gap-6 pt-12">
-                  <button onClick={() => setStep(1)} className="flex-1 border border-black/10 py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:border-black transition-colors flex items-center justify-center gap-3">
+                <div className="flex flex-col md:flex-row gap-4 md:gap-6 pt-10 md:pt-12">
+                  <button onClick={() => setStep(1)} className="order-2 md:order-1 flex-1 border border-black/10 py-5 text-[10px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:border-black transition-colors flex items-center justify-center gap-3">
                     <ArrowLeft className="w-3 h-3" /> Revisit Location
                   </button>
-                  <button onClick={() => setStep(3)} className="flex-1 bg-black text-white py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">
+                  <button onClick={() => setStep(3)} className="order-1 md:order-2 flex-1 bg-black text-white py-5 text-[10px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">
                     Review Selection <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -312,7 +312,7 @@ export default function Checkout() {
                 <button 
                   disabled={placing} 
                   onClick={placeOrder} 
-                  className="w-full bg-black text-white py-8 text-[12px] tracking-[0.6em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30"
+                  className="w-full bg-black text-white py-6 md:py-8 text-[11px] md:text-[12px] tracking-[0.3em] md:tracking-[0.6em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30"
                 >
                   {placing ? 'Finalizing Security Check...' : `Commit Piece to Archive · ${inr(total)}`}
                 </button>
@@ -322,7 +322,7 @@ export default function Checkout() {
         </div>
 
         {/* Sidebar Summary */}
-        <aside className="lg:sticky lg:top-32 h-fit bg-muted/30 p-10 border border-black/5">
+        <aside className="lg:sticky lg:top-32 h-fit bg-muted/30 p-6 md:p-10 border border-black/5">
           <h2 className="text-[11px] tracking-[0.5em] font-ui font-bold uppercase mb-12 border-b border-black pb-4">Archive Contents</h2>
           <div className="space-y-8 max-h-[500px] overflow-y-auto pr-4 scrollbar-hide">
             {items.map((i) => (

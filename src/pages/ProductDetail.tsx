@@ -97,8 +97,8 @@ export default function ProductDetail() {
   const buyNow = () => { addToCart(); setTimeout(() => navigate('/checkout'), 100); };
 
   return (
-    <div className="container-px py-24 min-h-screen bg-white">
-      <div className="grid lg:grid-cols-2 gap-16 lg:gap-24">
+    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+      <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
         {/* Visuals */}
         <div className="space-y-6">
           <motion.div 
@@ -139,15 +139,15 @@ export default function ProductDetail() {
                 {product.brands.name}
               </Link>
             )}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-elegant font-light tracking-tight mb-6">
+            <h1 className="text-3xl md:text-5xl lg:text-6xl font-elegant font-light tracking-tight mb-4 md:mb-6">
               {product.name}
             </h1>
-            <div className="flex items-center gap-4 mb-10">
-              <span className="text-2xl font-ui font-bold tracking-tight">
+            <div className="flex items-center gap-4 mb-8 md:mb-10">
+              <span className="text-xl md:text-2xl font-ui font-bold tracking-tight">
                 {inr(activeVariant ? Number(activeVariant.price) : minPrice)}
               </span>
               {(activeVariant?.compare_price || product.product_variants?.[0]?.compare_price) && (
-                <span className="text-black/30 line-through text-sm font-ui tracking-tight italic">
+                <span className="text-black/30 line-through text-xs md:text-sm font-ui tracking-tight italic">
                   {inr(Number(activeVariant?.compare_price || product.product_variants[0].compare_price))}
                 </span>
               )}
@@ -200,24 +200,24 @@ export default function ProductDetail() {
             )}
 
             {/* Actions */}
-            <div className="flex flex-col gap-4 mb-12">
-              <div className="flex gap-4">
+            <div className="flex flex-col gap-3 md:gap-4 mb-10 md:mb-12">
+              <div className="flex gap-3 md:gap-4">
                 <button 
                   onClick={addToCart} 
-                  className="flex-1 bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
+                  className="flex-1 bg-black text-white py-4 md:py-5 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
                 >
                   Secure Archive Piece
                 </button>
                 <button 
                   onClick={() => toggle(product.id)}
-                  className="w-16 flex items-center justify-center border border-black/10 hover:border-black transition-colors duration-500"
+                  className="w-14 md:w-16 flex items-center justify-center border border-black/10 hover:border-black transition-colors duration-500"
                 >
-                  <Heart className={cn('h-5 w-5 transition-all', wished && 'fill-accent stroke-accent scale-110')} />
+                  <Heart className={cn('h-4 w-4 md:h-5 md:w-5 transition-all', wished && 'fill-accent stroke-accent scale-110')} />
                 </button>
               </div>
               <button 
                 onClick={buyNow} 
-                className="w-full border border-black py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500"
+                className="w-full border border-black py-4 md:py-5 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500"
               >
                 Buy Now
               </button>
@@ -272,9 +272,9 @@ export default function ProductDetail() {
 
       {/* Related Products */}
       {related.length > 0 && (
-        <section className="mt-32 border-t border-black/5 pt-24">
-          <div className="flex items-end justify-between mb-16">
-            <h2 className="display-2 font-elegant font-light italic">Related <span className="text-accent">Pieces</span></h2>
+        <section className="mt-16 md:mt-32 border-t border-black/5 pt-12 md:pt-24">
+          <div className="flex items-end justify-between mb-10 md:mb-16">
+            <h2 className="display-2 font-elegant font-light italic text-3xl md:text-5xl">Related <span className="text-accent">Pieces</span></h2>
             <Link to="/search" className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold border-b border-black pb-0.5">Explore All</Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-16">
