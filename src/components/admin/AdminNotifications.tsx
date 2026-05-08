@@ -32,7 +32,7 @@ export default function AdminNotifications() {
   useEffect(() => {
     load();
     const channel = supabase
-      .channel('admin-notifications')
+      .channel(`admin-notifications-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'admin_notifications' }, (payload) => {
         setItems((prev) => [payload.new as Notification, ...prev].slice(0, 30));
       })
