@@ -39,7 +39,7 @@ export default function AccessoriesPage() {
   return (
     <div className="bg-white text-black selection:bg-accent selection:text-white">
       {/* Hero */}
-      <section className="relative h-screen flex items-center justify-center overflow-hidden border-b border-black/5">
+      <section className="relative h-screen flex items-center justify-center overflow-hidden border-b border-black/10">
         <div className="absolute inset-0 z-0">
           <img
             src="/accessories_hero_1778236772681.png"
@@ -59,7 +59,7 @@ export default function AccessoriesPage() {
             <h1 className="text-[12vw] md:text-[8vw] font-display uppercase leading-[0.8] tracking-tighter text-black">
               THE <br /> <span className="italic font-elegant font-light text-accent">OBJECTS.</span>
             </h1>
-            <div className="mt-16 flex flex-col md:flex-row items-center justify-center gap-12 border-t border-black/5 pt-12">
+            <div className="mt-16 flex flex-col md:flex-row items-center justify-center gap-12 border-t border-black/10 pt-12">
               <div className="max-w-[200px] text-left">
                 <p className="text-[10px] tracking-[0.2em] uppercase font-ui font-bold mb-2">Philosophy</p>
                 <p className="text-[11px] font-ui font-light leading-relaxed text-black/50">Designed to bridge the gap between utility and art.</p>
@@ -119,7 +119,7 @@ export default function AccessoriesPage() {
       </section>
 
       {/* Product List - Minimalist Row Style */}
-      <section className="py-20 border-t border-black/5 bg-[#fafafa]">
+      <section className="py-20 border-t border-black/10 bg-[#fafafa]">
         <div className="container-px">
           {ACCESSORIES.map((item, index) => (
             <motion.div
@@ -127,9 +127,9 @@ export default function AccessoriesPage() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="group border-b border-black/5 py-24 flex flex-col md:flex-row items-center gap-12 md:gap-24 last:border-0"
+              className="group border-b border-black/10 py-24 flex flex-col md:flex-row items-center gap-12 md:gap-24 last:border-0"
             >
-              <div className="w-full md:w-1/3 aspect-square overflow-hidden bg-white border border-black/5">
+              <div className="w-full md:w-1/3 aspect-square overflow-hidden bg-white border border-black/10">
                 <img
                   src={item.image}
                   alt={item.title}
@@ -140,7 +140,7 @@ export default function AccessoriesPage() {
               <div className="flex-1 space-y-6">
                 <div className="flex items-center justify-between">
                   <span className="text-accent font-display text-4xl italic">0{index + 1}</span>
-                  <span className="eyebrow text-[9px] text-black/30 tracking-[0.4em]">{item.category}</span>
+                  <span className="eyebrow text-[9px] text-black/50 tracking-[0.4em]">{item.category}</span>
                 </div>
                 <h3 className="text-5xl md:text-7xl font-elegant font-light tracking-tighter">{item.title}</h3>
                 <p className="text-sm font-ui font-light leading-relaxed text-black/50 max-w-md">{item.description}</p>

@@ -66,7 +66,7 @@ export default function CartDrawer() {
             className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white z-[101] flex flex-col shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-8 border-b border-black/5">
+            <div className="flex items-center justify-between p-8 border-b border-black/10">
               <div className="flex items-center gap-4">
                 <span className="text-[12px] tracking-[0.5em] font-ui font-bold uppercase">Archive Selection</span>
                 <span className="h-5 w-5 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">{items.length}</span>
@@ -81,11 +81,11 @@ export default function CartDrawer() {
 
             {items.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
-                <div className="w-16 h-16 border border-black/5 rounded-full flex items-center justify-center mb-8">
-                  <ShoppingBag className="w-6 h-6 text-black/20" strokeWidth={1} />
+                <div className="w-16 h-16 border border-black/10 rounded-full flex items-center justify-center mb-8">
+                  <ShoppingBag className="w-6 h-6 text-black/40" strokeWidth={1} />
                 </div>
                 <h3 className="text-xl font-elegant font-light italic mb-4">Your archive is empty</h3>
-                <p className="text-[10px] tracking-[0.2em] text-black/40 uppercase font-ui mb-10">Select pieces to add to your collection</p>
+                <p className="text-[10px] tracking-[0.2em] text-black/60 uppercase font-ui mb-10">Select pieces to add to your collection</p>
                 <Link 
                   to="/category/shirts" 
                   onClick={() => setDrawer(false)} 
@@ -121,29 +121,29 @@ export default function CartDrawer() {
                             >
                               {it.name}
                             </Link>
-                            <div className="text-[10px] text-black/40 mt-1 uppercase tracking-[0.1em] font-ui">
+                            <div className="text-[10px] text-black/60 mt-1 uppercase tracking-[0.1em] font-ui">
                               {[it.size, it.color].filter(Boolean).join(' // ')}
                             </div>
                           </div>
                           <button 
                             onClick={() => remove(it.variantId)} 
-                            className="text-black/20 hover:text-accent transition-colors p-1"
+                            className="text-black/40 hover:text-accent transition-colors p-1"
                           >
                             <Trash2 className="h-4 w-4" strokeWidth={1} />
                           </button>
                         </div>
                         <div className="mt-auto flex items-center justify-between">
-                          <div className="flex items-center border border-black/5 bg-muted/30">
+                          <div className="flex items-center border border-black/10 bg-muted/30">
                             <button 
                               onClick={() => setQty(it.variantId, it.quantity - 1)} 
-                              className="p-2 hover:bg-black/5 transition-colors"
+                              className="p-2 hover:bg-black/15 transition-colors"
                             >
                               <Minus className="h-3 w-3" />
                             </button>
                             <span className="w-8 text-center text-[11px] font-bold font-ui">{it.quantity}</span>
                             <button 
                               onClick={() => setQty(it.variantId, it.quantity + 1)} 
-                              className="p-2 hover:bg-black/5 transition-colors"
+                              className="p-2 hover:bg-black/15 transition-colors"
                             >
                               <Plus className="h-3 w-3" />
                             </button>
@@ -155,13 +155,13 @@ export default function CartDrawer() {
                   ))}
                 </div>
 
-                <div className="p-8 bg-muted/30 border-t border-black/5 space-y-6">
+                <div className="p-8 bg-muted/30 border-t border-black/10 space-y-6">
                   <div className="flex gap-4">
                     <input 
                       value={code} 
                       onChange={(e) => setCode(e.target.value.toUpperCase())} 
                       placeholder="ARCHIVE_VOUCHER"
-                      className="flex-1 bg-white border border-black/5 px-4 py-3 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/20" 
+                      className="flex-1 bg-white border border-black/10 px-4 py-3 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/40" 
                     />
                     <button 
                       onClick={apply} 
@@ -176,7 +176,7 @@ export default function CartDrawer() {
                       <span className="text-[10px] tracking-[0.1em] font-ui font-bold text-accent uppercase">{couponCode} ACTIVATED</span>
                       <button 
                         onClick={() => { setCoupon(null); setCode(''); }} 
-                        className="text-[9px] tracking-[0.2em] font-ui font-bold text-black/30 hover:text-black uppercase"
+                        className="text-[9px] tracking-[0.2em] font-ui font-bold text-black/50 hover:text-black uppercase"
                       >
                         Dismiss
                       </button>
@@ -184,7 +184,7 @@ export default function CartDrawer() {
                   )}
 
                   <div className="space-y-3 pt-2">
-                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/40">
+                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/60">
                       <span>Selection Subtotal</span>
                       <span className="text-black">{inr(sub)}</span>
                     </div>
@@ -194,7 +194,7 @@ export default function CartDrawer() {
                         <span>−{inr(discount)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/40">
+                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/60">
                       <span>Logistics Estimate</span>
                       <span className="text-black">{shipping === 0 ? 'COMPLIMENTARY' : inr(shipping)}</span>
                     </div>
@@ -212,7 +212,7 @@ export default function CartDrawer() {
                     Secure Order <ArrowRight className="w-4 h-4" />
                   </Link>
                   
-                  <p className="text-[9px] text-center tracking-[0.3em] text-black/20 uppercase font-ui pb-2">
+                  <p className="text-[9px] text-center tracking-[0.3em] text-black/40 uppercase font-ui pb-2">
                     Tax included // Shipping calculated at next step
                   </p>
                 </div>

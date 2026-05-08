@@ -147,7 +147,7 @@ export default function ProductDetail() {
                 {inr(activeVariant ? Number(activeVariant.price) : minPrice)}
               </span>
               {(activeVariant?.compare_price || product.product_variants?.[0]?.compare_price) && (
-                <span className="text-black/30 line-through text-xs md:text-sm font-ui tracking-tight italic">
+                <span className="text-black/50 line-through text-xs md:text-sm font-ui tracking-tight italic">
                   {inr(Number(activeVariant?.compare_price || product.product_variants[0].compare_price))}
                 </span>
               )}
@@ -163,7 +163,7 @@ export default function ProductDetail() {
                       key={c.color} 
                       onClick={() => { setColor(c.color); setSize(null); }}
                       className={cn(
-                        'h-10 w-10 rounded-full border border-black/5 transition-all duration-500', 
+                        'h-10 w-10 rounded-full border border-black/10 transition-all duration-500', 
                         color === c.color ? 'scale-125 ring-1 ring-black ring-offset-4' : 'hover:scale-110'
                       )}
                       style={{ backgroundColor: c.hex }} 
@@ -188,7 +188,7 @@ export default function ProductDetail() {
                       disabled={v.stock === 0}
                       className={cn(
                         'py-4 text-[11px] font-ui font-bold tracking-[0.2em] border transition-all duration-500 uppercase', 
-                        size === v.size ? 'bg-black text-white border-black' : 'border-black/10 hover:border-black', 
+                        size === v.size ? 'bg-black text-white border-black' : 'border-black/20 hover:border-black', 
                         v.stock === 0 && 'opacity-20 line-through cursor-not-allowed'
                       )}
                     >
@@ -210,7 +210,7 @@ export default function ProductDetail() {
                 </button>
                 <button 
                   onClick={() => toggle(product.id)}
-                  className="w-14 md:w-16 flex items-center justify-center border border-black/10 hover:border-black transition-colors duration-500"
+                  className="w-14 md:w-16 flex items-center justify-center border border-black/20 hover:border-black transition-colors duration-500"
                 >
                   <Heart className={cn('h-4 w-4 md:h-5 md:w-5 transition-all', wished && 'fill-accent stroke-accent scale-110')} />
                 </button>
@@ -224,8 +224,8 @@ export default function ProductDetail() {
             </div>
 
             {/* Content Tabs */}
-            <div className="border-t border-black/5">
-              <div className="flex gap-8 border-b border-black/5">
+            <div className="border-t border-black/10">
+              <div className="flex gap-8 border-b border-black/10">
                 {[
                   { id: 'desc', label: 'THE STORY' },
                   { id: 'mat', label: 'MATERIAL' },
@@ -236,7 +236,7 @@ export default function ProductDetail() {
                     onClick={() => setTab(t.id as any)}
                     className={cn(
                       'py-5 text-[10px] tracking-[0.3em] font-ui font-bold transition-all duration-500 relative',
-                      tab === t.id ? 'text-black' : 'text-black/30 hover:text-black'
+                      tab === t.id ? 'text-black' : 'text-black/50 hover:text-black'
                     )}
                   >
                     {t.label}
@@ -254,15 +254,15 @@ export default function ProductDetail() {
             </div>
 
             {/* Confidence Bar */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-black/5">
+            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-black/10">
               {[
                 { Icon: Truck, label: 'GLOBAL_SHIP' },
                 { Icon: RefreshCw, label: 'EASY_EXCHANGE' },
                 { Icon: Shield, label: 'SECURE_TRANS' }
               ].map((item, i) => (
                 <div key={i} className="flex flex-col items-center gap-3">
-                  <item.Icon className="h-4 w-4 text-black/20" strokeWidth={1} />
-                  <span className="text-[9px] tracking-[0.3em] font-ui font-bold text-black/20 uppercase">{item.label}</span>
+                  <item.Icon className="h-4 w-4 text-black/40" strokeWidth={1} />
+                  <span className="text-[9px] tracking-[0.3em] font-ui font-bold text-black/40 uppercase">{item.label}</span>
                 </div>
               ))}
             </div>
@@ -272,7 +272,7 @@ export default function ProductDetail() {
 
       {/* Related Products */}
       {related.length > 0 && (
-        <section className="mt-16 md:mt-32 border-t border-black/5 pt-12 md:pt-24">
+        <section className="mt-16 md:mt-32 border-t border-black/10 pt-12 md:pt-24">
           <div className="flex items-end justify-between mb-10 md:mb-16">
             <h2 className="display-2 font-elegant font-light italic text-3xl md:text-5xl">Related <span className="text-accent">Pieces</span></h2>
             <Link to="/search" className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold border-b border-black pb-0.5">Explore All</Link>

@@ -53,11 +53,11 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
           </button>
         </div>
         <div className="pt-5 flex flex-col gap-1">
-          {p.brand && <div className="text-[10px] tracking-[0.3em] font-ui font-bold text-black/30 uppercase">{p.brand}</div>}
+          {p.brand && <div className="text-[10px] tracking-[0.3em] font-ui font-bold text-black/50 uppercase">{p.brand}</div>}
           <div className="text-sm font-light tracking-wide text-black/80">{p.name}</div>
           <div className="mt-1 flex items-center gap-3">
             <span className="text-[12px] font-ui font-bold tracking-widest">{inr(p.price)}</span>
-            {onSale && <span className="text-black/30 line-through text-[10px] font-ui tracking-widest">{inr(p.comparePrice!)}</span>}
+            {onSale && <span className="text-black/50 line-through text-[10px] font-ui tracking-widest">{inr(p.comparePrice!)}</span>}
           </div>
         </div>
       </Link>

@@ -29,7 +29,7 @@ export default function OrderSuccess() {
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-xl w-full text-center"
       >
-        <div className="w-20 h-20 border border-black/5 rounded-full flex items-center justify-center mx-auto mb-12">
+        <div className="w-20 h-20 border border-black/10 rounded-full flex items-center justify-center mx-auto mb-12">
           <ShieldCheck className="h-8 w-8 text-accent" strokeWidth={1} />
         </div>
         
@@ -41,8 +41,8 @@ export default function OrderSuccess() {
           Expect dispatch logistics within 24–48 hours.
         </p>
 
-        <div className="border border-black/5 bg-muted/20 p-8 text-left mb-12">
-          <div className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/30 mb-8 border-b border-black/5 pb-4">Order Contents</div>
+        <div className="border border-black/10 bg-muted/20 p-8 text-left mb-12">
+          <div className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/50 mb-8 border-b border-black/10 pb-4">Order Contents</div>
           <div className="space-y-6">
             {order.order_items.map((it: any) => (
               <div key={it.id} className="flex items-center gap-6">
@@ -51,7 +51,7 @@ export default function OrderSuccess() {
                 </div>
                 <div className="flex-1">
                   <div className="text-[11px] font-ui font-bold tracking-[0.1em] uppercase mb-1">{it.product_name}</div>
-                  <div className="text-[9px] text-black/40 tracking-[0.2em] uppercase font-ui">
+                  <div className="text-[9px] text-black/60 tracking-[0.2em] uppercase font-ui">
                     {it.variant_label} · QTY {it.quantity}
                   </div>
                 </div>
@@ -66,7 +66,7 @@ export default function OrderSuccess() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center w-full">
-          <Link to="/" className="flex-1 border border-black/10 py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500">
+          <Link to="/" className="flex-1 border border-black/20 py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500">
             Revisit Collection
           </Link>
           <Link to={`/orders/${order.id}`} className="flex-1 bg-black text-white py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">

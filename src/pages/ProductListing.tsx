@@ -62,10 +62,10 @@ export default function ProductListing({ mode }: { mode: Mode }) {
       <div className="mb-8 md:mb-12">
         <span className="eyebrow block mb-3 md:mb-4">{mode === 'brand' ? 'Brand Archive' : mode === 'search' ? 'Search Results' : 'Category Archive'}</span>
         <h1 className="display-2 font-elegant font-light uppercase tracking-tight text-3xl md:text-5xl">{title}</h1>
-        <p className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/40 mt-3 md:mt-4 uppercase">{products.length} {products.length === 1 ? 'piece' : 'pieces'} FOUND IN ARCHIVE</p>
+        <p className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/60 mt-3 md:mt-4 uppercase">{products.length} {products.length === 1 ? 'piece' : 'pieces'} FOUND IN ARCHIVE</p>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-y border-black/5 py-6 mb-12 sticky top-[80px] bg-white/90 backdrop-blur-xl z-20">
+      <div className="flex items-center justify-between gap-3 border-y border-black/10 py-6 mb-12 sticky top-[80px] bg-white/90 backdrop-blur-xl z-20">
         <button 
           onClick={() => setFiltersOpen(true)} 
           className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold hover:text-accent transition-colors"
@@ -73,7 +73,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
           <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
         </button>
         <div className="flex items-center gap-2">
-          <span className="text-[10px] tracking-[0.3em] font-ui font-light text-black/30 hidden md:block">SORT BY:</span>
+          <span className="text-[10px] tracking-[0.3em] font-ui font-light text-black/50 hidden md:block">SORT BY:</span>
           <select 
             value={sort} 
             onChange={(e) => setSort(e.target.value as any)}
@@ -98,7 +98,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
         </div>
       ) : products.length === 0 ? (
         <div className="text-center py-40">
-           <p className="text-sm font-ui font-light tracking-[0.2em] text-black/40 uppercase">No pieces match — try another filter.</p>
+           <p className="text-sm font-ui font-light tracking-[0.2em] text-black/60 uppercase">No pieces match — try another filter.</p>
         </div>
       ) : (
         <motion.div 
@@ -128,7 +128,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
               onClick={(e) => e.stopPropagation()} 
               className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white z-[70] p-10 flex flex-col shadow-2xl"
             >
-              <div className="flex items-center justify-between mb-12 border-b border-black/5 pb-8">
+              <div className="flex items-center justify-between mb-12 border-b border-black/10 pb-8">
                 <span className="text-[12px] tracking-[0.4em] uppercase font-ui font-bold">Filter Archive</span>
                 <button 
                   onClick={() => setFiltersOpen(false)}
@@ -140,7 +140,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
 
               <div className="space-y-12">
                 <div>
-                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-6 text-black/40">Maximum Value</div>
+                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-6 text-black/60">Maximum Value</div>
                   <input 
                     type="range" 
                     min={500} 
@@ -148,7 +148,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                     step={500} 
                     value={maxPrice} 
                     onChange={(e) => setMaxPrice(Number(e.target.value))} 
-                    className="w-full h-1 bg-black/10 rounded-full appearance-none cursor-pointer accent-accent" 
+                    className="w-full h-1 bg-black/15 rounded-full appearance-none cursor-pointer accent-accent" 
                   />
                   <div className="text-xl font-elegant font-light mt-4 italic">Up to ₹{maxPrice.toLocaleString('en-IN')}</div>
                 </div>

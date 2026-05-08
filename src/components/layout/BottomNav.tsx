@@ -12,7 +12,7 @@ const items = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] lg:hidden bg-white/80 backdrop-blur-xl border-t border-black/5 pb-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] lg:hidden bg-white/80 backdrop-blur-xl border-t border-black/10 pb-2">
       <div className="grid grid-cols-5 h-16">
         {items.map((it) => (
           <NavLink 
@@ -21,7 +21,7 @@ export default function BottomNav() {
             end={it.to === '/'}
             className={({ isActive }) => cn(
               'flex flex-col items-center justify-center gap-1 transition-all duration-300 relative h-full', 
-              isActive ? 'text-accent' : 'text-black/30 hover:text-black'
+              isActive ? 'text-accent' : 'text-black/50 hover:text-black'
             )}
           >
             {({ isActive }) => (

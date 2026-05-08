@@ -46,7 +46,7 @@ export default function Wishlist() {
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-black/40 text-sm tracking-[0.2em] uppercase font-ui mb-8">
+          <p className="text-black/60 text-sm tracking-[0.2em] uppercase font-ui mb-8">
             The archive is empty.
           </p>
           <Link to="/category/shirts" className="border border-black px-10 py-4 text-[11px] tracking-[0.3em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500">

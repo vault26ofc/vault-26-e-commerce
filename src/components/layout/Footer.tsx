@@ -6,7 +6,7 @@ const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-black/10 py-24 px-6 lg:px-12">
+    <footer className="bg-white border-t border-black/20 py-24 px-6 lg:px-12">
       <div className="max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div className="space-y-8">
@@ -64,23 +64,23 @@ export default function Footer() {
               <input 
                 type="email" 
                 placeholder="EMAIL ADDRESS" 
-                className="w-full bg-transparent border-b border-black/20 py-4 text-[11px] tracking-[0.3em] font-light outline-none focus:border-accent transition-colors placeholder:text-black/30 font-ui"
+                className="w-full bg-transparent border-b border-black/20 py-4 text-[11px] tracking-[0.3em] font-light outline-none focus:border-accent transition-colors placeholder:text-black/50 font-ui"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-between pt-12 border-t border-black/5 gap-8">
+        <div className="flex flex-col md:flex-row items-center justify-between pt-12 border-t border-black/10 gap-8">
           <div className="flex items-center gap-12">
-            <span className="text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">
+            <span className="text-[9px] tracking-[0.4em] uppercase text-black/50 font-ui">
               © {new Date().getFullYear()} VAULT 26 ARCHIVE
             </span>
-            <span className="hidden md:block text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">
+            <span className="hidden md:block text-[9px] tracking-[0.4em] uppercase text-black/50 font-ui">
               EST. MMXXVI
             </span>
           </div>
           <div className="flex items-center gap-8">
-            <span className="text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">
+            <span className="text-[9px] tracking-[0.4em] uppercase text-black/50 font-ui">
               DESIGNED BY STUDIO V
             </span>
           </div>

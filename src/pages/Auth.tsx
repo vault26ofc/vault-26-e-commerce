@@ -43,7 +43,7 @@ export function Login() {
 
         <form onSubmit={submit} className="space-y-6">
           <div className="relative group">
-            <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
+            <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               type="email" 
               name="email"
@@ -52,11 +52,11 @@ export function Login() {
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               placeholder="IDENTITY@EMAIL.COM"
-              className="w-full border-b border-black/10 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10"
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
             />
           </div>
           <div className="relative group">
-            <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
+            <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               type={showPassword ? "text" : "password"} 
               name="password"
@@ -65,12 +65,12 @@ export function Login() {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="ACCESS_KEY"
-              className="w-full border-b border-black/10 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10"
+              className="w-full border-b border-black/20 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-black/40 hover:text-black transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" strokeWidth={1.5} />
@@ -88,7 +88,7 @@ export function Login() {
         </form>
 
         <div className="mt-12 text-center">
-          <p className="text-[10px] tracking-[0.2em] text-black/40 uppercase font-ui">
+          <p className="text-[10px] tracking-[0.2em] text-black/60 uppercase font-ui">
             New to the Archive? <Link to="/register" className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Apply for Membership</Link>
           </p>
         </div>
@@ -138,7 +138,7 @@ export function Register() {
 
         <form onSubmit={submit} className="space-y-6">
           <div className="relative group">
-            <UserIcon className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
+            <UserIcon className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               name="name"
               autoComplete="name"
@@ -146,11 +146,11 @@ export function Register() {
               value={name} 
               onChange={(e) => setName(e.target.value)} 
               placeholder="FULL_NAME" 
-              className="w-full border-b border-black/10 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
           </div>
           <div className="relative group">
-            <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
+            <Mail className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               type="email" 
               name="email"
@@ -159,22 +159,22 @@ export function Register() {
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               placeholder="IDENTITY@EMAIL.COM" 
-              className="w-full border-b border-black/10 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
           </div>
           <div className="relative group">
-            <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
+            <Phone className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               name="phone"
               autoComplete="tel"
               value={phone} 
               onChange={(e) => setPhone(e.target.value)} 
               placeholder="MOBILE_CONTACT" 
-              className="w-full border-b border-black/10 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
           </div>
           <div className="relative group">
-            <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
+            <Lock className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40 group-focus-within:text-black transition-colors" strokeWidth={1.5} />
             <input 
               type={showPassword ? "text" : "password"} 
               name="password"
@@ -184,12 +184,12 @@ export function Register() {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="SET_ACCESS_KEY" 
-              className="w-full border-b border-black/10 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/10" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-black/20 hover:text-black transition-colors"
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-black/40 hover:text-black transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="w-4 h-4" strokeWidth={1.5} />
@@ -207,7 +207,7 @@ export function Register() {
         </form>
 
         <div className="mt-12 text-center">
-          <p className="text-[10px] tracking-[0.2em] text-black/40 uppercase font-ui">
+          <p className="text-[10px] tracking-[0.2em] text-black/60 uppercase font-ui">
             Already in the Archive? <Link to="/login" className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Authorize Sign In</Link>
           </p>
         </div>

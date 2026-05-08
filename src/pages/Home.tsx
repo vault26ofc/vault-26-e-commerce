@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Search } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
@@ -8,6 +8,18 @@ import Testimonials from '@/components/home/Testimonials';
 import EditorialMarquee from '@/components/home/EditorialMarquee';
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/search');
+    }
+  };
+
   useSEO({
     title: 'VAULT 26 — Premium Streetwear Archive',
     description: 'Where high fashion meets street authenticity. Not just worn. Remembered.',
@@ -54,19 +66,27 @@ export default function Home() {
               </h1>
 
               {/* Sleek Minimalist Search Bar (Glassmorphic) */}
-              <div className="relative w-full max-w-[500px] flex items-center h-12 md:h-14 bg-white/5 backdrop-blur-xl border border-white/10 group transition-all duration-500 hover:border-white/30">
-                <div className="pl-4 md:pl-6 text-white/40 group-hover:text-accent transition-colors duration-300">
+              <form 
+                onSubmit={handleSearch}
+                className="relative w-full max-w-[500px] flex items-center h-12 md:h-14 bg-white/5 backdrop-blur-xl border border-white/10 group transition-all duration-500 hover:border-white/30"
+              >
+                <div className="pl-4 md:pl-6 text-white/60 group-hover:text-accent transition-colors duration-300">
                   <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </div>
                 <input
                   type="text"
                   placeholder="FIND YOUR PIECE..."
-                  className="w-full h-full bg-transparent border-none outline-none text-[10px] md:text-[11px] px-3 md:px-4 tracking-[0.15em] md:tracking-[0.2em] text-white placeholder:text-white/20 font-ui font-light"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-full bg-transparent border-none outline-none text-[10px] md:text-[11px] px-3 md:px-4 tracking-[0.15em] md:tracking-[0.2em] text-white placeholder:text-white/40 font-ui font-light"
                 />
-                <button className="h-full bg-white text-black px-6 md:px-8 text-[9px] font-bold tracking-[0.15em] md:tracking-[0.2em] hover:bg-accent hover:text-white transition-all duration-500 uppercase font-ui">
+                <button 
+                  type="submit"
+                  className="h-full bg-white text-black px-6 md:px-8 text-[9px] font-bold tracking-[0.15em] md:tracking-[0.2em] hover:bg-accent hover:text-white transition-all duration-500 uppercase font-ui"
+                >
                   EXPLORE
                 </button>
-              </div>
+              </form>
 
               <div className="mt-12 flex gap-12 items-center">
                  <div className="flex -space-x-3">
@@ -76,7 +96,7 @@ export default function Home() {
                       </div>
                     ))}
                  </div>
-                 <p className="text-[10px] tracking-[0.1em] text-white/40 uppercase font-ui font-light">
+                 <p className="text-[10px] tracking-[0.1em] text-white/60 uppercase font-ui font-light">
                     JOIN 2K+ COLLECTORS <br /> IN THE ARCHIVE
                  </p>
               </div>
@@ -191,15 +211,12 @@ export default function Home() {
                 Where high fashion meets street authenticity. Vault 26 is more than clothing — it's a statement of individuality and fearless self-expression.
               </motion.p>
 
-              <motion.button
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, delay: 0.65 }}
-                className="border border-black px-10 py-3 text-[11px] tracking-[0.25em] uppercase hover:bg-black hover:text-white transition-all duration-400 font-ui font-light"
+              <Link
+                to="/search"
+                className="inline-block border border-black px-10 py-3 text-[11px] tracking-[0.25em] uppercase hover:bg-black hover:text-white transition-all duration-400 font-ui font-light"
               >
                 Discover More
-              </motion.button>
+              </Link>
             </div>
           </div>
         </div>
@@ -272,7 +289,7 @@ export default function Home() {
                   className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h3 className="text-[18vw] md:text-[10vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
+                  <h3 className="text-[18vw] md:text-[10vw] font-light text-white/40 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/60 group-hover:scale-110 font-elegant">
                     MEN
                   </h3>
                 </div>
@@ -303,7 +320,7 @@ export default function Home() {
                   className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h3 className="text-[18vw] md:text-[10vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
+                  <h3 className="text-[18vw] md:text-[10vw] font-light text-white/40 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/60 group-hover:scale-110 font-elegant">
                     WOMEN
                   </h3>
                 </div>
@@ -431,4 +448,3 @@ export default function Home() {
     </div>
   );
 }
-

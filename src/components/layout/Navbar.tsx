@@ -44,7 +44,7 @@ export default function Navbar() {
       <header 
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-          showGlass ? 'bg-white/85 backdrop-blur-xl border-b border-black/5 py-4' : 'bg-transparent py-7'
+          showGlass ? 'bg-white/85 backdrop-blur-xl border-b border-black/10 py-4' : 'bg-transparent py-7'
         )}
       >
         <div className="container-px flex items-center justify-between">
@@ -103,7 +103,7 @@ export default function Navbar() {
               <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">Search</span>
             </button>
 
-            <div className={cn("hidden md:block w-[1px] h-4 transition-colors duration-500", showGlass ? "bg-black/10" : "bg-white/20")} />
+            <div className={cn("hidden md:block w-[1px] h-4 transition-colors duration-500", showGlass ? "bg-black/15" : "bg-white/20")} />
 
             <Link 
               to="/wishlist" 
@@ -161,7 +161,7 @@ export default function Navbar() {
               exit={{ opacity: 0, y: -20 }}
               className="absolute inset-0 bg-white z-[60] flex items-center px-6 lg:px-20"
             >
-              <Search className="w-5 h-5 text-black/30" />
+              <Search className="w-5 h-5 text-black/50" />
               <form 
                 className="flex-1 h-full"
                 onSubmit={(e) => { 
@@ -183,7 +183,7 @@ export default function Navbar() {
               </form>
               <button 
                 onClick={() => setSearchOpen(false)} 
-                className="text-[10px] tracking-[0.2em] font-ui uppercase font-bold text-black/40 hover:text-accent transition-colors"
+                className="text-[10px] tracking-[0.2em] font-ui uppercase font-bold text-black/60 hover:text-accent transition-colors"
               >
                 Close
               </button>
@@ -205,7 +205,7 @@ export default function Navbar() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="fixed inset-0 z-[60] bg-white flex flex-col"
           >
-            <div className="container-px py-7 flex items-center justify-between border-b border-black/5">
+            <div className="container-px py-7 flex items-center justify-between border-b border-black/10">
               <img src={LOGO_URL} alt="VAULT 26" className="h-10 w-auto brightness-0" />
               <button onClick={() => setMobileOpen(false)}><X className="w-6 h-6" /></button>
             </div>
@@ -220,9 +220,9 @@ export default function Navbar() {
                   {n.label}
                 </Link>
               ))}
-              <div className="h-px bg-black/5 my-4" />
-              <Link to={user ? "/account" : "/login"} onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">{user ? "Account" : "Sign In"}</Link>
-              <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/40">Wishlist</Link>
+              <div className="h-px bg-black/15 my-4" />
+              <Link to={user ? "/account" : "/login"} onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/60">{user ? "Account" : "Sign In"}</Link>
+              <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="text-[11px] tracking-[0.4em] uppercase font-ui font-light text-black/60">Wishlist</Link>
             </nav>
           </motion.div>
         )}

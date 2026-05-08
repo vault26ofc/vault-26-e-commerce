@@ -147,7 +147,7 @@ export default function AdminProducts() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex justify-end" onClick={() => setEditing(null)}>
+        <div className="fixed inset-0 bg-black/150 z-50 flex justify-end" onClick={() => setEditing(null)}>
           <div className="w-full sm:max-w-2xl bg-background h-full overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-border flex justify-between items-center sticky top-0 bg-background z-10">
               <h2 className="font-display text-2xl">{editing.id ? 'Edit product' : 'New product'}</h2>
