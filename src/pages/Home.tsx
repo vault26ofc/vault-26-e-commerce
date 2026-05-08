@@ -208,6 +208,51 @@ export default function Home() {
       {/* Editorial Bento Grid */}
       <BentoGrid />
 
+      {/* Accessories Teaser Section */}
+      <section className="relative h-[80vh] md:h-screen flex items-center overflow-hidden bg-black group">
+        <motion.div 
+          initial={{ scale: 1.1 }}
+          whileInView={{ scale: 1 }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0"
+        >
+          <img 
+            src="/accessories_hero_1778236772681.png" 
+            alt="Accessories" 
+            className="w-full h-full object-cover opacity-50 grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
+        </motion.div>
+
+        <div className="relative z-10 container-px max-w-4xl">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="eyebrow text-accent mb-6 block">Hardware // Archive 01</span>
+            <h2 className="text-6xl md:text-8xl lg:text-9xl font-display text-white leading-[0.8] mb-12 tracking-tighter">
+              BEYOND <br />
+              <span className="italic font-elegant font-light text-accent">OBJECTS.</span>
+            </h2>
+            <p className="text-white/60 mb-12 max-w-md font-ui font-light tracking-wide leading-relaxed">
+              Explore the Vault 26 hardware collection. From sculpted eyewear to forged jewelry, discover the final details that define your identity.
+            </p>
+            <Link 
+              to="/accessories" 
+              className="inline-flex items-center gap-4 bg-white text-black px-10 py-5 text-[10px] md:text-[11px] font-bold tracking-[0.4em] uppercase hover:bg-accent hover:text-white transition-all duration-500"
+            >
+              Explore Objects <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Kinetic Text Overlay */}
+        <div className="absolute bottom-12 right-0 opacity-10 pointer-events-none select-none overflow-hidden hidden md:block">
+           <h3 className="text-[12vw] font-display uppercase tracking-tighter leading-none translate-x-20">ACCESSORIES</h3>
+        </div>
+      </section>
+
       {/* Category Section */}
       <section className="bg-white">
         <div className="grid grid-cols-1 md:grid-cols-2">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// New route added: accessories
 import { motion, AnimatePresence } from "framer-motion";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,6 +24,7 @@ import AdminProducts from "@/pages/admin/AdminProducts";
 import { AdminCoupons, AdminCustomers, AdminSettings } from "@/pages/admin/AdminMisc";
 import AdminInvoiceTemplate from "@/pages/admin/AdminInvoiceTemplate";
 import Invoice from "@/pages/Invoice";
+import AccessoriesPage from "@/pages/Accessories";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +56,7 @@ const App = () => {
             <Route path="/orders/:id" element={<OrderDetail />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/accessories" element={<AccessoriesPage />} />
           </Route>
           <Route path="/invoice/:id" element={<Invoice />} />
           <Route path="/admin" element={<AdminLayout />}>

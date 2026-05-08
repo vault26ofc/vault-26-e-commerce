@@ -10,6 +10,7 @@ const NAV = [
   { label: 'New Drops', to: '/category/shirts' },
   { label: 'Men', to: '/category/men' },
   { label: 'Women', to: '/category/women' },
+  { label: 'Accessories', to: '/accessories' },
   { label: 'Lookbook', to: '#lookbook' },
   { label: 'About', to: '#about' },
 ];
