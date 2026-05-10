@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ArrowRight, Search } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
 import BentoGrid from '@/components/home/BentoGrid';
@@ -12,6 +12,13 @@ export default function Home() {
     title: 'VAULT 26 — Premium Streetwear Archive',
     description: 'Where high fashion meets street authenticity. Not just worn. Remembered.',
   });
+  const navigate = useNavigate();
+  const [heroQ, setHeroQ] = useState('');
+  const submitHeroSearch = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (heroQ.trim()) navigate(`/search?q=${encodeURIComponent(heroQ.trim())}`);
+    else navigate('/shop');
+  };
 
   return (
     <div className="bg-white">
