@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 const ITEMS = [
   {
     id: 1,
-    title: "The Sculpted Blazer",
+    title: "Menswear Edit",
     category: "Archive 01",
     image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=800",
     to: "/category/men",
