@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, ShoppingBag, Search, User, Menu, X } from 'lucide-react';
+import { Heart, ShoppingBag, Search, User, Menu, X, ArrowRight } from 'lucide-react';
 import { useCart, useWishlist } from '@/lib/store';
 import { useAuth } from '@/lib/useAuth';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { inr } from '@/lib/format';
 
 const NAV = [
-  { label: 'New Drops', to: '/category/shirts' },
+  { label: 'Shop All', to: '/shop' },
   { label: 'Men', to: '/category/men' },
   { label: 'Women', to: '/category/women' },
   { label: 'Accessories', to: '/category/accessories' },
   { label: 'Lookbook', to: '#lookbook' },
   { label: 'About', to: '#about' },
 ];
+
+type Suggestion = { id: string; name: string; slug: string; image: string; price: number; brand?: string };
 
 const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
@@ -26,6 +30,9 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState('');
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const debounceRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const loc = useLocation();
   const isHome = loc.pathname === '/';
@@ -36,6 +43,38 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Live search suggestions (debounced)
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (!q.trim() || q.trim().length < 2) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    debounceRef.current = window.setTimeout(async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, slug, images, brands(name), product_variants(price)')
+        .eq('is_active', true)
+        .ilike('name', `%${q.trim()}%`)
+        .limit(6);
+      setSuggestions(
+        (data || []).map((p: any) => ({
+          id: p.id, name: p.name, slug: p.slug,
+          image: (p.images || [])[0] || '/placeholder.svg',
+          price: Number(p.product_variants?.[0]?.price || 0),
+          brand: p.brands?.name,
+        }))
+      );
+      setSearching(false);
+    }, 220);
+    return () => { if (debounceRef.current) window.clearTimeout(debounceRef.current); };
+  }, [q]);
+
+  const closeSearch = () => { setSearchOpen(false); setQ(''); setSuggestions([]); };
+  const goSuggestion = (s: Suggestion) => { navigate(`/products/${s.slug}`); closeSearch(); };
 
   const showGlass = scrolled || !isHome;
 
@@ -152,46 +191,101 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Search Overlay */}
-        <AnimatePresence>
-          {searchOpen && (
-            <motion.div 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="absolute inset-0 bg-white z-[60] flex items-center px-6 lg:px-20"
-            >
-              <Search className="w-5 h-5 text-black/30" />
-              <form 
-                className="flex-1 h-full"
-                onSubmit={(e) => { 
-                  e.preventDefault(); 
+      </header>
+
+      {/* Search Overlay (Full Screen with Suggestions) */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[80] bg-white/95 backdrop-blur-2xl flex flex-col"
+          >
+            <div className="container-px flex items-center gap-4 py-6 border-b border-black/5">
+              <Search className="w-5 h-5 text-black/40 shrink-0" />
+              <form
+                className="flex-1"
+                onSubmit={(e) => {
+                  e.preventDefault();
                   if (q.trim()) {
-                    navigate(`/search?q=${encodeURIComponent(q.trim())}`); 
-                    setSearchOpen(false); 
-                    setQ('');
+                    navigate(`/search?q=${encodeURIComponent(q.trim())}`);
+                    closeSearch();
                   }
                 }}
               >
-                <input 
+                <input
                   autoFocus
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="SEARCH THE ARCHIVE..." 
-                  className="w-full h-full bg-transparent border-none outline-none text-[12px] tracking-[0.3em] px-6 font-ui font-bold uppercase"
+                  placeholder="Search the archive — try 'shirt', 'denim'..."
+                  className="w-full bg-transparent border-none outline-none text-xl md:text-3xl font-elegant font-light tracking-tight placeholder:text-black/25"
                 />
               </form>
-              <button 
-                onClick={() => setSearchOpen(false)} 
-                className="text-[10px] tracking-[0.2em] font-ui uppercase font-bold text-black/40 hover:text-accent transition-colors"
+              <button
+                onClick={closeSearch}
+                className="text-[10px] tracking-[0.3em] font-ui uppercase font-bold text-black/40 hover:text-accent transition-colors"
               >
                 Close
               </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
 
-      </header>
+            <div className="flex-1 overflow-y-auto container-px py-8">
+              {q.trim().length < 2 ? (
+                <div>
+                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black/30 mb-6">Quick Links</div>
+                  <div className="flex flex-wrap gap-2">
+                    {['Shirts', 'Men', 'Women', 'Accessories', 'New Arrivals'].map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => { navigate(`/search?q=${encodeURIComponent(c)}`); closeSearch(); }}
+                        className="px-5 py-2.5 border border-black/15 text-[10px] tracking-[0.25em] uppercase font-ui font-bold hover:bg-black hover:text-white hover:border-black transition-all"
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : searching ? (
+                <div className="text-[10px] tracking-[0.3em] uppercase font-ui text-black/40">Searching the archive…</div>
+              ) : suggestions.length === 0 ? (
+                <div className="text-[10px] tracking-[0.3em] uppercase font-ui text-black/40">No pieces found for "{q}"</div>
+              ) : (
+                <div>
+                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black/30 mb-6">
+                    {suggestions.length} {suggestions.length === 1 ? 'Suggestion' : 'Suggestions'}
+                  </div>
+                  <div className="grid gap-2 max-w-3xl">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => goSuggestion(s)}
+                        className="flex items-center gap-5 p-3 hover:bg-black/[0.03] transition-colors text-left group"
+                      >
+                        <img src={s.image} alt={s.name} className="h-16 w-16 object-cover bg-muted shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          {s.brand && <div className="text-[9px] tracking-[0.3em] font-ui font-bold text-black/40 uppercase">{s.brand}</div>}
+                          <div className="text-sm font-light tracking-wide truncate">{s.name}</div>
+                          {s.price > 0 && <div className="text-[11px] font-ui font-bold tracking-widest mt-0.5">{inr(s.price)}</div>}
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-black/20 group-hover:text-accent group-hover:translate-x-1 transition-all" />
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => { navigate(`/search?q=${encodeURIComponent(q.trim())}`); closeSearch(); }}
+                      className="mt-4 text-[10px] tracking-[0.3em] uppercase font-ui font-bold border-b border-black pb-1 self-start hover:text-accent hover:border-accent inline-flex items-center gap-2 w-fit"
+                    >
+                      View all results <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
 
 
 
