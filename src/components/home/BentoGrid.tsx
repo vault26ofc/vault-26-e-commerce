@@ -8,6 +8,7 @@ const ITEMS = [
     title: "The Sculpted Blazer",
     category: "Archive 01",
     image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=800",
+    to: "/category/men",
     className: "md:col-span-2 md:row-span-2",
   },
   {
@@ -15,6 +16,7 @@ const ITEMS = [
     title: "Raw Denim Kit",
     category: "Essentials",
     image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=800",
+    to: "/shop",
     className: "md:col-span-1 md:row-span-1",
   },
   {
@@ -22,6 +24,7 @@ const ITEMS = [
     title: "Silk Utility Shirt",
     category: "Limited",
     image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&q=80&w=800",
+    to: "/category/shirts",
     className: "md:col-span-1 md:row-span-1",
   },
   {
@@ -29,6 +32,7 @@ const ITEMS = [
     title: "Minimalist Trousers",
     category: "Archive 02",
     image: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&q=80&w=800",
+    to: "/category/women",
     className: "md:col-span-2 md:row-span-1",
   },
 ];
