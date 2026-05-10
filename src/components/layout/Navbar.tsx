@@ -1,19 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Heart, ShoppingBag, Search, User, Menu, X } from 'lucide-react';
+import { Heart, ShoppingBag, Search, User, Menu, X, ArrowRight } from 'lucide-react';
 import { useCart, useWishlist } from '@/lib/store';
 import { useAuth } from '@/lib/useAuth';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { inr } from '@/lib/format';
 
 const NAV = [
-  { label: 'New Drops', to: '/category/shirts' },
+  { label: 'Shop All', to: '/shop' },
   { label: 'Men', to: '/category/men' },
   { label: 'Women', to: '/category/women' },
   { label: 'Accessories', to: '/category/accessories' },
   { label: 'Lookbook', to: '#lookbook' },
   { label: 'About', to: '#about' },
 ];
+
+type Suggestion = { id: string; name: string; slug: string; image: string; price: number; brand?: string };
 
 const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
