@@ -43,6 +43,7 @@ const App = () => {
         <Routes>
           <Route element={<StoreLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<ProductListing mode="all" />} />
             <Route path="/category/:slug" element={<ProductListing mode="category" />} />
             <Route path="/brand/:slug" element={<ProductListing mode="brand" />} />
             <Route path="/search" element={<ProductListing mode="search" />} />
