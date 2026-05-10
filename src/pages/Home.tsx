@@ -200,15 +200,16 @@ export default function Home() {
                 Where high fashion meets street authenticity. Vault 26 is more than clothing — it's a statement of individuality and fearless self-expression.
               </motion.p>
 
-              <motion.button
+              <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.7, delay: 0.65 }}
-                className="border border-black px-10 py-3 text-[11px] tracking-[0.25em] uppercase hover:bg-black hover:text-white transition-all duration-400 font-ui font-light"
               >
-                Discover More
-              </motion.button>
+                <Link to="/shop" className="inline-block border border-black px-10 py-3 text-[11px] tracking-[0.25em] uppercase hover:bg-black hover:text-white transition-all duration-400 font-ui font-light">
+                  Discover More
+                </Link>
+              </motion.div>
             </div>
           </div>
         </div>
@@ -219,7 +220,7 @@ export default function Home() {
 
       {/* Category Section */}
       <section className="bg-white">
-        <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-3">
             {/* Men */}
             <motion.div
               id="men"
