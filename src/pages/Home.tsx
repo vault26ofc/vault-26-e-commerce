@@ -61,19 +61,21 @@ export default function Home() {
               </h1>
 
               {/* Sleek Minimalist Search Bar (Glassmorphic) */}
-              <div className="relative w-full max-w-[500px] flex items-center h-12 md:h-14 bg-white/5 backdrop-blur-xl border border-white/10 group transition-all duration-500 hover:border-white/30">
+              <form onSubmit={submitHeroSearch} className="relative w-full max-w-[500px] flex items-center h-12 md:h-14 bg-white/5 backdrop-blur-xl border border-white/10 group transition-all duration-500 hover:border-white/30">
                 <div className="pl-4 md:pl-6 text-white/40 group-hover:text-accent transition-colors duration-300">
                   <Search className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </div>
                 <input
                   type="text"
+                  value={heroQ}
+                  onChange={(e) => setHeroQ(e.target.value)}
                   placeholder="FIND YOUR PIECE..."
                   className="w-full h-full bg-transparent border-none outline-none text-[10px] md:text-[11px] px-3 md:px-4 tracking-[0.15em] md:tracking-[0.2em] text-white placeholder:text-white/20 font-ui font-light"
                 />
-                <button className="h-full bg-white text-black px-6 md:px-8 text-[9px] font-bold tracking-[0.15em] md:tracking-[0.2em] hover:bg-accent hover:text-white transition-all duration-500 uppercase font-ui">
+                <button type="submit" className="h-full bg-white text-black px-6 md:px-8 text-[9px] font-bold tracking-[0.15em] md:tracking-[0.2em] hover:bg-accent hover:text-white transition-all duration-500 uppercase font-ui">
                   EXPLORE
                 </button>
-              </div>
+              </form>
 
               <div className="mt-12 flex gap-12 items-center">
                  <div className="flex -space-x-3">
