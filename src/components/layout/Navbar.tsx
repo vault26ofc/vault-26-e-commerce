@@ -30,6 +30,9 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [q, setQ] = useState('');
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const debounceRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const loc = useLocation();
   const isHome = loc.pathname === '/';
@@ -40,6 +43,38 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Live search suggestions (debounced)
+  useEffect(() => {
+    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (!q.trim() || q.trim().length < 2) {
+      setSuggestions([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    debounceRef.current = window.setTimeout(async () => {
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, slug, images, brands(name), product_variants(price)')
+        .eq('is_active', true)
+        .ilike('name', `%${q.trim()}%`)
+        .limit(6);
+      setSuggestions(
+        (data || []).map((p: any) => ({
+          id: p.id, name: p.name, slug: p.slug,
+          image: (p.images || [])[0] || '/placeholder.svg',
+          price: Number(p.product_variants?.[0]?.price || 0),
+          brand: p.brands?.name,
+        }))
+      );
+      setSearching(false);
+    }, 220);
+    return () => { if (debounceRef.current) window.clearTimeout(debounceRef.current); };
+  }, [q]);
+
+  const closeSearch = () => { setSearchOpen(false); setQ(''); setSuggestions([]); };
+  const goSuggestion = (s: Suggestion) => { navigate(`/products/${s.slug}`); closeSearch(); };
 
   const showGlass = scrolled || !isHome;
 
