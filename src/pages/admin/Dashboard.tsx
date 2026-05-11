@@ -50,16 +50,18 @@ export default function Dashboard() {
   return (
     <div>
       <h1 className="font-display text-2xl md:text-3xl mb-6 md:mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-8">
         {[
           { l: 'Revenue (30d)', v: inr(stats.revenue) },
           { l: 'Orders (30d)', v: stats.orders },
+          { l: 'Avg order', v: inr(Math.round(stats.aov)) },
           { l: 'Pending', v: stats.pending },
+          { l: 'Customers', v: stats.customers },
           { l: 'Low stock', v: stats.lowStock },
         ].map((k) => (
-          <div key={k.l} className="border border-border p-4 md:p-5">
-            <div className="eyebrow text-[9px] md:text-[10px]">{k.l}</div>
-            <div className="font-display text-xl md:text-2xl mt-1 md:mt-2">{k.v}</div>
+          <div key={k.l} className="border border-border p-3 md:p-4">
+            <div className="eyebrow text-[9px]">{k.l}</div>
+            <div className="font-display text-lg md:text-xl mt-1">{k.v}</div>
           </div>
         ))}
       </div>
@@ -70,8 +72,35 @@ export default function Dashboard() {
           <div className="h-48 md:h-56"><ResponsiveContainer><LineChart data={trend}><XAxis dataKey="d" fontSize={10} /><YAxis fontSize={10} /><Tooltip /><Line dataKey="orders" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
         </div>
         <div className="border border-border p-4 md:p-5">
-          <div className="eyebrow mb-4">Revenue — last 30 days</div>
+          <div className="eyebrow mb-4">Order volume</div>
           <div className="h-48 md:h-56"><ResponsiveContainer><BarChart data={trend}><XAxis dataKey="d" fontSize={10} /><YAxis fontSize={10} /><Tooltip /><Bar dataKey="orders" fill="hsl(var(--foreground))" /></BarChart></ResponsiveContainer></div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <div className="border border-border p-4 md:p-5">
+          <div className="eyebrow mb-4">Status breakdown</div>
+          <div className="h-56">
+            {statusData.length ? (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={70} label={(e: any) => `${e.name}`}>
+                    {statusData.map((s) => <Cell key={s.name} fill={STATUS_COLORS[s.name] || '#888'} />)}
+                  </Pie>
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : <div className="text-xs text-muted-foreground">No data yet.</div>}
+          </div>
+        </div>
+        <div className="border border-border p-4 md:p-5">
+          <div className="eyebrow mb-4">Products by category</div>
+          <div className="h-56">
+            {topCategories.length ? (
+              <ResponsiveContainer><BarChart data={topCategories} layout="vertical"><XAxis type="number" fontSize={10} /><YAxis dataKey="name" type="category" fontSize={10} width={90} /><Tooltip /><Bar dataKey="value" fill="hsl(var(--accent))" /></BarChart></ResponsiveContainer>
+            ) : <div className="text-xs text-muted-foreground">No data yet.</div>}
+          </div>
         </div>
       </div>
 
@@ -90,6 +119,7 @@ export default function Dashboard() {
                   <td className="p-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
+              {!recent.length && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground text-xs">No orders yet.</td></tr>}
             </tbody>
           </table>
         </div>
