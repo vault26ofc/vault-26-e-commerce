@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
 import { toast } from 'sonner';
+import { downloadCsv, downloadJson } from '@/lib/exportCsv';
+import { Download, Database } from 'lucide-react';
 
 export function AdminCoupons() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -49,9 +51,16 @@ export function AdminCoupons() {
 export function AdminCustomers() {
   const [users, setUsers] = useState<any[]>([]);
   useEffect(() => { supabase.from('profiles').select('*').order('created_at', { ascending: false }).then(({ data }) => setUsers(data || [])); }, []);
+  const exportRows = () => {
+    if (!users.length) return toast.error('Nothing to export');
+    downloadCsv(`customers-${new Date().toISOString().slice(0,10)}.csv`, users.map((u) => ({ name: u.name, email: u.email, phone: u.phone, joined: u.created_at })));
+  };
   return (
     <div>
-      <h1 className="font-display text-2xl md:text-3xl mb-6">Customers</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="font-display text-2xl md:text-3xl">Customers <span className="text-muted-foreground text-sm font-sans">({users.length})</span></h1>
+        <button onClick={exportRows} className="border border-border px-3 py-2 text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-secondary"><Download className="h-3.5 w-3.5" /> CSV</button>
+      </div>
       <div className="border border-border overflow-x-auto">
         <table className="w-full text-sm min-w-[600px] md:min-w-0">
           <thead className="bg-secondary"><tr>{['Name','Email','Phone','Joined'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
