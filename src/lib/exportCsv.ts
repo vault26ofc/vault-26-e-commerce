@@ -9,7 +9,9 @@ function escapeCell(v: any): string {
 
 export function toCsv(rows: Record<string, any>[], columns?: string[]): string {
   if (!rows.length) return '';
-  const cols = columns || Array.from(rows.reduce((set, r) => { Object.keys(r).forEach((k) => set.add(k)); return set; }, new Set<string>()));
+  const set = new Set<string>();
+  rows.forEach((r) => Object.keys(r).forEach((k) => set.add(k)));
+  const cols = columns || Array.from(set);
   const header = cols.map(escapeCell).join(',');
   const body = rows.map((r) => cols.map((c) => escapeCell(r[c])).join(',')).join('\n');
   return header + '\n' + body;
