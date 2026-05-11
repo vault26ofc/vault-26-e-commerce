@@ -1,21 +1,27 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
+import { LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
+
+const STATUS_COLORS: Record<string, string> = { PENDING: '#f59e0b', PACKED: '#3b82f6', SHIPPED: '#8b5cf6', DELIVERED: '#10b981', CANCELLED: '#ef4444' };
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({ revenue: 0, orders: 0, pending: 0, lowStock: 0 });
+  const [stats, setStats] = useState({ revenue: 0, orders: 0, pending: 0, lowStock: 0, customers: 0, aov: 0 });
   const [recent, setRecent] = useState<any[]>([]);
   const [trend, setTrend] = useState<any[]>([]);
+  const [statusData, setStatusData] = useState<{ name: string; value: number }[]>([]);
+  const [topCategories, setTopCategories] = useState<{ name: string; value: number }[]>([]);
 
   useEffect(() => {
     (async () => {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const { data: orders } = await supabase.from('orders').select('*').gte('created_at', since.toISOString()).order('created_at', { ascending: false });
       const all = orders || [];
-      const revenue = all.filter((o) => o.payment_status === 'PAID' || o.payment_method === 'COD').reduce((s, o) => s + Number(o.total), 0);
+      const paid = all.filter((o) => o.payment_status === 'PAID' || o.payment_method === 'COD');
+      const revenue = paid.reduce((s, o) => s + Number(o.total), 0);
       const pending = all.filter((o) => o.status === 'PENDING').length;
-      setStats((s) => ({ ...s, revenue, orders: all.length, pending }));
+      const aov = paid.length ? revenue / paid.length : 0;
+      setStats((s) => ({ ...s, revenue, orders: all.length, pending, aov }));
       setRecent(all.slice(0, 8));
 
       // trend
@@ -24,24 +30,38 @@ export default function Dashboard() {
       all.forEach((o) => { const k = new Date(o.created_at).toISOString().slice(5, 10); if (k in buckets) buckets[k] += 1; });
       setTrend(Object.entries(buckets).map(([d, v]) => ({ d, orders: v })));
 
+      // status pie
+      const statusMap: Record<string, number> = {};
+      all.forEach((o) => { statusMap[o.status] = (statusMap[o.status] || 0) + 1; });
+      setStatusData(Object.entries(statusMap).map(([name, value]) => ({ name, value })));
+
       const { data: vars } = await supabase.from('product_variants').select('id').lt('stock', 5);
       setStats((s) => ({ ...s, lowStock: vars?.length || 0 }));
+
+      const { count: pcount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      setStats((s) => ({ ...s, customers: pcount || 0 }));
+
+      // top categories by product count
+      const { data: cats } = await supabase.from('categories').select('name, products(id)');
+      setTopCategories((cats || []).map((c: any) => ({ name: c.name, value: c.products?.length || 0 })).sort((a, b) => b.value - a.value).slice(0, 6));
     })();
   }, []);
 
   return (
     <div>
       <h1 className="font-display text-2xl md:text-3xl mb-6 md:mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-8">
         {[
           { l: 'Revenue (30d)', v: inr(stats.revenue) },
           { l: 'Orders (30d)', v: stats.orders },
+          { l: 'Avg order', v: inr(Math.round(stats.aov)) },
           { l: 'Pending', v: stats.pending },
+          { l: 'Customers', v: stats.customers },
           { l: 'Low stock', v: stats.lowStock },
         ].map((k) => (
-          <div key={k.l} className="border border-border p-4 md:p-5">
-            <div className="eyebrow text-[9px] md:text-[10px]">{k.l}</div>
-            <div className="font-display text-xl md:text-2xl mt-1 md:mt-2">{k.v}</div>
+          <div key={k.l} className="border border-border p-3 md:p-4">
+            <div className="eyebrow text-[9px]">{k.l}</div>
+            <div className="font-display text-lg md:text-xl mt-1">{k.v}</div>
           </div>
         ))}
       </div>
@@ -52,8 +72,35 @@ export default function Dashboard() {
           <div className="h-48 md:h-56"><ResponsiveContainer><LineChart data={trend}><XAxis dataKey="d" fontSize={10} /><YAxis fontSize={10} /><Tooltip /><Line dataKey="orders" stroke="hsl(var(--accent))" strokeWidth={2} dot={false} /></LineChart></ResponsiveContainer></div>
         </div>
         <div className="border border-border p-4 md:p-5">
-          <div className="eyebrow mb-4">Revenue — last 30 days</div>
+          <div className="eyebrow mb-4">Order volume</div>
           <div className="h-48 md:h-56"><ResponsiveContainer><BarChart data={trend}><XAxis dataKey="d" fontSize={10} /><YAxis fontSize={10} /><Tooltip /><Bar dataKey="orders" fill="hsl(var(--foreground))" /></BarChart></ResponsiveContainer></div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6 mb-8">
+        <div className="border border-border p-4 md:p-5">
+          <div className="eyebrow mb-4">Status breakdown</div>
+          <div className="h-56">
+            {statusData.length ? (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={statusData} dataKey="value" nameKey="name" outerRadius={70} label={(e: any) => `${e.name}`}>
+                    {statusData.map((s) => <Cell key={s.name} fill={STATUS_COLORS[s.name] || '#888'} />)}
+                  </Pie>
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : <div className="text-xs text-muted-foreground">No data yet.</div>}
+          </div>
+        </div>
+        <div className="border border-border p-4 md:p-5">
+          <div className="eyebrow mb-4">Products by category</div>
+          <div className="h-56">
+            {topCategories.length ? (
+              <ResponsiveContainer><BarChart data={topCategories} layout="vertical"><XAxis type="number" fontSize={10} /><YAxis dataKey="name" type="category" fontSize={10} width={90} /><Tooltip /><Bar dataKey="value" fill="hsl(var(--accent))" /></BarChart></ResponsiveContainer>
+            ) : <div className="text-xs text-muted-foreground">No data yet.</div>}
+          </div>
         </div>
       </div>
 
@@ -72,6 +119,7 @@ export default function Dashboard() {
                   <td className="p-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
+              {!recent.length && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground text-xs">No orders yet.</td></tr>}
             </tbody>
           </table>
         </div>

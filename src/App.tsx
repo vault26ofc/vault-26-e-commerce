@@ -23,6 +23,7 @@ import AdminRefunds from "@/pages/admin/AdminRefunds";
 import AdminProducts from "@/pages/admin/AdminProducts";
 import { AdminCoupons, AdminCustomers, AdminSettings } from "@/pages/admin/AdminMisc";
 import AdminInvoiceTemplate from "@/pages/admin/AdminInvoiceTemplate";
+import AdminCatalog from "@/pages/admin/AdminCatalog";
 import Invoice from "@/pages/Invoice";
 import NotFound from "@/pages/NotFound";
 
@@ -63,6 +64,7 @@ const App = () => {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="refunds" element={<AdminRefunds />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="catalog" element={<AdminCatalog />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="customers" element={<AdminCustomers />} />
             <Route path="invoice-template" element={<AdminInvoiceTemplate />} />

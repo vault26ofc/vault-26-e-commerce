@@ -26,19 +26,21 @@ export default function AdminProducts() {
   const [categories, setCategories] = useState<any[]>([]);
   const [editing, setEditing] = useState<ProductForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('ALL');
+  const [search, setSearch] = useState('');
 
   const load = async () => {
     const { data } = await supabase
       .from('products')
-      .select('id, name, slug, is_active, is_featured, images, brands(name), product_variants(id, price, stock)')
+      .select('id, name, slug, is_active, is_featured, images, category_id, brands(name), categories(name), product_variants(id, price, stock)')
       .order('created_at', { ascending: false });
     setProducts(data || []);
   };
 
   useEffect(() => {
     load();
-    supabase.from('brands').select('id, name').then(({ data }) => setBrands(data || []));
-    supabase.from('categories').select('id, name').then(({ data }) => setCategories(data || []));
+    supabase.from('brands').select('id, name').order('name').then(({ data }) => setBrands(data || []));
+    supabase.from('categories').select('id, name').order('name').then(({ data }) => setCategories(data || []));
   }, []);
 
   const openNew = () => setEditing({ ...empty, variants: [{ size: 'M', color: 'Black', color_hex: '#000000', price: 0, stock: 0 }] });
@@ -114,34 +116,59 @@ export default function AdminProducts() {
     }
   };
 
+  const filtered = products.filter((p) => {
+    if (activeCategory !== 'ALL' && p.category_id !== activeCategory) return false;
+    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="font-display text-3xl">Products</h1>
-        <button onClick={openNew} className="bg-foreground text-background px-4 py-2 text-xs uppercase tracking-widest flex items-center gap-2"><Plus className="h-4 w-4" /> New</button>
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+        <h1 className="font-display text-2xl md:text-3xl">Products <span className="text-muted-foreground text-sm font-sans">({filtered.length})</span></h1>
+        <div className="flex items-center gap-2">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="border border-border bg-transparent px-3 py-2 text-sm w-40 sm:w-56" />
+          <button onClick={openNew} className="bg-foreground text-background px-3 sm:px-4 py-2 text-xs uppercase tracking-widest flex items-center gap-2"><Plus className="h-4 w-4" /> New</button>
+        </div>
       </div>
+
+      {/* Category chips */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        <button onClick={() => setActiveCategory('ALL')} className={`px-3 py-1.5 text-[11px] uppercase tracking-widest border ${activeCategory === 'ALL' ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>All ({products.length})</button>
+        {categories.map((c) => {
+          const count = products.filter((p) => p.category_id === c.id).length;
+          return (
+            <button key={c.id} onClick={() => setActiveCategory(c.id)} className={`px-3 py-1.5 text-[11px] uppercase tracking-widest border ${activeCategory === c.id ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
+              {c.name} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       <div className="border border-border overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-secondary"><tr>{['','Name','Brand','Price from','Stock','Active',''].map((h, i) => <th key={i} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
+        <table className="w-full text-sm min-w-[700px]">
+          <thead className="bg-secondary"><tr>{['','Name','Brand','Category','Price from','Stock','Active',''].map((h, i) => <th key={i} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
           <tbody>
-            {products.map((p) => {
+            {filtered.map((p) => {
               const minP = p.product_variants.length ? Math.min(...p.product_variants.map((v: any) => Number(v.price))) : 0;
               const stock = p.product_variants.reduce((s: number, v: any) => s + v.stock, 0);
               return (
                 <tr key={p.id} className="border-t border-border">
                   <td className="p-3"><img src={p.images?.[0]} alt="" className="w-10 h-12 object-cover" /></td>
                   <td className="p-3">{p.name}</td>
-                  <td className="p-3 text-muted-foreground">{p.brands?.name}</td>
+                  <td className="p-3 text-muted-foreground">{p.brands?.name || '—'}</td>
+                  <td className="p-3 text-muted-foreground">{p.categories?.name || '—'}</td>
                   <td className="p-3">{inr(minP)}</td>
                   <td className="p-3">{stock}</td>
                   <td className="p-3 text-xs">{p.is_active ? '✓' : '—'}</td>
-                  <td className="p-3 text-right">
+                  <td className="p-3 text-right whitespace-nowrap">
                     <button onClick={() => openEdit(p.id)} className="p-1.5 hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
                     <button onClick={() => remove(p.id)} className="p-1.5 hover:bg-secondary text-destructive"><Trash2 className="h-4 w-4" /></button>
                   </td>
                 </tr>
               );
             })}
+            {!filtered.length && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground text-xs">No products in this view.</td></tr>}
           </tbody>
         </table>
       </div>
