@@ -112,6 +112,7 @@ export function AdminSettings() {
           <input type="checkbox" defaultChecked={!!s.announcement?.active} onChange={(e) => save('announcement', { ...s.announcement, active: e.target.checked })} /> Active
         </label>
       </div>
+      </div>
     </div>
   );
 }
