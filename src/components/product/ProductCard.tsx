@@ -47,9 +47,9 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
           </div>
           <button
             onClick={(e) => { e.preventDefault(); toggle(p.id); }}
-            className="absolute top-4 right-4 h-10 w-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 hover:bg-white"
+            className="absolute top-4 right-4 h-10 w-10 bg-white/85 backdrop-blur-md rounded-full flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 hover:bg-white shadow-sm"
             aria-label="Wishlist">
-            <Heart className={cn('h-4 w-4 transition-colors', wished ? 'fill-accent stroke-accent' : 'stroke-black/40')} />
+            <Heart className={cn('h-4 w-4 transition-colors', wished ? 'fill-accent stroke-accent' : 'stroke-black/60')} />
           </button>
         </div>
         <div className="pt-5 flex flex-col gap-1">
