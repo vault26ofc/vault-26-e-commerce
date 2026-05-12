@@ -82,7 +82,8 @@ export function AdminSettings() {
   const [s, setS] = useState<Record<string, any>>({});
   useEffect(() => { supabase.from('settings').select('*').then(({ data }) => { const map: any = {}; data?.forEach((r: any) => map[r.key] = r.value); setS(map); }); }, []);
   const save = async (key: string, value: any) => {
-    const { error } = await supabase.from('settings').update({ value }).eq('key', key);
+    setS((p) => ({ ...p, [key]: value }));
+    const { error } = await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
     if (error) return toast.error(error.message);
     toast.success('Saved');
   };
