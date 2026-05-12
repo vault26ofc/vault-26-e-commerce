@@ -93,11 +93,11 @@ export default function AdminLayout() {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="w-56 bg-sidebar text-sidebar-foreground p-5 hidden md:block border-r border-sidebar-accent/10">
+      <aside className="w-56 bg-sidebar text-sidebar-foreground p-5 hidden md:flex md:flex-col border-r border-sidebar-accent/10">
         <div className="mb-10 px-3">
           <img src={LOGO_URL} alt="Vault 26" className="h-12 w-auto brightness-0 invert" />
         </div>
-        <nav className="space-y-1">
+        <nav className="space-y-1 flex-1">
           {NAV.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end as any}
               className={({ isActive }) => cn('flex items-center gap-3 px-3 py-2.5 text-sm rounded transition-colors', isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'opacity-75 hover:opacity-100 hover:bg-sidebar-accent/50')}>
@@ -105,10 +105,16 @@ export default function AdminLayout() {
             </NavLink>
           ))}
         </nav>
+        <Link to="/" className="flex items-center gap-3 px-3 py-2.5 text-sm rounded transition-colors border border-sidebar-accent/30 opacity-80 hover:opacity-100 hover:bg-sidebar-accent/50 mt-4">
+          <ExternalLink className="h-4 w-4" /> View Website
+        </Link>
       </aside>
 
       <main className="flex-1 bg-background min-w-0 overflow-x-hidden">
-        <div className="hidden md:flex justify-end items-center gap-2 px-10 pt-6">
+        <div className="hidden md:flex justify-between items-center gap-2 px-10 pt-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" /> Back to Website
+          </Link>
           <AdminNotifications />
         </div>
         <div className="p-4 md:px-10 md:pb-10 md:pt-4">
