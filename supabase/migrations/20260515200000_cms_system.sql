@@ -171,34 +171,34 @@ DO $$ BEGIN
   CREATE POLICY "cms_pub_read_nav" ON navigation_menus FOR SELECT USING (true);
 
   DROP POLICY IF EXISTS "cms_admin_all_website_sections" ON website_sections;
-  CREATE POLICY "cms_admin_all_website_sections" ON website_sections FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_website_sections" ON website_sections FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_seo" ON seo_settings;
-  CREATE POLICY "cms_admin_all_seo" ON seo_settings FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_seo" ON seo_settings FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_brand" ON brand_settings;
-  CREATE POLICY "cms_admin_all_brand" ON brand_settings FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_brand" ON brand_settings FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_theme" ON theme_settings;
-  CREATE POLICY "cms_admin_all_theme" ON theme_settings FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_theme" ON theme_settings FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_testimonials" ON testimonials;
-  CREATE POLICY "cms_admin_all_testimonials" ON testimonials FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_testimonials" ON testimonials FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_faqs" ON faq_items;
-  CREATE POLICY "cms_admin_all_faqs" ON faq_items FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_faqs" ON faq_items FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_announcements" ON announcement_bars;
-  CREATE POLICY "cms_admin_all_announcements" ON announcement_bars FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_announcements" ON announcement_bars FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_media" ON media_assets;
-  CREATE POLICY "cms_admin_all_media" ON media_assets FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_media" ON media_assets FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_versions" ON content_versions;
-  CREATE POLICY "cms_admin_all_versions" ON content_versions FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_versions" ON content_versions FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 
   DROP POLICY IF EXISTS "cms_admin_all_nav" ON navigation_menus;
-  CREATE POLICY "cms_admin_all_nav" ON navigation_menus FOR ALL USING (has_role('admin'::text));
+  CREATE POLICY "cms_admin_all_nav" ON navigation_menus FOR ALL USING (has_role(auth.uid(), 'admin'::app_role));
 END $$;
 
 -- ── Singletons ───────────────────────────────────────────────────────────────
