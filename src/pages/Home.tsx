@@ -239,7 +239,7 @@ export default function Home() {
                   <img
                     src="https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&q=80&w=1000"
                     alt="Menswear"
-                    className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
+                    className="w-full h-full object-cover grayscale transition-all duration-1500 ease-editorial group-hover:scale-[1.04] group-hover:grayscale-0"
                   />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <h3 className="text-[18vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
@@ -272,7 +272,7 @@ export default function Home() {
                   <img
                     src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1000"
                     alt="Womenswear"
-                    className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
+                    className="w-full h-full object-cover grayscale transition-all duration-1500 ease-editorial group-hover:scale-[1.04] group-hover:grayscale-0"
                   />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <h3 className="text-[18vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
@@ -305,7 +305,7 @@ export default function Home() {
                   <img
                     src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=1000"
                     alt="Accessories"
-                    className="w-full h-full object-cover grayscale transition-all duration-[1.5s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04] group-hover:grayscale-0"
+                    className="w-full h-full object-cover grayscale transition-all duration-1500 ease-editorial group-hover:scale-[1.04] group-hover:grayscale-0"
                   />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <h3 className="text-[18vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">

@@ -35,11 +35,11 @@ export default function ProductCard({ p }: { p: ProductCardData }) {
       <Link to={`/products/${p.slug}`} className="block">
         <div className="relative aspect-[3/4] bg-muted overflow-hidden"
           onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
-          <img src={p.images[0]} alt={p.name} loading="lazy"
-            className={cn('absolute inset-0 w-full h-full object-cover transition-all duration-[1s] ease-[cubic-bezier(0.16,1,0.3,1)]', hovered && p.images[1] ? 'opacity-0' : 'opacity-100', hovered && "scale-105")} />
+          <img src={p.images[0]} alt={p.name} loading="lazy" decoding="async"
+            className={cn('absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-editorial', hovered && p.images[1] ? 'opacity-0' : 'opacity-100', hovered && "scale-105")} />
           {p.images[1] && (
-            <img src={p.images[1]} alt="" loading="lazy"
-              className={cn('absolute inset-0 w-full h-full object-cover transition-all duration-[1s] ease-[cubic-bezier(0.16,1,0.3,1)]', hovered ? 'opacity-100 scale-105' : 'opacity-0')} />
+            <img src={p.images[1]} alt="" loading="lazy" decoding="async"
+              className={cn('absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-editorial', hovered ? 'opacity-100 scale-105' : 'opacity-0')} />
           )}
           <div className="absolute top-4 left-4 flex flex-col gap-2">
             {onSale && <span className="bg-black text-white text-[9px] font-ui font-bold uppercase tracking-[0.2em] px-3 py-1.5">Sale</span>}
