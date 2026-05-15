@@ -36,13 +36,24 @@ CREATE POLICY "notif admin all" ON public.admin_notifications
   USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
--- Allow inserts from order trigger (SECURITY DEFINER) and from authenticated checkout context
 DROP POLICY IF EXISTS "notif insert any" ON public.admin_notifications;
 CREATE POLICY "notif insert any" ON public.admin_notifications
   FOR INSERT
   WITH CHECK (true);
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.admin_notifications;
+-- Conditionally add admin_notifications to realtime publication
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime'
+      AND schemaname = 'public'
+      AND tablename = 'admin_notifications'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.admin_notifications;
+  END IF;
+END $$;
+
 ALTER TABLE public.admin_notifications REPLICA IDENTITY FULL;
 
 -- Trigger: create admin notification when new order inserted
