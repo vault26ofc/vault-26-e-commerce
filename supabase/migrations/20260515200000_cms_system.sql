@@ -207,7 +207,8 @@ INSERT INTO brand_settings (site_name, logo_url)
 SELECT 'Vault 26', 'https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png'
 WHERE NOT EXISTS (SELECT 1 FROM brand_settings);
 
-INSERT INTO theme_settings DEFAULT VALUES
+INSERT INTO theme_settings (accent_color, font_display, font_ui, font_elegant, border_radius, animations_enabled)
+SELECT '#B11226', 'Playfair Display', 'Jost', 'Cormorant Garamond', '0rem', true
 WHERE NOT EXISTS (SELECT 1 FROM theme_settings);
 
 INSERT INTO seo_settings (page_slug, title, description)
