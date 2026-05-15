@@ -26,6 +26,7 @@ export default function AdminProducts() {
   const [categories, setCategories] = useState<any[]>([]);
   const [editing, setEditing] = useState<ProductForm | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [search, setSearch] = useState('');
 
@@ -68,12 +69,24 @@ export default function AdminProducts() {
 
   const uploadImage = async (file: File) => {
     if (!editing) return;
-    const ext = file.name.split('.').pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from('product-images').upload(path, file);
-    if (error) return toast.error(error.message);
-    const { data } = supabase.storage.from('product-images').getPublicUrl(path);
-    setEditing({ ...editing, images: [...editing.images, data.publicUrl] });
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
+      formData.append('folder', 'vault26/products');
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: 'POST', body: formData }
+      );
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+      setEditing((prev) => prev ? { ...prev, images: [...prev.images, data.secure_url] } : prev);
+    } catch (e: any) {
+      toast.error(e.message || 'Image upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const save = async () => {
@@ -216,9 +229,10 @@ export default function AdminProducts() {
                       <button onClick={() => setEditing({ ...editing, images: editing.images.filter((_, j) => j !== i) })} className="absolute -top-2 -right-2 bg-foreground text-background rounded-full p-0.5"><X className="h-3 w-3" /></button>
                     </div>
                   ))}
-                  <label className="w-20 h-24 border border-dashed border-border flex items-center justify-center cursor-pointer hover:bg-secondary">
+                  <label className={`w-20 h-24 border border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:bg-secondary gap-1 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                     <Upload className="h-4 w-4" />
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); e.target.value = ''; }} />
+                    {uploading && <span className="text-[9px] uppercase tracking-widest">Uploading…</span>}
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => { Array.from(e.target.files || []).forEach(uploadImage); e.target.value = ''; }} />
                   </label>
                 </div>
               </div>
