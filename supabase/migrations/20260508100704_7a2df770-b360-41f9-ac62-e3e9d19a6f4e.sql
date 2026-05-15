@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "notif insert any" ON public.admin_notifications;

@@ -56,6 +56,36 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string | null
+          order_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          order_id?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string | null
+          order_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           banner_image: string | null
@@ -305,6 +335,10 @@ export type Database = {
           payment_status: Database["public"]["Enums"]["payment_status"]
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
+          refund_amount: number
+          refund_notes: string | null
+          refund_status: Database["public"]["Enums"]["refund_status"]
+          refunded_at: string | null
           shipping: number
           shipping_address: Json
           status: Database["public"]["Enums"]["order_status"]
@@ -327,6 +361,10 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          refund_amount?: number
+          refund_notes?: string | null
+          refund_status?: Database["public"]["Enums"]["refund_status"]
+          refunded_at?: string | null
           shipping?: number
           shipping_address: Json
           status?: Database["public"]["Enums"]["order_status"]
@@ -349,6 +387,10 @@ export type Database = {
           payment_status?: Database["public"]["Enums"]["payment_status"]
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
+          refund_amount?: number
+          refund_notes?: string | null
+          refund_status?: Database["public"]["Enums"]["refund_status"]
+          refunded_at?: string | null
           shipping?: number
           shipping_address?: Json
           status?: Database["public"]["Enums"]["order_status"]
@@ -577,6 +619,12 @@ export type Database = {
       order_status: "PENDING" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED"
       payment_method: "RAZORPAY" | "COD"
       payment_status: "PENDING" | "PAID" | "FAILED" | "REFUNDED"
+      refund_status:
+        | "NONE"
+        | "REQUESTED"
+        | "PROCESSING"
+        | "REFUNDED"
+        | "REJECTED"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -709,6 +757,13 @@ export const Constants = {
       order_status: ["PENDING", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"],
       payment_method: ["RAZORPAY", "COD"],
       payment_status: ["PENDING", "PAID", "FAILED", "REFUNDED"],
+      refund_status: [
+        "NONE",
+        "REQUESTED",
+        "PROCESSING",
+        "REFUNDED",
+        "REJECTED",
+      ],
     },
   },
 } as const

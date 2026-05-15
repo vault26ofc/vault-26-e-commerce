@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import StoreLayout from "@/components/layout/StoreLayout";
+import Preloader from "@/components/shared/Preloader";
 import Home from "@/pages/Home";
 import ProductListing from "@/pages/ProductListing";
 import ProductDetail from "@/pages/ProductDetail";
@@ -16,21 +19,32 @@ import { Login, Register } from "@/pages/Auth";
 import AdminLayout from "@/pages/admin/AdminLayout";
 import Dashboard from "@/pages/admin/Dashboard";
 import AdminOrders from "@/pages/admin/AdminOrders";
+import AdminRefunds from "@/pages/admin/AdminRefunds";
 import AdminProducts from "@/pages/admin/AdminProducts";
 import { AdminCoupons, AdminCustomers, AdminSettings } from "@/pages/admin/AdminMisc";
+import AdminInvoiceTemplate from "@/pages/admin/AdminInvoiceTemplate";
+import AdminCatalog from "@/pages/admin/AdminCatalog";
+import Invoice from "@/pages/Invoice";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" />
-      <BrowserRouter>
+const App = () => {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner position="top-center" />
+        <AnimatePresence>
+          {loading && <Preloader onComplete={() => setLoading(false)} />}
+        </AnimatePresence>
+        <BrowserRouter>
         <Routes>
           <Route element={<StoreLayout />}>
             <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<ProductListing mode="all" />} />
             <Route path="/category/:slug" element={<ProductListing mode="category" />} />
             <Route path="/brand/:slug" element={<ProductListing mode="brand" />} />
             <Route path="/search" element={<ProductListing mode="search" />} />
@@ -44,19 +58,24 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Route>
+          <Route path="/invoice/:id" element={<Invoice />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="orders" element={<AdminOrders />} />
+            <Route path="refunds" element={<AdminRefunds />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="catalog" element={<AdminCatalog />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="invoice-template" element={<AdminInvoiceTemplate />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
