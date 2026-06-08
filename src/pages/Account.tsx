@@ -17,11 +17,12 @@ export default function Account() {
   const empty = { full_name: '', phone: '', line1: '', line2: '', city: '', state: '', pincode: '' };
   const [newAddr, setNewAddr] = useState(empty);
 
-  if (loading) return <div className="min-h-screen bg-white" />;
-  if (!user) return <Navigate to="/login" replace />;
+  const loadAddresses = () => {
+    if (!user) return;
+    supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => setAddresses(data || []));
+  };
 
-  const loadAddresses = () => user && supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => setAddresses(data || []));
-
+  // useEffect must be before any conditional returns (Rules of Hooks)
   useEffect(() => {
     if (!user) return;
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle().then(({ data }) => {
@@ -29,7 +30,10 @@ export default function Account() {
       setProfileForm({ name: data?.name || '', phone: data?.phone || '' });
     });
     loadAddresses();
-  }, [user]);
+  }, [user?.id]);
+
+  if (loading) return <div className="min-h-screen bg-white" />;
+  if (!user) return <Navigate to="/login" replace />;
 
   const saveProfile = async () => {
     const { error } = await supabase.from('profiles').update(profileForm).eq('id', user!.id);
