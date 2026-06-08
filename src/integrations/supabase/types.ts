@@ -612,6 +612,27 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_order: {
+        Args: {
+          p_user_id: string | null
+          p_email: string
+          p_shipping_address: Record<string, unknown>
+          p_items: Array<{ variant_id: string; quantity: number }>
+          p_coupon_code?: string | null
+          p_payment_method?: string
+        }
+        Returns: {
+          id: string
+          order_number: string
+          subtotal: number
+          discount: number
+          shipping: number
+          total: number
+          payment_method: string
+          payment_status: string
+          cod_advance_amount: number
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "customer"

@@ -120,42 +120,27 @@ export default function Checkout() {
   const placeOrder = async () => {
     setPlacing(true);
     try {
-      const orderItems = items.map((i) => ({
-        variant_id: i.variantId,
-        product_name: i.name,
-        variant_label: [i.size, i.color].filter(Boolean).join(' · '),
-        image: i.image,
-        quantity: i.quantity,
-        price_at_purchase: i.price,
-      }));
-
-      const { data: order, error } = await supabase.from('orders').insert({
-        user_id: user?.id ?? null,
-        email: addr.email,
-        shipping_address: addr,
-        subtotal: sub,
-        discount,
-        shipping,
-        total,
-        payment_method: payment,
-        payment_status: 'PENDING',
-        cod_advance_amount: payment === 'COD' ? codAdvance : 0,
-        coupon_code: couponCode,
-      }).select().single();
+      // Server-side order creation: prices are re-validated from DB, not trusted from client
+      const { data: orderData, error } = await supabase.rpc('create_order', {
+        p_user_id: user?.id ?? null,
+        p_email: addr.email,
+        p_shipping_address: addr,
+        p_items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
+        p_coupon_code: couponCode ?? null,
+        p_payment_method: payment,
+      });
 
       if (error) throw error;
-
-      const { error: itemsErr } = await supabase.from('order_items').insert(orderItems.map((it) => ({ ...it, order_id: order.id })));
-      if (itemsErr) throw itemsErr;
+      const order = orderData as { id: string; order_number: string; total: number; cod_advance_amount: number; payment_method: string };
 
       if (payment === 'RAZORPAY') {
-        await payWithRazorpay(order, total);
-      } else if (payment === 'COD' && codAdvance > 0) {
-        await payWithRazorpay(order, codAdvance);
+        await payWithRazorpay(order, order.total);
+      } else if (payment === 'COD' && order.cod_advance_amount > 0) {
+        await payWithRazorpay(order, order.cod_advance_amount);
       }
 
       if (addr.phone) {
-        triggerOrderNotification('order_placed', order, addr.phone).catch(() => {});
+        triggerOrderNotification('order_placed', { ...order, email: addr.email, shipping_address: addr, user_id: user?.id }, addr.phone).catch(() => {});
       }
       toast.success('Order secured in the archive');
       clear();

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -17,7 +17,8 @@ export default function Account() {
   const empty = { full_name: '', phone: '', line1: '', line2: '', city: '', state: '', pincode: '' };
   const [newAddr, setNewAddr] = useState(empty);
 
-  useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading]);
+  if (loading) return <div className="min-h-screen bg-white" />;
+  if (!user) return <Navigate to="/login" replace />;
 
   const loadAddresses = () => user && supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => setAddresses(data || []));
 

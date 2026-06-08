@@ -13,13 +13,19 @@ export default function OrderSuccess() {
   useEffect(() => {
     if (!id) return;
     supabase.from('orders').select('*, order_items(*)').eq('id', id).maybeSingle().then(({ data }) => {
-      setOrder(data);
+      setOrder(data ?? null);
       setLoading(false);
     });
   }, [id]);
 
   if (loading) return <div className="container-px py-48 text-center uppercase tracking-[0.5em] text-[10px] animate-pulse">Decrypting Order Data...</div>;
-  if (!order) return <div className="container-px py-48 text-center uppercase tracking-[0.5em] text-[10px]">Order Not Found in Archive</div>;
+  if (!order) return (
+    <div className="container-px py-48 text-center">
+      <h1 className="display-2 italic font-elegant mb-8">Order Not Found</h1>
+      <p className="text-[11px] tracking-[0.2em] uppercase font-ui text-black/50 mb-10">This order either doesn't exist or you don't have access to it.</p>
+      <a href="/orders" className="border border-black px-10 py-4 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-300">View Your Orders</a>
+    </div>
+  );
 
   return (
     <div className="container-px py-32 flex flex-col items-center min-h-screen bg-white">

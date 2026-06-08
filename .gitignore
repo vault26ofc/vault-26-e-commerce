@@ -19,6 +19,10 @@ dist-ssr
 # Claude Code
 .claude/
 
+# Playwright
+test-results/
+tests/playwright-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
