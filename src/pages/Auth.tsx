@@ -127,8 +127,9 @@ export function Login() {
               )}
             </button>
           </div>
-          <button 
-            disabled={loading} 
+          <button
+            type="submit"
+            disabled={loading}
             className="w-full bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30 mt-8"
           >
             {loading ? 'Verifying Identity...' : 'Authorize Access'}
@@ -252,8 +253,9 @@ export function Register() {
               )}
             </button>
           </div>
-          <button 
-            disabled={loading} 
+          <button
+            type="submit"
+            disabled={loading}
             className="w-full bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30 mt-8"
           >
             {loading ? 'Processing Application...' : 'Register Account'}

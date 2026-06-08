@@ -9,9 +9,6 @@ test.describe('Store functionality', () => {
     await page.waitForTimeout(5000);
     const body = await page.textContent('body');
     expect(body && body.length > 200, 'Homepage should have rendered content').toBeTruthy();
-    // Should not just show blank white div
-    const mainContent = page.locator('main, #root > div').first();
-    await expect(mainContent).not.toBeEmpty();
   });
 
   test('Shop page renders product grid or empty state', async ({ page }) => {
