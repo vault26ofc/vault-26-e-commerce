@@ -18,10 +18,14 @@ dist-ssr
 
 # Claude Code
 .claude/
+*.claude-session
+.claude-*
 
 # Playwright
 test-results/
 tests/playwright-report/
+tests/e2e/screenshots/
+tests/e2e/videos/
 
 # Editor directories and files
 .vscode/*
