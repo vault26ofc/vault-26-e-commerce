@@ -158,7 +158,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+    <div className="container-px pt-24 pb-12 md:py-24 min-h-screen bg-white">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_480px] gap-12 lg:gap-32">
         <div className="flex flex-col">
           <header className="mb-10 md:mb-16">

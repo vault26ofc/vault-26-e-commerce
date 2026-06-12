@@ -5,7 +5,7 @@ import type { CMSSection, CategoryGridConfig, CategoryItem } from '../types';
 
 const DEFAULT_CATEGORIES: CategoryItem[] = [
   { slug: 'men', title: 'Menswear', image: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&q=80&w=1000', href: '/category/men', watermark: 'MEN' },
-  { slug: 'women', title: 'Womenswear', image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1000', href: '/category/women', watermark: 'WOMEN' },
+  { slug: 'shoes', title: 'Footwear', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=1000', href: '/category/shoes', watermark: 'KICKS' },
   { slug: 'accessories', title: 'Accessories', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=1000', href: '/category/accessories', watermark: 'ACC', badge: 'New' },
 ];
 
@@ -36,7 +36,7 @@ export default function CategoryGridSection({ section }: { section: CMSSection }
                   className="w-full h-full object-cover grayscale transition-all duration-1500 ease-editorial group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h3 className="text-[18vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
+                  <h3 className="text-[12vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
                     {cat.watermark || cat.slug.toUpperCase()}
                   </h3>
                 </div>

@@ -97,7 +97,7 @@ export default function ProductDetail() {
   const buyNow = () => { addToCart(); setTimeout(() => navigate('/checkout'), 100); };
 
   return (
-    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+    <div className="container-px pt-24 pb-12 md:py-24 min-h-screen bg-white">
       <button
         onClick={() => navigate(-1)}
         className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold text-black/50 hover:text-black transition-colors mb-8 md:mb-12"

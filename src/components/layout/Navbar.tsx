@@ -11,7 +11,7 @@ import { inr } from '@/lib/format';
 const NAV = [
   { label: 'Shop All', to: '/shop' },
   { label: 'Men', to: '/category/men' },
-  { label: 'Women', to: '/category/women' },
+  { label: 'Shoes', to: '/category/shoes' },
   { label: 'Accessories', to: '/category/accessories' },
   { label: 'Lookbook', to: '#lookbook' },
   { label: 'About', to: '#about' },

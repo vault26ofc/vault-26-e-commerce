@@ -171,7 +171,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   const showCategoryChips = mode === 'all' || mode === 'search';
 
   return (
-    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+    <div className="container-px pt-24 pb-12 md:py-24 min-h-screen bg-white">
       <div className="mb-8 md:mb-12">
         {mode !== 'all' && (
           <button
@@ -222,7 +222,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 border-y border-black/5 py-5 mb-12 sticky top-[80px] bg-white/95 backdrop-blur-xl z-20">
+      <div className="flex items-center justify-between gap-3 border-y border-black/5 py-5 mb-12 sticky top-[72px] md:top-[80px] bg-white/95 backdrop-blur-xl z-20">
         <button
           onClick={() => setFiltersOpen(true)}
           className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold hover:text-accent transition-colors"

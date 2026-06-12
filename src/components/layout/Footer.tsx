@@ -6,7 +6,7 @@ const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-black/10 py-24 px-6 lg:px-12">
+    <footer className="bg-white border-t border-black/10 py-16 md:py-24 px-6 lg:px-12">
       <div className="max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div className="space-y-8">
@@ -32,7 +32,7 @@ export default function Footer() {
           <div>
             <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black mb-8 block">Collections</span>
             <ul className="space-y-4">
-              {['New Drops', 'Men', 'Women', 'Archive'].map(item => (
+              {['New Drops', 'Men', 'Shoes', 'Archive'].map(item => (
                 <li key={item}>
                   <Link to="#" className="text-sm font-ui font-light text-black/60 hover:text-black transition-colors uppercase tracking-[0.1em]">
                     {item}
@@ -70,20 +70,13 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-between pt-12 border-t border-black/5 gap-8">
-          <div className="flex items-center gap-12">
-            <span className="text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">
-              © {new Date().getFullYear()} VAULT 26 ARCHIVE
-            </span>
-            <span className="hidden md:block text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">
-              EST. MMXXVI
-            </span>
-          </div>
-          <div className="flex items-center gap-8">
-            <span className="text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">
-              DESIGNED BY STUDIO V
-            </span>
-          </div>
+        <div className="flex flex-col items-center md:flex-row md:justify-between pt-10 md:pt-12 border-t border-black/5 gap-4 md:gap-8 text-center md:text-left">
+          <span className="text-[9px] tracking-[0.3em] uppercase text-black/30 font-ui">
+            © {new Date().getFullYear()} VAULT 26 ARCHIVE · EST. MMXXVI
+          </span>
+          <span className="text-[9px] tracking-[0.3em] uppercase text-black/30 font-ui">
+            DESIGNED BY STUDIO V
+          </span>
         </div>
       </div>
     </footer>

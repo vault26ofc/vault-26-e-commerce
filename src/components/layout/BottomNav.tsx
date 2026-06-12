@@ -27,7 +27,7 @@ export default function BottomNav() {
             {({ isActive }) => (
               <>
                 <it.icon className="h-5 w-5" strokeWidth={isActive ? 2 : 1.5} />
-                <span className="text-[9px] font-ui font-bold uppercase tracking-[0.2em]">{it.label}</span>
+                <span className="text-[8px] font-ui font-bold uppercase tracking-[0.1em] truncate w-full text-center">{it.label}</span>
                 {isActive && (
                   <div className="absolute bottom-1 w-1 h-1 rounded-full bg-accent" />
                 )}
