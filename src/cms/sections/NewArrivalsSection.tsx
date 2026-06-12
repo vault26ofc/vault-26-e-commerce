@@ -41,7 +41,7 @@ export default function NewArrivalsSection({ section }: { section: CMSSection })
   if (products.length === 0) return null;
 
   return (
-    <section className="relative py-24 md:py-32 overflow-hidden bg-black text-white">
+    <section className="relative py-16 md:py-28 overflow-hidden bg-black text-white">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-accent/30 blur-[120px] animate-pulse" />
         <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] rounded-full bg-white/10 blur-[140px]" />

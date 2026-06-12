@@ -12,7 +12,7 @@ export default function TestimonialsSection({ section }: { section: CMSSection }
   if (loading || items.length === 0) return null;
 
   return (
-    <section className="py-24 container-px bg-white overflow-hidden border-b border-black/5">
+    <section className="py-14 md:py-24 container-px bg-white overflow-hidden border-b border-black/5">
       <div className="flex items-end justify-between mb-16">
         <div className="overflow-hidden">
           <motion.h2

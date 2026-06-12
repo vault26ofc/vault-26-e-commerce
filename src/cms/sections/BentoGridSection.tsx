@@ -21,7 +21,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
   const items: BentoItem[] = Array.isArray(cfg.items) && cfg.items.length > 0 ? cfg.items : DEFAULT_ITEMS;
 
   return (
-    <section className="py-24 container-px bg-white">
+    <section className="py-14 md:py-24 container-px bg-white">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
         <div>
           <span className="eyebrow block mb-4">{cfg.eyebrow || 'The New Standard'}</span>

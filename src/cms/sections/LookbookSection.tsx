@@ -16,7 +16,7 @@ export default function LookbookSection({ section }: { section: CMSSection }) {
   const heading = cfg.heading || 'Lookbook';
 
   return (
-    <section id="lookbook" className="py-24 container-px bg-white">
+    <section id="lookbook" className="py-14 md:py-24 container-px bg-white">
       <div className="max-w-[1600px] mx-auto">
         <div className="overflow-hidden mb-16">
           <motion.h2

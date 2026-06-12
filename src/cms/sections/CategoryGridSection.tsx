@@ -15,9 +15,14 @@ export default function CategoryGridSection({ section }: { section: CMSSection }
     ? cfg.categories
     : DEFAULT_CATEGORIES;
 
+  const gridClass =
+    categories.length === 2 ? 'grid-cols-1 md:grid-cols-2' :
+    categories.length === 4 ? 'grid-cols-1 md:grid-cols-4' :
+    'grid-cols-1 md:grid-cols-3';
+
   return (
     <section className="bg-white">
-      <div className={`grid grid-cols-1 md:grid-cols-${Math.min(categories.length, 4)}`} style={{ gridTemplateColumns: `repeat(${Math.min(categories.length, 4)}, minmax(0, 1fr))` }}>
+      <div className={`grid ${gridClass}`}>
         {categories.map((cat, i) => (
           <motion.div
             key={cat.slug}
@@ -29,25 +34,25 @@ export default function CategoryGridSection({ section }: { section: CMSSection }
             className="group flex flex-col"
           >
             <Link to={cat.href} className="flex flex-col">
-              <div className="relative overflow-hidden w-full h-[450px] md:h-[500px] lg:h-[700px] bg-muted">
+              <div className="relative overflow-hidden w-full aspect-[3/4] md:aspect-auto md:h-[500px] lg:h-[700px] bg-muted">
                 <img
                   src={cat.image}
                   alt={cat.title}
                   className="w-full h-full object-cover grayscale transition-all duration-1500 ease-editorial group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <h3 className="text-[12vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
+                  <h3 className="text-[28vw] md:text-[8vw] font-light text-white/20 uppercase tracking-[0.05em] md:tracking-[0.2em] transition-all duration-700 group-hover:text-white/40 group-hover:scale-110 font-elegant">
                     {cat.watermark || cat.slug.toUpperCase()}
                   </h3>
                 </div>
                 {cat.badge && (
-                  <span className="absolute top-6 right-6 bg-accent text-white text-[9px] font-ui font-bold uppercase tracking-[0.2em] px-3 py-1.5">
+                  <span className="absolute top-4 right-4 md:top-6 md:right-6 bg-accent text-white text-[9px] font-ui font-bold uppercase tracking-[0.2em] px-3 py-1.5">
                     {cat.badge}
                   </span>
                 )}
               </div>
-              <div className="mt-5 flex flex-col gap-0.5 px-6 pb-12">
-                <h3 className="text-black text-4xl md:text-5xl lg:text-6xl tracking-tight mb-5 font-elegant font-light">
+              <div className="mt-4 flex flex-col gap-0.5 px-4 pb-8 md:px-6 md:pb-12">
+                <h3 className="text-black text-3xl md:text-5xl lg:text-6xl tracking-tight mb-3 md:mb-5 font-elegant font-light">
                   {cat.title}
                 </h3>
                 <span className="inline-flex items-center gap-2 w-fit border-b border-black/40 pb-1 text-[11px] tracking-[0.35em] uppercase font-bold font-ui text-black/80 group-hover:text-accent group-hover:border-accent transition-all duration-500">

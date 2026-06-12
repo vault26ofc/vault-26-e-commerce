@@ -90,7 +90,7 @@ export default function EditorialSplitSection({ section }: { section: CMSSection
   );
 
   return (
-    <section className="pb-20 pt-4 container-px bg-white">
+    <section className="pb-14 pt-4 md:pb-20 container-px bg-white">
       <div className="max-w-[1600px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {imageRight ? <>{textCol}{imageCol}</> : <>{imageCol}{textCol}</>}

@@ -31,7 +31,7 @@ export default function NewsletterSection({ section }: { section: CMSSection }) 
   };
 
   return (
-    <section className="py-24 md:py-48 container-px bg-white relative overflow-hidden">
+    <section className="py-16 md:py-32 container-px bg-white relative overflow-hidden">
       <div className="absolute inset-0 flex flex-col justify-center opacity-[0.05] pointer-events-none select-none">
         <motion.div
           animate={{ x: ['0%', '-50%'] }}

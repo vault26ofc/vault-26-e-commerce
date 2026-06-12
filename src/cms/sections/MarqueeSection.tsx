@@ -9,7 +9,7 @@ export default function MarqueeSection({ section }: { section: CMSSection }) {
   const watermark = cfg.watermark || '26';
 
   return (
-    <section className="py-64 container-px bg-white relative overflow-hidden border-y border-black/5">
+    <section className="py-20 md:py-40 container-px bg-white relative overflow-hidden border-y border-black/5">
       <div className="absolute inset-0 flex flex-col justify-around py-20 opacity-[0.02] pointer-events-none select-none">
         <motion.div
           animate={{ x: ['0%', '-50%'] }}
