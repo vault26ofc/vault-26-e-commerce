@@ -1,12 +1,13 @@
 import { useState, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import StoreLayout from "@/components/layout/StoreLayout";
 import Preloader from "@/components/shared/Preloader";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // ─── Store pages ────────────────────────────────────────────────────────────
 const Home = lazy(() => import("@/pages/Home"));
@@ -70,6 +71,11 @@ function PageLoader() {
   return <div className="min-h-screen bg-white" />;
 }
 
+function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  return <ErrorBoundary key={location.pathname}>{children}</ErrorBoundary>;
+}
+
 const App = () => {
   const [loading, setLoading] = useState(true);
 
@@ -82,6 +88,7 @@ const App = () => {
           {loading && <Preloader onComplete={() => setLoading(false)} />}
         </AnimatePresence>
         <BrowserRouter>
+          <RouteErrorBoundary>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route element={<StoreLayout />}>
@@ -132,6 +139,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
+          </RouteErrorBoundary>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

@@ -14,23 +14,24 @@ export function useAuth() {
       setIsAdmin(!!data?.some((r: any) => r.role === 'admin'));
     };
 
+    // Resolve loading as soon as any auth event fires
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setUser(s?.user ?? null);
+      setLoading(false);
       if (s?.user) {
-        setTimeout(() => checkRole(s.user.id), 0);
+        checkRole(s.user.id);
       } else {
         setIsAdmin(false);
       }
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Fallback: resolve via getSession if onAuthStateChange hasn't fired yet
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        await checkRole(session.user.id);
-      }
       setLoading(false);
+      if (session?.user) checkRole(session.user.id);
     });
 
     return () => subscription.unsubscribe();
