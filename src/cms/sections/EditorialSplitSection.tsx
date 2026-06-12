@@ -18,7 +18,7 @@ export default function EditorialSplitSection({ section }: { section: CMSSection
       className="relative overflow-hidden group aspect-[4/5]"
     >
       <img
-        src={cfg.image || 'https://images.unsplash.com/photo-1637536701306-3214e9cec64a?auto=format&fit=crop&q=80&w=1080'}
+        src={cfg.image || 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&q=80&w=1080'}
         alt="Editorial"
         className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:scale-105 group-hover:grayscale-0"
       />

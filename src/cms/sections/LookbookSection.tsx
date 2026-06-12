@@ -2,10 +2,10 @@ import { motion } from 'framer-motion';
 import type { CMSSection, LookbookConfig } from '../types';
 
 const DEFAULT_IMAGES = [
-  'https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000',
-  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000',
-  'https://images.unsplash.com/photo-1537832816519-689ad163238b?q=80&w=1000',
-  'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=1000',
+  'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=1000',
+  'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1000',
+  'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1000',
+  'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=1000',
 ];
 
 export default function LookbookSection({ section }: { section: CMSSection }) {
