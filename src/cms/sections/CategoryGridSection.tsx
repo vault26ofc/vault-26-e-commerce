@@ -5,7 +5,7 @@ import type { CMSSection, CategoryGridConfig, CategoryItem } from '../types';
 
 const DEFAULT_CATEGORIES: CategoryItem[] = [
   { slug: 'men', title: 'Menswear', image: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?auto=format&fit=crop&q=80&w=1000', href: '/category/men', watermark: 'MEN' },
-  { slug: 'women', title: 'Womenswear', image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&q=80&w=1000', href: '/category/women', watermark: 'WOMEN' },
+  { slug: 'women', title: 'Womenswear', image: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=80&w=1000', href: '/category/women', watermark: 'WOMEN' },
   { slug: 'accessories', title: 'Accessories', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=1000', href: '/category/accessories', watermark: 'ACC', badge: 'New' },
 ];
 

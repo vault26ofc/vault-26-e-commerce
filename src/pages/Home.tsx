@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useSEO } from '@/lib/useSEO';
 import { useCMSPage } from '@/cms/hooks/useCMSPage';
 import { SECTION_COMPONENTS } from '@/cms/registry';
@@ -21,11 +21,22 @@ export default function Home() {
   });
   const { sections, loading } = useCMSPage('home');
 
+  // Deduplicate by section_type — keeps lowest-position row for each type
+  // Guards against accidental duplicate DB inserts showing the page twice
+  const dedupedSections = useMemo(() => {
+    const seen = new Set<string>();
+    return sections.filter((s) => {
+      if (seen.has(s.section_type)) return false;
+      seen.add(s.section_type);
+      return true;
+    });
+  }, [sections]);
+
   if (loading) return <div className="min-h-screen bg-white" />;
 
   return (
     <div className="bg-white">
-      {sections.map((section) => (
+      {dedupedSections.map((section) => (
         <SectionRenderer key={section.id} section={section} />
       ))}
     </div>

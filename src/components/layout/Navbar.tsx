@@ -95,7 +95,7 @@ export default function Navbar() {
         <div className="container-px flex items-center justify-between">
           
           {/* Brand */}
-          <Link to="/" className="flex items-center h-10 md:h-16 group">
+          <Link to="/" onClick={() => { if (isHome) window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center h-10 md:h-16 group">
             <img 
               src={LOGO_URL} 
               alt="VAULT 26" 
@@ -123,12 +123,12 @@ export default function Navbar() {
                   }}
                   className={({ isActive }) => cn(
                     "relative text-[12px] font-ui font-light tracking-[0.25em] uppercase transition-colors duration-300 group py-1",
-                    showGlass ? "text-black/80 hover:text-black" : "text-white hover:text-white/80",
+                    showGlass ? "text-black/80 hover:text-black" : "text-white/90 hover:text-white",
                     isActive && !isHash && (showGlass ? "text-black" : "text-white")
                   )}
                 >
                   {n.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-accent group-hover:w-full transition-all duration-400" />
+                  <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-accent group-hover:w-full transition-all duration-300" />
                 </NavLink>
               );
             })}

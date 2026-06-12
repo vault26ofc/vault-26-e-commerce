@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Heart, Share2, MessageCircle, Truck, RefreshCw, Shield } from 'lucide-react';
+import { Heart, Share2, MessageCircle, Truck, RefreshCw, Shield, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart, useWishlist } from '@/lib/store';
 import { inr } from '@/lib/format';
@@ -98,6 +98,12 @@ export default function ProductDetail() {
 
   return (
     <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold text-black/50 hover:text-black transition-colors mb-8 md:mb-12"
+      >
+        <ArrowLeft className="h-3.5 w-3.5" /> Back
+      </button>
       <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
         {/* Visuals */}
         <div className="space-y-6">
