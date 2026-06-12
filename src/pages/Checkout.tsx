@@ -51,17 +51,22 @@ export default function Checkout() {
     if (user?.email) setAddr((a) => ({ ...a, email: user.email || '' }));
   }, [user]);
 
+  // Stable key: only changes when actual cart contents change, not on every Zustand re-render
+  const itemsKey = items.map((i) => `${i.variantId}:${i.quantity}`).join(',');
+
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       if (!couponCode) { setDiscount(0); return; }
       const { data } = await supabase.from('coupons').select('*').eq('code', couponCode).maybeSingle();
-      if (!data) return;
+      if (cancelled || !data) return;
       const sub = subtotal();
       if (sub < Number(data.min_order)) { setDiscount(0); return; }
       const d = data.type === 'PERCENT' ? Math.round(sub * Number(data.value) / 100) : Number(data.value);
-      setDiscount(Math.min(d, sub));
+      if (!cancelled) setDiscount(Math.min(d, sub));
     })();
-  }, [couponCode, items]);
+    return () => { cancelled = true; };
+  }, [couponCode, itemsKey]);
 
   if (items.length === 0) {
     return (
@@ -313,7 +318,7 @@ export default function Checkout() {
         {/* Sidebar Summary */}
         <aside className="lg:sticky lg:top-32 h-fit bg-muted/30 p-6 md:p-10 border border-black/5">
           <h2 className="text-[11px] tracking-[0.5em] font-ui font-bold uppercase mb-12 border-b border-black pb-4">Archive Contents</h2>
-          <div className="space-y-8 max-h-[500px] overflow-y-auto pr-4 scrollbar-hide">
+          <div className="space-y-8">
             {items.map((i) => (
               <div key={i.variantId} className="flex gap-6">
                 <div className="w-20 aspect-[3/4] bg-muted overflow-hidden flex-shrink-0">

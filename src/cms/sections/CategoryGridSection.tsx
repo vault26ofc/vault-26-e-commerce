@@ -47,11 +47,11 @@ export default function CategoryGridSection({ section }: { section: CMSSection }
                 )}
               </div>
               <div className="mt-5 flex flex-col gap-0.5 px-6 pb-12">
-                <h3 className="text-black text-4xl md:text-5xl lg:text-6xl tracking-tight mb-4 font-elegant font-light">
+                <h3 className="text-black text-4xl md:text-5xl lg:text-6xl tracking-tight mb-5 font-elegant font-light">
                   {cat.title}
                 </h3>
-                <span className="text-black/60 text-xs tracking-[0.4em] uppercase font-light opacity-70 group-hover:opacity-100 group-hover:text-accent transition-all duration-500 font-ui inline-flex items-center gap-2">
-                  Shop Collection <ArrowRight className="h-3 w-3" />
+                <span className="inline-flex items-center gap-2 w-fit border-b border-black/40 pb-1 text-[11px] tracking-[0.35em] uppercase font-bold font-ui text-black/80 group-hover:text-accent group-hover:border-accent transition-all duration-500">
+                  Shop Collection <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </div>
             </Link>

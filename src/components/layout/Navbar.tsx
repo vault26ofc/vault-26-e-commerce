@@ -44,22 +44,25 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Live search suggestions (debounced)
+  // Live search suggestions (debounced, with stale-request cancellation)
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    if (!q.trim() || q.trim().length < 2) {
+    const trimmed = q.trim();
+    if (!trimmed || trimmed.length < 1) {
       setSuggestions([]);
       setSearching(false);
       return;
     }
     setSearching(true);
+    let cancelled = false;
     debounceRef.current = window.setTimeout(async () => {
       const { data } = await supabase
         .from('products')
         .select('id, name, slug, images, brands(name), product_variants(price)')
         .eq('is_active', true)
-        .ilike('name', `%${q.trim()}%`)
+        .or(`name.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
         .limit(6);
+      if (cancelled) return;
       setSuggestions(
         (data || []).map((p: any) => ({
           id: p.id, name: p.name, slug: p.slug,
@@ -69,8 +72,11 @@ export default function Navbar() {
         }))
       );
       setSearching(false);
-    }, 220);
-    return () => { if (debounceRef.current) window.clearTimeout(debounceRef.current); };
+    }, 300);
+    return () => {
+      cancelled = true;
+      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    };
   }, [q]);
 
   const closeSearch = () => { setSearchOpen(false); setQ(''); setSuggestions([]); };
@@ -117,7 +123,7 @@ export default function Navbar() {
                   }}
                   className={({ isActive }) => cn(
                     "relative text-[12px] font-ui font-light tracking-[0.25em] uppercase transition-colors duration-300 group py-1",
-                    showGlass ? "text-black/60 hover:text-black" : "text-white/80 hover:text-white",
+                    showGlass ? "text-black/80 hover:text-black" : "text-white hover:text-white/80",
                     isActive && !isHash && (showGlass ? "text-black" : "text-white")
                   )}
                 >
@@ -130,54 +136,54 @@ export default function Navbar() {
 
           {/* Right Utilities */}
           <div className="flex items-center gap-6">
-            <button 
+            <button
               onClick={() => setSearchOpen(true)}
               className={cn(
                 "flex items-center gap-2 transition-colors duration-300 group",
-                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+                showGlass ? "text-black/75 hover:text-black" : "text-white/90 hover:text-white"
               )}
               aria-label="Search"
             >
               <Search className="w-4 h-4" strokeWidth={1.5} />
-              <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">Search</span>
+              <span className="hidden md:inline text-[11px] tracking-[0.2em] uppercase font-light font-ui">Search</span>
             </button>
 
             <div className={cn("hidden md:block w-[1px] h-4 transition-colors duration-500", showGlass ? "bg-black/10" : "bg-white/20")} />
 
-            <Link 
-              to="/wishlist" 
+            <Link
+              to="/wishlist"
               className={cn(
                 "relative flex items-center gap-2 transition-colors duration-300 hidden md:flex",
-                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+                showGlass ? "text-black/75 hover:text-black" : "text-white/90 hover:text-white"
               )}
             >
               <Heart className="w-4 h-4" strokeWidth={1.5} />
               {wishCount > 0 && <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] h-3 w-3 rounded-full flex items-center justify-center font-bold">{wishCount}</span>}
             </Link>
 
-            <button 
+            <button
               onClick={() => setDrawer(true)}
               className={cn(
                 "relative flex items-center gap-2 transition-colors duration-300",
-                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+                showGlass ? "text-black/75 hover:text-black" : "text-white/90 hover:text-white"
               )}
               aria-label="Bag"
             >
               <ShoppingBag className="w-4 h-4" strokeWidth={1.5} />
-              <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">Bag</span>
+              <span className="hidden md:inline text-[11px] tracking-[0.2em] uppercase font-light font-ui">Bag</span>
               {cartCount > 0 && <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] h-3 w-3 rounded-full flex items-center justify-center font-bold">{cartCount}</span>}
             </button>
 
-            <Link 
-              to={user ? "/account" : "/login"} 
+            <Link
+              to={user ? "/account" : "/login"}
               className={cn(
                 "relative flex items-center gap-2 transition-colors duration-300 hidden md:flex",
-                showGlass ? "text-black/60 hover:text-black" : "text-white/70 hover:text-white"
+                showGlass ? "text-black/75 hover:text-black" : "text-white/90 hover:text-white"
               )}
               aria-label="User Account"
             >
               <User className="w-4 h-4" strokeWidth={1.5} />
-              <span className="hidden md:inline text-[10px] tracking-[0.2em] uppercase font-light font-ui">
+              <span className="hidden md:inline text-[11px] tracking-[0.2em] uppercase font-light font-ui">
                 {user ? "Account" : "Sign In"}
               </span>
             </Link>
@@ -232,7 +238,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex-1 overflow-y-auto container-px py-8">
-              {q.trim().length < 2 ? (
+              {q.trim().length < 1 ? (
                 <div>
                   <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black/30 mb-6">Quick Links</div>
                   <div className="flex flex-wrap gap-2">

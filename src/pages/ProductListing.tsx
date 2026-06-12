@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
-import { SlidersHorizontal, X, ChevronDown, Check } from 'lucide-react';
+import { SlidersHorizontal, X, ChevronDown, Check, ArrowLeft } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -88,7 +88,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
         if (br) { query = query.eq('brand_id', br.id); setTitle(br.name); setEyebrow('Brand Archive'); }
       }
       if (mode === 'search') {
-        if (q) query = query.ilike('name', `%${q}%`);
+        if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
         setTitle(q ? `Results for "${q}"` : 'Search');
         setEyebrow('Search Results');
       }
@@ -173,6 +173,14 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   return (
     <div className="container-px py-12 md:py-24 min-h-screen bg-white">
       <div className="mb-8 md:mb-12">
+        {mode !== 'all' && (
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold text-black/50 hover:text-black transition-colors mb-6"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" /> Back
+          </button>
+        )}
         <span className="eyebrow block mb-3 md:mb-4">{eyebrow}</span>
         <h1 className="display-2 font-elegant font-light uppercase tracking-tight text-3xl md:text-5xl">{title}</h1>
         <p className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/40 mt-3 md:mt-4 uppercase">
@@ -190,7 +198,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                 "px-5 py-2.5 text-[10px] tracking-[0.25em] uppercase font-ui font-bold border transition-all duration-300 whitespace-nowrap",
                 !activeCategorySlug
                   ? "bg-black text-white border-black"
-                  : "bg-white text-black/60 border-black/15 hover:border-black hover:text-black"
+                  : "bg-white text-black/80 border-black/30 hover:border-black hover:text-black"
               )}
             >
               All Pieces
@@ -352,7 +360,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
               <div className="flex-1 overflow-y-auto px-10 py-8 space-y-10">
                 {/* Price */}
                 <div>
-                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-5 text-black/40">Price Range</div>
+                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-5 text-black/70">Price Range</div>
                   <div className="flex items-center gap-3 mb-4">
                     <input type="number" min={0} value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value) || 0)}
                       className="w-full border border-black/10 px-3 py-2 text-sm font-ui focus:border-black outline-none" placeholder="Min" />
@@ -369,13 +377,13 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                 {/* Brands */}
                 {brands.length > 0 && (
                   <div>
-                    <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/40">Brand</div>
+                    <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/70">Brand</div>
                     <div className="space-y-2 max-h-[200px] overflow-y-auto">
                       {brands.map((b) => (
                         <label key={b.id} className="flex items-center gap-3 cursor-pointer group">
                           <span className={cn(
                             "h-4 w-4 border flex items-center justify-center transition-colors",
-                            selectedBrands.includes(b.id) ? "bg-black border-black" : "border-black/20 group-hover:border-black"
+                            selectedBrands.includes(b.id) ? "bg-black border-black" : "border-black/30 group-hover:border-black"
                           )}>
                             {selectedBrands.includes(b.id) && <Check className="h-3 w-3 text-white" />}
                           </span>
@@ -391,7 +399,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                 {/* Sizes */}
                 {availableSizes.length > 0 && (
                   <div>
-                    <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/40">Size</div>
+                    <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/70">Size</div>
                     <div className="flex flex-wrap gap-2">
                       {availableSizes.map((s) => (
                         <button key={s} onClick={() => toggle(selectedSizes, s, setSelectedSizes)}
@@ -399,7 +407,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                             "min-w-[44px] h-11 px-3 border text-[11px] tracking-[0.15em] uppercase font-ui font-bold transition-all",
                             selectedSizes.includes(s)
                               ? "bg-black text-white border-black"
-                              : "border-black/15 text-black/60 hover:border-black hover:text-black"
+                              : "border-black/30 text-black/75 hover:border-black hover:text-black"
                           )}>
                           {s}
                         </button>
@@ -411,7 +419,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                 {/* Colors */}
                 {availableColors.length > 0 && (
                   <div>
-                    <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/40">Color</div>
+                    <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/70">Color</div>
                     <div className="flex flex-wrap gap-3">
                       {availableColors.map((c) => {
                         const active = selectedColors.includes(c.name);
@@ -433,12 +441,12 @@ export default function ProductListing({ mode }: { mode: Mode }) {
 
                 {/* Toggles */}
                 <div>
-                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/40">Availability</div>
+                  <div className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 text-black/70">Availability</div>
                   <div className="space-y-3">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <span className={cn(
                         "h-4 w-4 border flex items-center justify-center",
-                        onSaleOnly ? "bg-accent border-accent" : "border-black/20 group-hover:border-black"
+                        onSaleOnly ? "bg-accent border-accent" : "border-black/30 group-hover:border-black"
                       )}>
                         {onSaleOnly && <Check className="h-3 w-3 text-white" />}
                       </span>
@@ -448,7 +456,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <span className={cn(
                         "h-4 w-4 border flex items-center justify-center",
-                        inStockOnly ? "bg-black border-black" : "border-black/20 group-hover:border-black"
+                        inStockOnly ? "bg-black border-black" : "border-black/30 group-hover:border-black"
                       )}>
                         {inStockOnly && <Check className="h-3 w-3 text-white" />}
                       </span>
@@ -461,7 +469,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
 
               <div className="flex gap-3 px-10 py-6 border-t border-black/5 bg-white">
                 <button onClick={clearFilters}
-                  className="flex-1 border border-black/15 py-4 text-[11px] tracking-[0.3em] uppercase font-ui font-bold hover:border-black transition-colors">
+                  className="flex-1 border border-black/30 py-4 text-[11px] tracking-[0.3em] uppercase font-ui font-bold hover:border-black transition-colors">
                   Clear
                 </button>
                 <button onClick={() => setFiltersOpen(false)}

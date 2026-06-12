@@ -19,7 +19,7 @@ export default function HeroSection({ section }: { section: CMSSection }) {
     <section className="relative h-screen w-full overflow-hidden bg-black">
       <div className="absolute inset-0">
         <img
-          src={cfg.background_image || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=90&w=1920'}
+          src={cfg.background_image || 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=90&w=1920'}
           alt="Hero"
           className="w-full h-full object-cover object-center scale-105 opacity-80"
         />
