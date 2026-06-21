@@ -56,7 +56,8 @@ export function Login() {
     e.preventDefault();
     const trimmed = email.trim().toLowerCase();
     if (isLockedOut(trimmed)) {
-      return toast.error(`Too many attempts. Try again in ${minutesLeft(trimmed)} min.`);
+      const mins = minutesLeft(trimmed);
+      return toast.error(`Access suspended — try again in ${mins} ${mins === 1 ? 'minute' : 'minutes'}`);
     }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email: trimmed, password });
@@ -65,10 +66,14 @@ export function Login() {
       recordFailure(trimmed);
       const a = getAttempts(trimmed);
       const left = MAX_ATTEMPTS - a.n;
-      return toast.error(left > 0 ? `${error.message} (${left} attempt${left !== 1 ? 's' : ''} left)` : `Account locked for ${minutesLeft(trimmed)} min.`);
+      if (left <= 0) {
+        const mins = minutesLeft(trimmed);
+        return toast.error(`Too many failed attempts — suspended for ${mins} ${mins === 1 ? 'minute' : 'minutes'}`);
+      }
+      return toast.error(`Wrong email or password — ${left} ${left === 1 ? 'attempt' : 'attempts'} remaining`);
     }
     clearAttempts(trimmed);
-    toast.success('Access Granted // Welcome Back');
+    toast.success('Welcome back');
     navigate('/account');
   };
 
@@ -164,13 +169,28 @@ export function Register() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(), password,
-      options: { data: { name: name.trim(), phone: phone.trim() }, emailRedirectTo: window.location.origin },
+    const trimmedEmail = email.trim();
+    const { data, error } = await supabase.auth.signUp({
+      email: trimmedEmail, password,
+      options: { data: { name: name.trim(), phone: phone.trim() } },
     });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success('Registration Initiated // Check Email');
+    if (error) {
+      setLoading(false);
+      return toast.error(error.message);
+    }
+    // If Supabase returned no session, email confirmation is still enabled server-side —
+    // attempt immediate sign-in so the user isn't left in limbo.
+    if (!data.session) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email: trimmedEmail, password });
+      setLoading(false);
+      if (signInError) {
+        toast.success('Account created — check your email to activate it');
+        return navigate('/login');
+      }
+    } else {
+      setLoading(false);
+    }
+    toast.success('Account created. Welcome to Vault 26');
     navigate('/account');
   };
 
