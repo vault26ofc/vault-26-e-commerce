@@ -23,4 +23,4 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-Sitemap: https://vault-26-e-commerce.vercel.app/sitemap.xml
+Sitemap: https://vault26.co.in/sitemap.xml

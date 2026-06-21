@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSEO } from '@/lib/useSEO';
 import { motion } from 'framer-motion';
 import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
 
@@ -46,6 +47,7 @@ function minutesLeft(email: string) {
 }
 
 export function Login() {
+  useSEO({ title: 'Sign In — Vault 26', noindex: true });
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -158,6 +160,7 @@ export function Login() {
 }
 
 export function Register() {
+  useSEO({ title: 'Create Account — Vault 26', noindex: true });
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

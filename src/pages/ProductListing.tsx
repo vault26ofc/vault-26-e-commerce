@@ -22,10 +22,6 @@ const SORT_OPTIONS = [
 type SortKey = typeof SORT_OPTIONS[number]['value'];
 
 export default function ProductListing({ mode }: { mode: Mode }) {
-  useSEO({
-    title: 'Archive — Shop Vault 26',
-    description: 'Browse the latest premium clothing pieces from Vault 26.',
-  });
   const { slug } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -37,6 +33,17 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState('Shop');
   const [eyebrow, setEyebrow] = useState('Archive');
+
+  const seoDescription =
+    mode === 'search' && q ? `Search results for "${q}" on Vault 26 — premium minimalist streetwear.`
+    : mode === 'category' ? `Shop ${title} from Vault 26 — curated premium minimalist clothing made in India.`
+    : mode === 'brand' ? `Browse the ${title} collection at Vault 26 — premium minimalist streetwear.`
+    : 'Browse the full Vault 26 archive — premium minimalist clothing and streetwear, made in India.';
+
+  useSEO({
+    title: title ? `${title} — Vault 26` : 'Archive — Shop Vault 26',
+    description: seoDescription,
+  });
 
   // Filters
   const [sort, setSort] = useState<SortKey>('newest');

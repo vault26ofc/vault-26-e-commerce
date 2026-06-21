@@ -64,9 +64,29 @@ export default function ProductDetail() {
   const minPrice = useMemo(() => Math.min(...variants.map((v) => Number(v.price))), [variants]);
 
   useSEO(product ? {
-    title: `${product.name} — Vault 26 ARCHIVE`,
-    description: (product.description || `Shop ${product.name} from Vault 26.`).slice(0, 160),
+    title: `${product.name} — Vault 26`,
+    description: (product.description || `Shop ${product.name} from Vault 26 — premium minimalist streetwear made in India.`).slice(0, 160),
     image: product.images?.[0],
+    type: 'product',
+    canonical: `https://vault26.co.in/products/${product.slug}`,
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.description || `${product.name} from Vault 26`,
+      image: product.images || [],
+      brand: { '@type': 'Brand', name: product.brands?.name || 'Vault 26' },
+      offers: {
+        '@type': 'AggregateOffer',
+        priceCurrency: 'INR',
+        lowPrice: minPrice,
+        offerCount: variants.length,
+        availability: variants.some((v) => v.stock > 0)
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        seller: { '@type': 'Organization', name: 'Vault 26' },
+      },
+    },
   } : { title: 'Loading… — Vault 26' });
 
   if (!product) {

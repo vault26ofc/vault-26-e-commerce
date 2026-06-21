@@ -3,11 +3,13 @@ import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSEO } from '@/lib/useSEO';
 import { LogOut, Package, Heart, Settings, MapPin, Trash2, Plus, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export default function Account() {
+  useSEO({ title: 'My Account — Vault 26', noindex: true });
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
@@ -59,7 +61,7 @@ export default function Account() {
   if (!user && !loading) return null;
 
   return (
-    <div className="container-px py-24 min-h-screen bg-white">
+    <div className="container-px pt-36 pb-24 min-h-screen bg-white">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
