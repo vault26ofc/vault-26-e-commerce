@@ -16,7 +16,7 @@ function GoogleButton({ label = 'Continue with Google' }: { label?: string }) {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${SITE_URL}/account` },
+      options: { redirectTo: `${SITE_URL}/` },
     });
     if (error) { toast.error(error.message || 'Google sign-in failed'); setBusy(false); }
   };
