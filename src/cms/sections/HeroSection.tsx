@@ -21,6 +21,10 @@ export default function HeroSection({ section }: { section: CMSSection }) {
         <img
           src={cfg.background_image || 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=90&w=1920'}
           alt="Hero"
+          width={1920}
+          height={1080}
+          fetchPriority="high"
+          decoding="async"
           className="w-full h-full object-cover object-center scale-105 opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent" />

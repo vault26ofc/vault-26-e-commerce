@@ -38,6 +38,10 @@ export default function CategoryGridSection({ section }: { section: CMSSection }
                 <img
                   src={cat.image}
                   alt={cat.title}
+                  loading="lazy"
+                  decoding="async"
+                  width={1000}
+                  height={1333}
                   className="w-full h-full object-cover grayscale transition-all duration-1500 ease-editorial group-hover:scale-[1.04] group-hover:grayscale-0"
                 />
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

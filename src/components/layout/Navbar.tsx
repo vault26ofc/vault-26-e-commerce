@@ -307,7 +307,7 @@ export default function Navbar() {
           >
             <div className="container-px py-7 flex items-center justify-between border-b border-black/5">
               <img src={LOGO_URL} alt="VAULT 26" className="h-10 w-auto brightness-0" />
-              <button onClick={() => setMobileOpen(false)}><X className="w-6 h-6" /></button>
+              <button onClick={() => setMobileOpen(false)} aria-label="Close menu"><X className="w-6 h-6" /></button>
             </div>
             <nav className="container-px py-12 flex flex-col gap-8">
               {NAV.map((n) => (

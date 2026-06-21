@@ -51,6 +51,10 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
               <img
                 src={item.image}
                 alt={item.title}
+                loading="lazy"
+                decoding="async"
+                width={800}
+                height={600}
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
