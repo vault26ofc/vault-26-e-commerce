@@ -8,13 +8,15 @@ import { Mail, Lock, User as UserIcon, Phone, Eye, EyeOff } from 'lucide-react';
 
 const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
+const SITE_URL = import.meta.env.PROD ? 'https://vault26.co.in' : window.location.origin;
+
 function GoogleButton({ label = 'Continue with Google' }: { label?: string }) {
   const [busy, setBusy] = useState(false);
   const onClick = async () => {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/account' },
+      options: { redirectTo: `${SITE_URL}/account` },
     });
     if (error) { toast.error(error.message || 'Google sign-in failed'); setBusy(false); }
   };
