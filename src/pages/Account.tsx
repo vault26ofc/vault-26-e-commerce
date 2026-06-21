@@ -66,7 +66,15 @@ export default function Account() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-5xl mx-auto"
       >
-        <span className="eyebrow block mb-4">Member Archive</span>
+        <div className="flex items-start justify-between mb-4">
+          <span className="eyebrow">Member Archive</span>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); toast.success('Signed out'); navigate('/'); }}
+            className="flex items-center gap-2 text-[10px] tracking-[0.35em] uppercase font-ui font-bold text-black/40 hover:text-black transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} /> Sign Out
+          </button>
+        </div>
         <h1 className="display-2 mb-16">
           Hello, <span className="italic font-elegant font-light">{profile?.name || user?.email?.split('@')[0] || 'Member'}</span>
         </h1>
@@ -196,15 +204,6 @@ export default function Account() {
           </section>
         </div>
 
-        {/* Sign Out */}
-        <div className="mt-32 pt-12 border-t border-black/5 flex justify-center">
-          <button 
-            onClick={async () => { await supabase.auth.signOut(); toast.success('Session ended'); navigate('/'); }}
-            className="flex items-center gap-3 text-[10px] tracking-[0.5em] uppercase font-ui font-bold text-black/30 hover:text-black transition-colors"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.5} /> Terminate Session
-          </button>
-        </div>
       </motion.div>
     </div>
   );
