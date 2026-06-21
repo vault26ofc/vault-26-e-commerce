@@ -3,6 +3,7 @@
 ## Table of Contents
 - [Razorpay](#razorpay)
 - [WhatsApp Automation](#whatsapp-automation)
+- [Shiprocket](#shiprocket)
 - [Google OAuth](#google-oauth)
 - [Google Analytics & Tag Manager](#google-analytics--tag-manager)
 - [Supabase Configuration](#supabase-configuration)
@@ -191,6 +192,98 @@ The WhatsApp admin panel at `/admin` → **WhatsApp** lets you:
 
 ---
 
+## Shiprocket
+
+Shiprocket handles order shipping, courier assignment, AWB generation, and delivery tracking.
+
+> **Note:** The Shiprocket integration is not yet built into the codebase. The steps below cover account setup and credentials. The edge function, database migration, admin UI changes, and customer tracking page need to be implemented — raise this as a dev task when ready.
+
+### Step 1 — Create Shiprocket Account
+1. Go to `app.shiprocket.in` → Sign Up
+2. Complete KYC (PAN, GST, bank details)
+3. Add your pickup address under **Settings → Manage Addresses → Add Warehouse**
+   - This is the address couriers will pick up from
+
+### Step 2 — Get API Credentials
+1. Go to **Settings → API** (or `app.shiprocket.in/api-integration`)
+2. Note your:
+   - **Email** (your Shiprocket login email)
+   - **Password** (your Shiprocket login password)
+3. Shiprocket uses email/password to generate a Bearer token — there's no static API key
+4. Tokens expire every 10 days; the edge function will handle auto-refresh
+
+### Step 3 — Configure Shipping Channels
+1. Go to **Channels → Add Channel**
+2. Select **Custom** (since this is a custom website, not Shopify/WooCommerce)
+3. Give it a name: `Vault 26`
+4. This creates a channel ID you'll use when creating orders via API
+
+### Step 4 — Set Up Webhook
+Shiprocket will push real-time tracking updates to your site.
+
+1. Go to **Settings → API → Webhooks**
+2. Set **Webhook URL** to:
+   ```
+   https://yevidhicrhyidrklflvn.supabase.co/functions/v1/shiprocket-webhook
+   ```
+3. Enable events:
+   - `Shipment Picked Up`
+   - `Shipment In Transit`
+   - `Out for Delivery`
+   - `Delivered`
+   - `RTO Initiated` (Return to Origin)
+   - `RTO Delivered`
+
+### Step 5 — Add Secrets to Supabase
+Go to: Supabase Dashboard → **Edge Functions → Secrets**
+
+```
+SHIPROCKET_EMAIL     = your-shiprocket-login@email.com
+SHIPROCKET_PASSWORD  = your-shiprocket-password
+SHIPROCKET_CHANNEL_ID = 12345   (from Step 3)
+```
+
+### Step 6 — What needs to be built (dev tasks)
+
+| Task | File to create/modify |
+|------|-----------------------|
+| Supabase edge function to create shipment + generate AWB | `supabase/functions/shiprocket-sync/index.ts` (NEW) |
+| Webhook receiver for live tracking updates | `supabase/functions/shiprocket-webhook/index.ts` (NEW) |
+| DB migration to add tracking fields to orders | `supabase/migrations/add_tracking_fields.sql` (NEW) |
+| Admin UI — input AWB, assign courier, trigger shipment | `src/pages/admin/AdminOrders.tsx` (MODIFY) |
+| Customer orders page — show tracking link + courier | `src/pages/Orders.tsx` (MODIFY) |
+| WhatsApp shipped notification — populate tracking link | `src/lib/whatsapp/service.ts` (MODIFY) |
+
+### DB fields to add to orders table
+```sql
+ALTER TABLE orders ADD COLUMN shiprocket_order_id TEXT;
+ALTER TABLE orders ADD COLUMN awb_number TEXT;
+ALTER TABLE orders ADD COLUMN courier_name TEXT;
+ALTER TABLE orders ADD COLUMN tracking_url TEXT;
+ALTER TABLE orders ADD COLUMN shipped_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN delivered_at TIMESTAMPTZ;
+ALTER TABLE orders ADD COLUMN rto_initiated_at TIMESTAMPTZ;
+```
+
+### How the flow will work (once built)
+| Step | What happens |
+|------|-------------|
+| Admin marks order PACKED | Nothing auto-triggered |
+| Admin clicks "Create Shipment" | Edge function calls Shiprocket API → creates order → gets AWB |
+| AWB saved to DB | Courier assigned, tracking URL saved |
+| WhatsApp `order_shipped` fires | Includes tracking link for customer |
+| Shiprocket webhook fires | DB updates in real time as parcel moves |
+| Customer views order | Sees courier name, AWB, tracking link, live status |
+
+### Shiprocket API Reference
+- Create order: `POST https://apiv2.shiprocket.in/v1/external/orders/create/adhoc`
+- Generate AWB: `POST https://apiv2.shiprocket.in/v1/external/courier/assign/awb`
+- Track shipment: `GET https://apiv2.shiprocket.in/v1/external/courier/track/awb/{awb}`
+- Cancel order: `POST https://apiv2.shiprocket.in/v1/external/orders/cancel`
+- Auth token: `POST https://apiv2.shiprocket.in/v1/external/auth/login`
+
+---
+
 ## Google OAuth
 
 ### Google Cloud Console
@@ -289,6 +382,9 @@ npx supabase functions deploy abandoned-cart-scan
 | `WHATSAPP_PHONE_NUMBER_ID` | whatsapp-send |
 | `WHATSAPP_VERIFY_TOKEN` | whatsapp-webhook |
 | `STORE_URL` | abandoned-cart-scan |
+| `SHIPROCKET_EMAIL` | shiprocket-sync, shiprocket-webhook (future) |
+| `SHIPROCKET_PASSWORD` | shiprocket-sync, shiprocket-webhook (future) |
+| `SHIPROCKET_CHANNEL_ID` | shiprocket-sync (future) |
 
 ### Email confirmation
 To disable email verification on signup (so users log in immediately):
@@ -316,6 +412,21 @@ Go to Supabase → **Authentication → Providers → Email** → toggle off **C
 - [ ] pg_cron extension enabled
 - [ ] Cron jobs created for queue + abandoned cart
 - [ ] Test order triggers WhatsApp message
+
+### Shiprocket
+- [ ] Account created and KYC completed
+- [ ] Pickup warehouse address added
+- [ ] Custom channel created (get Channel ID)
+- [ ] Webhook URL registered in Shiprocket settings
+- [ ] `SHIPROCKET_EMAIL` added to Supabase secrets
+- [ ] `SHIPROCKET_PASSWORD` added to Supabase secrets
+- [ ] `SHIPROCKET_CHANNEL_ID` added to Supabase secrets
+- [ ] DB migration run to add tracking fields to orders table
+- [ ] `shiprocket-sync` edge function built and deployed
+- [ ] `shiprocket-webhook` edge function built and deployed
+- [ ] Admin order UI updated with AWB input + shipment trigger
+- [ ] Customer orders page updated with tracking link display
+- [ ] WhatsApp `order_shipped` message populated with tracking URL
 
 ### Google OAuth
 - [ ] Authorized redirect URI added in Google Cloud Console
