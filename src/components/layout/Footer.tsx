@@ -81,7 +81,7 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-8">
             <span className="text-[9px] tracking-[0.4em] uppercase text-black/50 font-ui">
-              DESIGNED BY STUDIO V
+              DESIGNED BY AR TECH STUDIO
             </span>
           </div>
         </div>
