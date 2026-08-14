@@ -102,16 +102,6 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     config: {}
   },
   {
-    id: 'default-linen-collection',
-    page_slug: 'home',
-    section_type: 'linen_collection',
-    label: 'Linen Collection',
-    position: 35,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
     id: 'default-category-grid',
     page_slug: 'home',
     section_type: 'category_grid',
