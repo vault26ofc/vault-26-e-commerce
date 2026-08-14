@@ -67,46 +67,52 @@ export default function ProductListing({ mode }: { mode: Mode }) {
     setMaxPrice(20000);
     setOnSaleOnly(false);
     setInStockOnly(false);
-    setActiveCategorySlug(mode === 'category' ? slug ?? null : null);
-  }, [mode, slug, q]);
+    const categoryParam = params.get('category');
+    setActiveCategorySlug(mode === 'category' ? slug ?? null : categoryParam || null);
+  }, [mode, slug, q, params]);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const [{ data: cats }, { data: brs }] = await Promise.all([
-        supabase.from('categories').select('id, name, slug').eq('is_active', true).order('name'),
-        supabase.from('brands').select('id, name, slug').eq('is_active', true).order('name'),
-      ]);
-      setCategories(cats || []);
-      setBrands(brs || []);
+      try {
+        const [{ data: cats }, { data: brs }] = await Promise.all([
+          supabase.from('categories').select('id, name, slug').eq('is_active', true).order('name'),
+          supabase.from('brands').select('id, name, slug').eq('is_active', true).order('name'),
+        ]);
+        setCategories(cats || []);
+        setBrands(brs || []);
 
-      let query = supabase
-        .from('products')
-        .select('id, name, slug, images, created_at, brand_id, category_id, brands(name, slug, id), categories(name, slug, id), product_variants(price, compare_price, stock, size, color, color_hex)')
-        .eq('is_active', true);
+        let query = supabase
+          .from('products')
+          .select('id, name, slug, images, created_at, brand_id, category_id, brands(name, slug, id), categories(name, slug, id), product_variants(price, compare_price, stock, size, color, color_hex)')
+          .eq('is_active', true);
 
-      if (mode === 'category' && slug) {
-        const cat = (cats || []).find((c) => c.slug === slug);
-        if (cat) { query = query.eq('category_id', cat.id); setTitle(cat.name); setEyebrow('Category Archive'); }
-        else { setTitle(slug); setEyebrow('Category Archive'); }
-      }
-      if (mode === 'brand' && slug) {
-        const br = (brs || []).find((b) => b.slug === slug);
-        if (br) { query = query.eq('brand_id', br.id); setTitle(br.name); setEyebrow('Brand Archive'); }
-      }
-      if (mode === 'search') {
-        if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
-        setTitle(q ? `Results for "${q}"` : 'Search');
-        setEyebrow('Search Results');
-      }
-      if (mode === 'all') {
-        setTitle('The Archive');
-        setEyebrow('Shop All');
-      }
+        if (mode === 'category' && slug) {
+          const cat = (cats || []).find((c) => c.slug === slug);
+          if (cat) { query = query.eq('category_id', cat.id); setTitle(cat.name); setEyebrow('Category Archive'); }
+          else { setTitle(slug); setEyebrow('Category Archive'); }
+        }
+        if (mode === 'brand' && slug) {
+          const br = (brs || []).find((b) => b.slug === slug);
+          if (br) { query = query.eq('brand_id', br.id); setTitle(br.name); setEyebrow('Brand Archive'); }
+        }
+        if (mode === 'search') {
+          if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
+          setTitle(q ? `Results for "${q}"` : 'Search');
+          setEyebrow('Search Results');
+        }
+        if (mode === 'all') {
+          setTitle('The Archive');
+          setEyebrow('Shop All');
+        }
 
-      const { data } = await query.limit(200);
-      setAllProducts(data || []);
-      setLoading(false);
+        const { data } = await query.limit(200);
+        setAllProducts(data || []);
+      } catch (e) {
+        console.warn('Product list error:', e);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, [slug, mode, q]);
 

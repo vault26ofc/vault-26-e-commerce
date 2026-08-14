@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useCallback, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -9,28 +9,19 @@ import StoreLayout from "@/components/layout/StoreLayout";
 import Preloader from "@/components/shared/Preloader";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-// ─── Store pages ────────────────────────────────────────────────────────────
-const Home = lazy(() => import("@/pages/Home"));
-const ProductListing = lazy(() => import("@/pages/ProductListing"));
-const ProductDetail = lazy(() => import("@/pages/ProductDetail"));
-const Checkout = lazy(() => import("@/pages/Checkout"));
-const OrderSuccess = lazy(() => import("@/pages/OrderSuccess"));
-const Wishlist = lazy(() => import("@/pages/Wishlist"));
-const Account = lazy(() => import("@/pages/Account"));
-const OrdersList = lazy(() =>
-  import("@/pages/Orders").then((m) => ({ default: m.OrdersList }))
-);
-const OrderDetail = lazy(() =>
-  import("@/pages/Orders").then((m) => ({ default: m.OrderDetail }))
-);
-const Login = lazy(() =>
-  import("@/pages/Auth").then((m) => ({ default: m.Login }))
-);
-const Register = lazy(() =>
-  import("@/pages/Auth").then((m) => ({ default: m.Register }))
-);
-const Invoice = lazy(() => import("@/pages/Invoice"));
-const NotFound = lazy(() => import("@/pages/NotFound"));
+// ─── Store pages (statically imported for instant back/forward navigation) ──
+import Home from "@/pages/Home";
+import ProductListing from "@/pages/ProductListing";
+import ProductDetail from "@/pages/ProductDetail";
+import Checkout from "@/pages/Checkout";
+import OrderSuccess from "@/pages/OrderSuccess";
+import Wishlist from "@/pages/Wishlist";
+import Account from "@/pages/Account";
+import Lookbook from "@/pages/Lookbook";
+import { OrdersList, OrderDetail } from "@/pages/Orders";
+import { Login, Register } from "@/pages/Auth";
+import Invoice from "@/pages/Invoice";
+import NotFound from "@/pages/NotFound";
 
 // ─── Admin pages (separate "admin" chunk — never loaded for storefront users)
 const AdminLayout = lazy(() => import("@/pages/admin/AdminLayout"));
@@ -68,7 +59,12 @@ const queryClient = new QueryClient({
 });
 
 function PageLoader() {
-  return <div className="min-h-screen bg-white" />;
+  return (
+    <div className="min-h-[70vh] flex flex-col items-center justify-center bg-white">
+      <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin mb-3" />
+      <span className="text-[10px] tracking-[0.3em] font-ui text-black/40 uppercase">Loading Archive…</span>
+    </div>
+  );
 }
 
 function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
@@ -77,7 +73,20 @@ function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try {
+      return !sessionStorage.getItem("v26_preloader_seen");
+    } catch {
+      return false;
+    }
+  });
+
+  const handlePreloaderComplete = useCallback(() => {
+    try {
+      sessionStorage.setItem("v26_preloader_seen", "true");
+    } catch {}
+    setLoading(false);
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -85,7 +94,7 @@ const App = () => {
         <Toaster />
         <Sonner position="top-center" />
         <AnimatePresence>
-          {loading && <Preloader onComplete={() => setLoading(false)} />}
+          {loading && <Preloader onComplete={handlePreloaderComplete} />}
         </AnimatePresence>
         <BrowserRouter>
           <RouteErrorBoundary>
@@ -107,6 +116,7 @@ const App = () => {
                   element={<ProductListing mode="search" />}
                 />
                 <Route path="/products/:slug" element={<ProductDetail />} />
+                <Route path="/lookbook" element={<Lookbook />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route
                   path="/order-success/:id"

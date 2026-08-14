@@ -15,18 +15,9 @@ export default function StoreLayout() {
     <div className="min-h-screen flex flex-col">
       <AnnouncementBar />
       <Navbar />
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.main
-          key={loc.pathname}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-1 pb-20 lg:pb-0"
-        >
-          <Outlet />
-        </motion.main>
-      </AnimatePresence>
+      <main className="flex-1 pb-20 lg:pb-0">
+        <Outlet />
+      </main>
       <Footer />
       <BottomNav />
       <WhatsAppButton />
