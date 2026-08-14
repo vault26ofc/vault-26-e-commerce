@@ -194,11 +194,34 @@ export default function ProductListing({ mode }: { mode: Mode }) {
             <ArrowLeft className="h-3.5 w-3.5" /> Back
           </button>
         )}
-        <span className="eyebrow block mb-3 md:mb-4">{eyebrow}</span>
-        <h1 className="display-2 font-elegant font-light uppercase tracking-tight text-3xl md:text-5xl">{title}</h1>
-        <p className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/40 mt-3 md:mt-4 uppercase">
+        <motion.span
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0, ease: [0.22, 1, 0.36, 1] }}
+          className="eyebrow block mb-3 md:mb-4"
+        >
+          {eyebrow}
+        </motion.span>
+        
+        <div className="overflow-hidden py-1">
+          <motion.h1
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: '0%' }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="display-2 font-elegant font-light uppercase tracking-tight text-3xl md:text-5xl"
+          >
+            {title}
+          </motion.h1>
+        </div>
+
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/40 mt-3 md:mt-4 uppercase"
+        >
           {products.length} {products.length === 1 ? 'piece' : 'pieces'} found in archive
-        </p>
+        </motion.p>
       </div>
 
       {/* Category Chips (Shop All / Search) */}

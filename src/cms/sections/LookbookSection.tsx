@@ -11,12 +11,26 @@ export default function LookbookSection({ section, isPage = false }: { section?:
         {/* Section Header (SSENSE Editorial Style) */}
         <div className="mb-10 md:mb-14 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-black/10 pb-6">
           <div>
-            <span className="text-xs font-mono font-bold tracking-[0.2em] text-black/50 uppercase block mb-1">
+            <motion.span
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="text-xs font-mono font-bold tracking-[0.2em] text-black/50 uppercase block mb-1"
+            >
               EDITORIAL & LOOKBOOK
-            </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-primary font-bold uppercase tracking-tight text-black leading-none">
-              VAULT 26 JOURNAL
-            </h2>
+            </motion.span>
+            <div className="overflow-hidden py-1">
+              <motion.h2
+                initial={{ opacity: 0, y: '100%' }}
+                whileInView={{ opacity: 1, y: '0%' }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="text-3xl sm:text-4xl md:text-5xl font-primary font-bold uppercase tracking-tight text-black leading-none"
+              >
+                VAULT 26 JOURNAL
+              </motion.h2>
+            </div>
           </div>
           <Link
             to="/lookbook"

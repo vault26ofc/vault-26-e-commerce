@@ -102,12 +102,26 @@ export default function BestSellersSection({ section }: { section: CMSSection })
       <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8">
         {/* Section Header (Daily Paper Style: "SUMMER SALE / NOW LIVE") */}
         <div className="mb-5 md:mb-7 text-left px-1">
-          <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
-            {cfg.title || "SUMMER SALE"}
-          </h2>
-          <p className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5">
+          <div className="overflow-hidden py-0.5">
+            <motion.h2
+              initial={{ opacity: 0, y: '100%' }}
+              whileInView={{ opacity: 1, y: '0%' }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight"
+            >
+              {cfg.title || "SUMMER SALE"}
+            </motion.h2>
+          </div>
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+            className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5"
+          >
             {cfg.subtitle || "NOW LIVE"}
-          </p>
+          </motion.p>
         </div>
 
         {/* Edge-to-Edge 4-Column Grid with Micro Gap Between Cards */}
