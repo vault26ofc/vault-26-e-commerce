@@ -239,13 +239,24 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll behavior: Compact header
+  // Scroll behavior: Compact header & Hide Navbar until scrolling past Hero on Home page
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 40);
+    const handleScroll = () => {
+      const currentScroll = window.scrollY;
+      setScrolled(currentScroll > 40);
+
+      if (location.pathname === '/') {
+        const heroThreshold = window.innerHeight * 0.4;
+        setHideNavbar(currentScroll < heroThreshold);
+      } else {
+        setHideNavbar(false);
+      }
+    };
+
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [location.pathname]);
 
   // Close overlays on route change
   useEffect(() => {
@@ -472,7 +483,7 @@ export default function Navbar() {
                     { key: 'ACCESSORIES', num: '03', label: 'ACCESSORIES' },
                     { key: 'LOOKBOOK', num: '04', label: 'LOOKBOOK' },
                     { key: 'ABOUT', num: '05', label: 'ABOUT' }
-                  ].map((sec) => {
+                  ].map((sec, idx) => {
                     const isActive = activeSection === sec.key;
 
                     return (
@@ -492,19 +503,35 @@ export default function Navbar() {
                             setMenuOpen(false);
                           }
                         }}
-                        className="cursor-pointer group select-none space-y-1 block"
+                        className="cursor-pointer group select-none space-y-1 block overflow-hidden py-1"
                       >
-                        <span className="text-[10px] font-mono text-black/40 tracking-widest block">
-                          {sec.num}
-                        </span>
-                        <h2
-                          className={cn(
-                            "text-2xl sm:text-3xl md:text-4xl lg:text-[36px] xl:text-[42px] leading-tight font-serif tracking-[0.02em] uppercase transition-all duration-300 truncate",
-                            isActive ? "text-[#111111] font-normal" : "text-black/25 font-light hover:text-[#111111]"
-                          )}
+                        <motion.div
+                          initial={{ opacity: 0, y: '100%' }}
+                          animate={{ opacity: 1, y: '0%' }}
+                          transition={{ duration: 0.6, delay: idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
                         >
-                          {sec.label}
-                        </h2>
+                          <span className="text-[10px] font-mono text-black/40 tracking-widest block">
+                            {sec.num}
+                          </span>
+                          <div className="relative inline-block">
+                            <h2
+                              className={cn(
+                                "text-2xl sm:text-3xl md:text-4xl lg:text-[36px] xl:text-[42px] leading-tight font-serif tracking-[0.02em] uppercase transition-all duration-300 truncate",
+                                isActive ? "text-[#111111] font-normal" : "text-black/30 font-light group-hover:text-[#111111]"
+                              )}
+                            >
+                              {sec.label}
+                            </h2>
+                            {/* Section 11 & 10: Cherry Red Accent Indicator Line */}
+                            <motion.div
+                              className="h-[1.5px] bg-[#B11226] origin-left absolute -bottom-0.5 left-0 right-0"
+                              initial={{ scaleX: 0 }}
+                              animate={{ scaleX: isActive ? 1 : 0 }}
+                              whileHover={{ scaleX: 1 }}
+                              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                            />
+                          </div>
+                        </motion.div>
                       </div>
                     );
                   })}

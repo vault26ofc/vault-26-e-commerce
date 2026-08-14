@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Grid3X3, Search, Heart, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -11,8 +12,29 @@ const items = [
 ];
 
 export default function BottomNav() {
+  const location = useLocation();
+  const [hideNav, setHideNav] = useState(location.pathname === '/');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (location.pathname === '/') {
+        const heroThreshold = window.innerHeight * 0.4;
+        setHideNav(window.scrollY < heroThreshold);
+      } else {
+        setHideNav(false);
+      }
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [location.pathname]);
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] lg:hidden bg-white/80 backdrop-blur-xl border-t border-black/5 pb-2">
+    <nav className={cn(
+      "fixed bottom-0 left-0 right-0 z-[100] lg:hidden bg-white/80 backdrop-blur-xl border-t border-black/5 pb-2 transition-all duration-500 ease-out",
+      hideNav ? "opacity-0 pointer-events-none translate-y-full" : "opacity-100 pointer-events-auto translate-y-0"
+    )}>
       <div className="grid grid-cols-5 h-16">
         {items.map((it) => (
           <NavLink 
