@@ -32,7 +32,8 @@ export default function Home() {
         s.section_type === 'collections' ||
         s.section_type === 'linen_collection' ||
         s.section_type === 'flagship_stores' ||
-        s.section_type === 'cinematic_hero'
+        s.section_type === 'cinematic_hero' ||
+        s.section_type === 'newsletter'
       ) return false;
       if (seen.has(s.section_type)) return false;
       seen.add(s.section_type);

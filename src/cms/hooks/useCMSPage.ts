@@ -174,22 +174,6 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     config: {
       heading: 'Testimonials'
     }
-  },
-  {
-    id: 'default-newsletter',
-    page_slug: 'home',
-    section_type: 'newsletter',
-    label: 'Newsletter',
-    position: 100,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      heading_line1: 'JOIN THE',
-      heading_line2: 'VAULT.',
-      body: 'Subscribe to receive priority access to unreleased drops and private collection previews.',
-      placeholder: 'ENTER YOUR EMAIL...',
-      cta_label: 'JOIN ARCHIVE'
-    }
   }
 ];
 
