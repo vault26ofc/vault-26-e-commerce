@@ -31,33 +31,14 @@ export default function Home() {
         s.section_type === 'bento_grid' ||
         s.section_type === 'collections' ||
         s.section_type === 'linen_collection' ||
-        s.section_type === 'flagship_stores'
+        s.section_type === 'flagship_stores' ||
+        s.section_type === 'cinematic_hero'
       ) return false;
       if (seen.has(s.section_type)) return false;
       seen.add(s.section_type);
       return true;
     });
 
-    // Ensure cinematic_hero section is always included right after main hero
-    if (!seen.has('cinematic_hero')) {
-      const cinematicHeroSec: CMSSection = {
-        id: 'cinematic-hero-section-auto',
-        page_slug: 'home',
-        section_type: 'cinematic_hero',
-        label: 'Cinematic 3D Frame Sequence',
-        position: 11,
-        is_visible: true,
-        is_locked: false,
-        config: {}
-      };
-      const insertIdx = filtered.findIndex((s) => s.position >= 12);
-      if (insertIdx !== -1) {
-        filtered.splice(insertIdx, 0, cinematicHeroSec);
-      } else {
-        filtered.splice(1, 0, cinematicHeroSec);
-      }
-      seen.add('cinematic_hero');
-    }
 
     // Ensure category_bar section is always included right after marquee tag
     if (!seen.has('category_bar')) {
