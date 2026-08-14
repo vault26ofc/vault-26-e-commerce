@@ -27,16 +27,6 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     }
   },
   {
-    id: 'default-cinematic-hero',
-    page_slug: 'home',
-    section_type: 'cinematic_hero',
-    label: 'Cinematic 3D Frame Sequence',
-    position: 11,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
     id: 'default-marquee',
     page_slug: 'home',
     section_type: 'marquee',
