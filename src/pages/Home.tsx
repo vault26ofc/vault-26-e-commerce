@@ -29,7 +29,8 @@ export default function Home() {
         s.section_type === 'editorial_split' ||
         s.section_type === 'new_arrivals' ||
         s.section_type === 'bento_grid' ||
-        s.section_type === 'collections'
+        s.section_type === 'collections' ||
+        s.section_type === 'linen_collection'
       ) return false;
       if (seen.has(s.section_type)) return false;
       seen.add(s.section_type);
@@ -97,27 +98,6 @@ export default function Home() {
         filtered.push(lookbookSec);
       }
       seen.add('lookbook');
-    }
-
-    // Ensure linen_collection section is always included
-    if (!seen.has('linen_collection')) {
-      const linenSec: CMSSection = {
-        id: 'linen-section-auto',
-        page_slug: 'home',
-        section_type: 'linen_collection',
-        label: 'Linen Collection',
-        position: 35,
-        is_visible: true,
-        is_locked: false,
-        config: {}
-      };
-      const insertIdx = filtered.findIndex((s) => s.position >= 40);
-      if (insertIdx !== -1) {
-        filtered.splice(insertIdx, 0, linenSec);
-      } else {
-        filtered.push(linenSec);
-      }
-      seen.add('linen_collection');
     }
 
     // Ensure instagram_reels section is always included

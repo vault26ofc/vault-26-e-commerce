@@ -4,6 +4,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import WhatsAppButton from '@/components/shared/WhatsAppButton';
 import CartDrawer from '@/components/cart/CartDrawer';
 import AnnouncementBar from '@/components/cms/AnnouncementBar';
+import FlagshipStoresSection from '@/cms/sections/FlagshipStoresSection';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect } from 'react';
@@ -18,6 +19,7 @@ export default function StoreLayout() {
       <main className="flex-1 pb-20 lg:pb-0">
         <Outlet />
       </main>
+      <FlagshipStoresSection />
       <Footer />
       <BottomNav />
       <WhatsAppButton />

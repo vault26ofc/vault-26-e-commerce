@@ -25,11 +25,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        primary: ["Cormorant Garamond", "Georgia", "serif"],
+        primary: ["'Instrument Serif'", "'Bodoni Moda'", "Didot", "Georgia", "serif"],
         secondary: ["Allura", "cursive"],
-        display: ["Cormorant Garamond", "Playfair Display", "Georgia", "serif"],
-        sans: ["Cormorant Garamond", "Inter", "system-ui", "sans-serif"],
-        serif: ["Cormorant Garamond", "Georgia", "serif"],
+        display: ["'Instrument Serif'", "'Bodoni Moda'", "Didot", "Georgia", "serif"],
+        sans: ["'Instrument Serif'", "Inter", "system-ui", "sans-serif"],
+        serif: ["'Instrument Serif'", "'Bodoni Moda'", "Didot", "Georgia", "serif"],
         script: ["Allura", "cursive"],
       },
       colors: {

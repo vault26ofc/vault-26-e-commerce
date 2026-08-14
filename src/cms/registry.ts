@@ -20,6 +20,7 @@ export const SECTION_COMPONENTS = {
   faq:               lazy(() => import('./sections/FAQSection')),
   linen_collection:  lazy(() => import('./sections/LinenCollectionSection')),
   instagram_reels:   lazy(() => import('./sections/InstagramReelsSection')),
+  flagship_stores:   lazy(() => import('./sections/FlagshipStoresSection')),
 };
 
 export const SECTION_META: Record<string, { label: string; description: string }> = {
@@ -41,6 +42,7 @@ export const SECTION_META: Record<string, { label: string; description: string }
   faq:              { label: 'FAQ',              description: 'Expandable frequently asked questions' },
   linen_collection: { label: 'Linen Collection', description: 'Summer European linen capsule showcase' },
   instagram_reels:  { label: 'Instagram Reels',   description: 'Interactive video reels showcase' },
+  flagship_stores:  { label: 'Flagship Stores',  description: 'Daily Paper style flagship storefront showcase with giant brand text' },
 };
 
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {

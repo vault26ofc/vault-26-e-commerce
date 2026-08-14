@@ -78,19 +78,19 @@
   }
   body {
     @apply bg-background text-foreground overflow-x-hidden;
-    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-family: 'Instrument Serif', 'Bodoni Moda', Georgia, serif;
     font-feature-settings: 'ss01';
   }
   h1, h2, h3, h4, .font-display, .font-primary { 
-    font-family: 'Cormorant Garamond', Georgia, serif; 
-    font-weight: 500;
+    font-family: 'Instrument Serif', 'Bodoni Moda', Georgia, serif; 
+    font-weight: 400;
   }
   .font-secondary, .font-script, .font-allura {
     font-family: 'Allura', cursive;
   }
-  .font-elegant { font-family: 'Cormorant Garamond', serif; }
+  .font-elegant { font-family: 'Instrument Serif', 'Bodoni Moda', serif; }
   .font-ui { font-family: 'Jost', sans-serif; }
-  .font-serif-condensed { font-family: 'Bodoni Moda', 'Cormorant Garamond', Georgia, serif; font-weight: 500; }
+  .font-serif-condensed { font-family: 'Instrument Serif', 'Bodoni Moda', Georgia, serif; font-weight: 400; }
 
   ::selection {
     @apply bg-[#B11226] text-white;
