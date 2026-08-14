@@ -17,9 +17,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    if (import.meta.env.DEV) {
-      console.error('[ErrorBoundary]', error, info.componentStack);
-    }
+    console.error('[ErrorBoundary]', error, info.componentStack);
   }
 
   render() {
@@ -28,9 +26,16 @@ export default class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
           <span className="text-[10px] tracking-[0.5em] uppercase font-ui text-black/40 mb-6">System Error</span>
           <h1 className="text-3xl font-elegant italic mb-4">Something went wrong</h1>
-          <p className="text-[11px] tracking-[0.15em] uppercase font-ui text-black/50 mb-10 max-w-sm">
+          <p className="text-[11px] tracking-[0.15em] uppercase font-ui text-black/50 mb-6 max-w-sm">
             An unexpected error occurred. Please refresh the page or return to the homepage.
           </p>
+          {this.state.error && (
+            <pre className="text-xs text-red-600 bg-red-50 p-4 rounded max-w-2xl overflow-auto text-left mb-8 font-mono border border-red-200">
+              {this.state.error.toString()}
+              {'\n\n'}
+              {this.state.error.stack}
+            </pre>
+          )}
           <div className="flex gap-4">
             <button
               onClick={() => window.location.reload()}
