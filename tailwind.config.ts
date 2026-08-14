@@ -25,8 +25,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Playfair Display", "Georgia", "serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        primary: ["Cormorant Garamond", "Georgia", "serif"],
+        secondary: ["Allura", "cursive"],
+        display: ["Cormorant Garamond", "Playfair Display", "Georgia", "serif"],
+        sans: ["Cormorant Garamond", "Inter", "system-ui", "sans-serif"],
+        serif: ["Cormorant Garamond", "Georgia", "serif"],
+        script: ["Allura", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",

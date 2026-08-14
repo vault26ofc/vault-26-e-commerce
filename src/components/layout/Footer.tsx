@@ -1,85 +1,74 @@
 import { Link } from 'react-router-dom';
-import { Instagram, Twitter } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-black/10 py-16 md:py-24 px-6 lg:px-12">
-      <div className="max-w-[1600px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-          <div className="space-y-8">
-            <div className="h-16">
-              <img
-                src={LOGO_URL}
-                alt="VAULT 26"
-                className="h-full w-auto object-contain brightness-0"
-              />
-            </div>
-            <p className="text-sm text-black/50 max-w-xs leading-relaxed font-ui font-light">
-              Where high fashion meets street authenticity. Vault 26 is more than clothing — it's a statement of individuality.
-            </p>
-            <div className="flex gap-6 opacity-40">
-              {['INSTAGRAM', 'TWITTER', 'TIKTOK'].map(social => (
-                <a key={social} href="#" className="text-[9px] tracking-[0.3em] font-ui font-bold hover:text-accent transition-colors">
-                  {social}
+    <footer className="bg-white border-t border-black/10 py-12 md:py-16 text-black font-ui">
+      <div className="container-px">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16 mb-12">
+          {/* Column 1: Contacts (Matching Chienne Reference Image) */}
+          <div>
+            <h3 className="text-xl md:text-2xl font-serif-condensed font-medium text-[#B11226] tracking-tight mb-4">
+              Contacts
+            </h3>
+            <div className="space-y-2 text-xs md:text-sm font-ui text-black/70 font-light">
+              <p>+91 904-501-66-10</p>
+              <p>+91 928-164-13-33</p>
+              <p className="pt-1">archive@vault26.co.in</p>
+              <p className="pt-2">
+                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-[#B11226] transition-colors">
+                  Instagram →
                 </a>
-              ))}
+              </p>
+              <p>
+                <a href="https://telegram.org" target="_blank" rel="noreferrer" className="hover:text-[#B11226] transition-colors">
+                  Telegram →
+                </a>
+              </p>
+              <div className="pt-3 text-[10px] text-black/40 leading-normal">
+                <p>Vault 26 Luxury Goods Pvt. Ltd.</p>
+                <p>GSTIN: 07AAACV2600F1Z2</p>
+              </div>
             </div>
           </div>
 
+          {/* Column 2: Catalog (Matching Chienne Reference Image) */}
           <div>
-            <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black mb-8 block">Collections</span>
-            <ul className="space-y-4">
-              {['New Drops', 'Men', 'Shoes', 'Archive'].map(item => (
-                <li key={item}>
-                  <Link to="#" className="text-sm font-ui font-light text-black/60 hover:text-black transition-colors uppercase tracking-[0.1em]">
-                    {item}
-                  </Link>
-                </li>
-              ))}
+            <h3 className="text-xl md:text-2xl font-serif-condensed font-medium text-[#B11226] tracking-tight mb-4">
+              Catalog
+            </h3>
+            <ul className="space-y-2 text-xs md:text-sm font-ui text-black/70 font-light">
+              <li><Link to="/shop" className="hover:text-[#B11226] transition-colors">All Products</Link></li>
+              <li><Link to="/category/men" className="hover:text-[#B11226] transition-colors">Outerwear</Link></li>
+              <li><Link to="/category/men" className="hover:text-[#B11226] transition-colors">Tees & Tops</Link></li>
+              <li><Link to="/category/men" className="hover:text-[#B11226] transition-colors">Trousers</Link></li>
+              <li><Link to="/category/shoes" className="hover:text-[#B11226] transition-colors">Footwear</Link></li>
+              <li><Link to="/category/accessories" className="hover:text-[#B11226] transition-colors">Accessories</Link></li>
+              <li><Link to="/shop" className="text-[#B11226] hover:underline">Sale</Link></li>
             </ul>
           </div>
 
+          {/* Column 3: Customer Care (Matching Chienne Reference Image) */}
           <div>
-            <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black mb-8 block">Support</span>
-            <ul className="space-y-4">
-              {['Shipping', 'Returns', 'Privacy', 'Contact'].map(item => (
-                <li key={item}>
-                  <Link to="#" className="text-sm font-ui font-light text-black/60 hover:text-black transition-colors uppercase tracking-[0.1em]">
-                    {item}
-                  </Link>
-                </li>
-              ))}
+            <h3 className="text-xl md:text-2xl font-serif-condensed font-medium text-[#B11226] tracking-tight mb-4">
+              Customer Care
+            </h3>
+            <ul className="space-y-2 text-xs md:text-sm font-ui text-black/70 font-light">
+              <li><Link to="/about" className="hover:text-[#B11226] transition-colors">About Brand</Link></li>
+              <li><Link to="/faq" className="hover:text-[#B11226] transition-colors">How to Place an Order</Link></li>
+              <li><Link to="/faq" className="hover:text-[#B11226] transition-colors">Shipping & Delivery</Link></li>
+              <li><Link to="/faq" className="hover:text-[#B11226] transition-colors">Exchanges & Returns</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#B11226] transition-colors">Public Offer</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#B11226] transition-colors">Privacy Policy</Link></li>
             </ul>
-          </div>
-
-          <div className="space-y-8">
-            <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold text-black block">Newsletter</span>
-            <p className="text-sm font-ui font-light text-black/50 leading-relaxed">
-              Join the archive for early access and editorial stories.
-            </p>
-            <div className="relative group">
-              <input 
-                type="email" 
-                placeholder="EMAIL ADDRESS" 
-                className="w-full bg-transparent border-b border-black/20 py-4 text-[11px] tracking-[0.3em] font-light outline-none focus:border-accent transition-colors placeholder:text-black/30 font-ui"
-              />
-            </div>
           </div>
         </div>
 
-        <div className="flex flex-col items-center md:flex-row md:justify-between pt-10 md:pt-12 border-t border-black/5 gap-4 md:gap-8 text-center md:text-left">
-          <span className="text-[9px] tracking-[0.3em] uppercase text-black/30 font-ui">
-            © {new Date().getFullYear()} VAULT 26 ARCHIVE · EST. MMXXVI
-          </span>
-          <span className="text-[9px] tracking-[0.3em] uppercase text-black/30 font-ui">
-            DESIGNED BY STUDIO V
-          </span>
+        {/* Bottom Bar (Matching Chienne Reference Image) */}
+        <div className="pt-6 border-t border-black/5 flex flex-col sm:flex-row justify-between items-center text-[11px] text-black/40 font-ui gap-2">
+          <span>© {new Date().getFullYear()} Vault 26 — All rights reserved</span>
+          <span>Designed for Quiet Luxury</span>
         </div>
       </div>
     </footer>
   );
 }
-

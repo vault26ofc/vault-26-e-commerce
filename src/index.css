@@ -78,18 +78,22 @@
   }
   body {
     @apply bg-background text-foreground overflow-x-hidden;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Cormorant Garamond', Georgia, serif;
     font-feature-settings: 'ss01';
   }
-  h1, h2, h3, h4, .font-display { 
-    font-family: 'Playfair Display', Georgia, serif; 
-    font-weight: 400;
+  h1, h2, h3, h4, .font-display, .font-primary { 
+    font-family: 'Cormorant Garamond', Georgia, serif; 
+    font-weight: 500;
+  }
+  .font-secondary, .font-script, .font-allura {
+    font-family: 'Allura', cursive;
   }
   .font-elegant { font-family: 'Cormorant Garamond', serif; }
   .font-ui { font-family: 'Jost', sans-serif; }
-  
+  .font-serif-condensed { font-family: 'Bodoni Moda', 'Cormorant Garamond', Georgia, serif; font-weight: 500; }
+
   ::selection {
-    @apply bg-accent text-white;
+    @apply bg-[#B11226] text-white;
   }
 
   /* Custom Scrollbar */
@@ -108,6 +112,9 @@
 }
 
 @layer utilities {
+  .text-cherry { color: #B11226; }
+  .bg-cherry { background-color: #B11226; }
+  .border-cherry { border-color: #B11226; }
   .vertical-text {
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -117,7 +124,7 @@
     color: transparent;
   }
   .text-stroke-accent {
-    -webkit-text-stroke: 1px hsla(var(--accent));
+    -webkit-text-stroke: 1px #B11226;
     color: transparent;
   }
 }

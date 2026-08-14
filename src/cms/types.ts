@@ -1,7 +1,7 @@
 export type SectionType =
-  | 'hero' | 'text_reveal' | 'editorial_split' | 'bento_grid'
+  | 'hero' | 'category_bar' | 'campaign_carousel' | 'best_sellers' | 'text_reveal' | 'editorial_split' | 'bento_grid'
   | 'new_arrivals' | 'category_grid' | 'marquee' | 'testimonials'
-  | 'lookbook' | 'newsletter' | 'promo_banner' | 'faq';
+  | 'lookbook' | 'newsletter' | 'promo_banner' | 'faq' | 'linen_collection' | 'instagram_reels';
 
 export interface CMSSection {
   id: string;
@@ -12,8 +12,17 @@ export interface CMSSection {
   position: number;
   is_visible: boolean;
   is_locked: boolean;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BestSellersConfig {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  cta_label?: string;
+  cta_href?: string;
+  product_count?: number;
 }
 
 // ── Section config shapes ────────────────────────────────────────────────────
