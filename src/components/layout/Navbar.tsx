@@ -220,8 +220,11 @@ export default function Navbar() {
   const wishCount = useWishlist((s) => s.ids.length);
   const setDrawer = useCart((s) => s.setDrawer);
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [scrolled, setScrolled] = useState(false);
+  const [hideNavbar, setHideNavbar] = useState(location.pathname === '/');
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('MEN');
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
@@ -236,8 +239,6 @@ export default function Navbar() {
 
   const debounceRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const navigate = useNavigate();
-  const location = useLocation();
 
   // Scroll behavior: Compact header & Hide Navbar until scrolling past Hero on Home page
   useEffect(() => {
