@@ -1,5 +1,5 @@
 export type SectionType =
-  | 'hero' | 'category_bar' | 'campaign_carousel' | 'best_sellers' | 'text_reveal' | 'editorial_split' | 'bento_grid'
+  | 'hero' | 'cinematic_hero' | 'category_bar' | 'campaign_carousel' | 'best_sellers' | 'text_reveal' | 'editorial_split' | 'bento_grid'
   | 'new_arrivals' | 'category_grid' | 'marquee' | 'testimonials' | 'flagship_stores'
   | 'lookbook' | 'newsletter' | 'promo_banner' | 'faq' | 'linen_collection' | 'instagram_reels';
 

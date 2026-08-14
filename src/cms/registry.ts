@@ -3,6 +3,7 @@ import type { FieldDef } from './types';
 
 export const SECTION_COMPONENTS = {
   hero:              lazy(() => import('./sections/HeroSection')),
+  cinematic_hero:    lazy(() => import('./sections/CinematicHeroSection')),
   category_bar:      lazy(() => import('./sections/CategoryBarSection')),
   campaign_carousel: lazy(() => import('./sections/CampaignCarouselSection')),
   best_sellers:      lazy(() => import('./sections/BestSellersSection')),
@@ -25,6 +26,7 @@ export const SECTION_COMPONENTS = {
 
 export const SECTION_META: Record<string, { label: string; description: string }> = {
   hero:             { label: 'Hero',             description: 'Full-screen hero with background image and search' },
+  cinematic_hero:   { label: 'Cinematic 3D Hero',description: 'Apple-quality smooth scroll 3D frame sequence product showcase' },
   category_bar:      { label: 'Category Bar',     description: 'Horizontal clothing category cards bar with thumbnails' },
   campaign_carousel:{ label: 'Campaign Carousel',description: 'Full-width rounded hero campaign banner slider' },
   best_sellers:      { label: 'Best Sellers',     description: 'Curated showcase of top-rated iconic pieces' },

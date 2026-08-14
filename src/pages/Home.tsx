@@ -37,6 +37,27 @@ export default function Home() {
       return true;
     });
 
+    // Ensure cinematic_hero section is always included right after main hero
+    if (!seen.has('cinematic_hero')) {
+      const cinematicHeroSec: CMSSection = {
+        id: 'cinematic-hero-section-auto',
+        page_slug: 'home',
+        section_type: 'cinematic_hero',
+        label: 'Cinematic 3D Frame Sequence',
+        position: 11,
+        is_visible: true,
+        is_locked: false,
+        config: {}
+      };
+      const insertIdx = filtered.findIndex((s) => s.position >= 12);
+      if (insertIdx !== -1) {
+        filtered.splice(insertIdx, 0, cinematicHeroSec);
+      } else {
+        filtered.splice(1, 0, cinematicHeroSec);
+      }
+      seen.add('cinematic_hero');
+    }
+
     // Ensure category_bar section is always included right after marquee tag
     if (!seen.has('category_bar')) {
       const categoryBarSec: CMSSection = {
@@ -98,6 +119,27 @@ export default function Home() {
         filtered.push(lookbookSec);
       }
       seen.add('lookbook');
+    }
+
+    // Ensure flagship_stores section is always included
+    if (!seen.has('flagship_stores')) {
+      const flagshipSec: CMSSection = {
+        id: 'flagship-stores-section-auto',
+        page_slug: 'home',
+        section_type: 'flagship_stores',
+        label: 'Flagship Stores',
+        position: 94,
+        is_visible: true,
+        is_locked: false,
+        config: {}
+      };
+      const insertIdx = filtered.findIndex((s) => s.position >= 95);
+      if (insertIdx !== -1) {
+        filtered.splice(insertIdx, 0, flagshipSec);
+      } else {
+        filtered.push(flagshipSec);
+      }
+      seen.add('flagship_stores');
     }
 
     // Ensure instagram_reels section is always included

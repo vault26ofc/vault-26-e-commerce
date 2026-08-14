@@ -27,6 +27,16 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     }
   },
   {
+    id: 'default-cinematic-hero',
+    page_slug: 'home',
+    section_type: 'cinematic_hero',
+    label: 'Cinematic 3D Frame Sequence',
+    position: 11,
+    is_visible: true,
+    is_locked: false,
+    config: {}
+  },
+  {
     id: 'default-marquee',
     page_slug: 'home',
     section_type: 'marquee',
@@ -159,6 +169,16 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     section_type: 'instagram_reels',
     label: 'Instagram Reels',
     position: 92,
+    is_visible: true,
+    is_locked: false,
+    config: {}
+  },
+  {
+    id: 'default-flagship-stores',
+    page_slug: 'home',
+    section_type: 'flagship_stores',
+    label: 'Flagship Stores',
+    position: 94,
     is_visible: true,
     is_locked: false,
     config: {}
