@@ -30,7 +30,8 @@ export default function Home() {
         s.section_type === 'new_arrivals' ||
         s.section_type === 'bento_grid' ||
         s.section_type === 'collections' ||
-        s.section_type === 'linen_collection'
+        s.section_type === 'linen_collection' ||
+        s.section_type === 'flagship_stores'
       ) return false;
       if (seen.has(s.section_type)) return false;
       seen.add(s.section_type);
@@ -121,26 +122,6 @@ export default function Home() {
       seen.add('lookbook');
     }
 
-    // Ensure flagship_stores section is always included
-    if (!seen.has('flagship_stores')) {
-      const flagshipSec: CMSSection = {
-        id: 'flagship-stores-section-auto',
-        page_slug: 'home',
-        section_type: 'flagship_stores',
-        label: 'Flagship Stores',
-        position: 94,
-        is_visible: true,
-        is_locked: false,
-        config: {}
-      };
-      const insertIdx = filtered.findIndex((s) => s.position >= 95);
-      if (insertIdx !== -1) {
-        filtered.splice(insertIdx, 0, flagshipSec);
-      } else {
-        filtered.push(flagshipSec);
-      }
-      seen.add('flagship_stores');
-    }
 
     // Ensure instagram_reels section is always included
     if (!seen.has('instagram_reels')) {

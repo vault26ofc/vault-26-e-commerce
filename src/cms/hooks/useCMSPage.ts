@@ -174,16 +174,6 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     config: {}
   },
   {
-    id: 'default-flagship-stores',
-    page_slug: 'home',
-    section_type: 'flagship_stores',
-    label: 'Flagship Stores',
-    position: 94,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
     id: 'default-testimonials',
     page_slug: 'home',
     section_type: 'testimonials',
