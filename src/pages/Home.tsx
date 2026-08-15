@@ -130,10 +130,17 @@ export default function Home() {
   }, [sections]);
 
   return (
-    <div className="bg-white min-h-screen">
-      {dedupedSections.map((section) => (
-        <SectionRenderer key={section.id} section={section} />
-      ))}
+    <div className="bg-white min-h-screen relative">
+      {dedupedSections.map((section) => {
+        if (section.section_type === 'hero') {
+          return <SectionRenderer key={section.id} section={section} />;
+        }
+        return (
+          <div key={section.id} className="relative z-10 bg-white shadow-[0_-20px_50px_rgba(0,0,0,0.15)]">
+            <SectionRenderer section={section} />
+          </div>
+        );
+      })}
     </div>
   );
 }
