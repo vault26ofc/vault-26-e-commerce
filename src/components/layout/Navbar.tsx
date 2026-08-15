@@ -247,7 +247,7 @@ export default function Navbar() {
       setScrolled(currentScroll > 40);
 
       if (location.pathname === '/') {
-        const heroThreshold = window.innerHeight * 0.4;
+        const heroThreshold = window.innerHeight * 1.2;
         setHideNavbar(currentScroll < heroThreshold);
       } else {
         setHideNavbar(false);
