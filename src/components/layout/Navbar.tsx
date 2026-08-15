@@ -247,7 +247,7 @@ export default function Navbar() {
       setScrolled(currentScroll > 40);
 
       if (location.pathname === '/') {
-        const heroThreshold = window.innerHeight * 1.2;
+        const heroThreshold = window.innerHeight * 1.75;
         setHideNavbar(currentScroll < heroThreshold);
       } else {
         setHideNavbar(false);
@@ -329,11 +329,15 @@ export default function Navbar() {
     <>
       {/* 01 & 02 — TRANSPARENT CLOSED HEADER */}
       <motion.header
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{
+          opacity: hideNavbar ? 0 : 1,
+          y: hideNavbar ? -20 : 0
+        }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           "fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-500 ease-out font-sans",
+          hideNavbar ? "pointer-events-none opacity-0 -translate-y-6" : "pointer-events-auto opacity-100 translate-y-0",
           scrolled ? "py-3.5 h-16 bg-[#FAF8F5]/85 backdrop-blur-md border-b border-[#111111]/[0.06] shadow-sm" : "py-5 h-20 bg-transparent border-b border-transparent"
         )}
       >

@@ -18,7 +18,7 @@ export default function BottomNav() {
   useEffect(() => {
     const handleScroll = () => {
       if (location.pathname === '/') {
-        const heroThreshold = window.innerHeight * 0.4;
+        const heroThreshold = window.innerHeight * 1.75;
         setHideNav(window.scrollY < heroThreshold);
       } else {
         setHideNav(false);
