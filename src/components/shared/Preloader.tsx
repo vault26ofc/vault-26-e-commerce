@@ -54,7 +54,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               />
             </div>
 
-            <div className="w-48 h-[1px] bg-black/5 mt-12 relative overflow-hidden">
+            <div className="w-48 h-[1px] bg-black/15 mt-12 relative overflow-hidden">
               <motion.div
                 initial={{ x: '-100%' }}
                 animate={{ x: '0%' }}
@@ -69,16 +69,16 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               transition={{ delay: 1.2, duration: 1 }}
               className="mt-6 overflow-hidden"
             >
-              <p className="text-[10px] tracking-[0.6em] uppercase text-black/40 font-light font-ui">
+              <p className="text-[10px] tracking-[0.6em] uppercase text-black/60 font-light font-ui">
                 Archive // established mmxxvi
               </p>
             </motion.div>
           </div>
 
-          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute top-12 left-12 w-24 h-[1px] bg-black/10" />
-          <motion.div initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute top-12 left-12 w-[1px] h-24 bg-black/10" />
-          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute bottom-12 right-12 w-24 h-[1px] bg-black/10" />
-          <motion.div initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute bottom-12 right-12 w-[1px] h-24 bg-black/10" />
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute top-12 left-12 w-24 h-[1px] bg-black/15" />
+          <motion.div initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute top-12 left-12 w-[1px] h-24 bg-black/15" />
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute bottom-12 right-12 w-24 h-[1px] bg-black/15" />
+          <motion.div initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute bottom-12 right-12 w-[1px] h-24 bg-black/15" />
         </motion.div>
       )}
     </AnimatePresence>

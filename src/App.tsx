@@ -1,5 +1,6 @@
 import { useState, useCallback, lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// New route added: accessories
 import { motion, AnimatePresence } from "framer-motion";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,6 +22,7 @@ import Lookbook from "@/pages/Lookbook";
 import { OrdersList, OrderDetail } from "@/pages/Orders";
 import { Login, Register } from "@/pages/Auth";
 import Invoice from "@/pages/Invoice";
+import AccessoriesPage from "@/pages/Accessories";
 import NotFound from "@/pages/NotFound";
 
 // ─── Admin pages (separate "admin" chunk — never loaded for storefront users)
@@ -117,6 +119,7 @@ const App = () => {
                 />
                 <Route path="/products/:slug" element={<ProductDetail />} />
                 <Route path="/lookbook" element={<Lookbook />} />
+                <Route path="/accessories" element={<AccessoriesPage />} />
                 <Route path="/checkout" element={<Checkout />} />
                 <Route
                   path="/order-success/:id"

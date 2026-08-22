@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 
 export default function EditorialMarquee() {
   return (
-    <section className="py-64 container-px bg-white relative overflow-hidden border-y border-black/5">
+    <section className="py-64 container-px bg-white relative overflow-hidden border-y border-black/10">
 
       {/* Background Marquees */}
       <div className="absolute inset-0 flex flex-col justify-around py-20 opacity-[0.02] pointer-events-none select-none">
@@ -34,10 +34,10 @@ export default function EditorialMarquee() {
       </div>
 
       {/* Technical Accents */}
-      <div className="absolute top-12 left-12 text-[10px] tracking-[0.4em] uppercase text-black/30 font-medium vertical-text hidden lg:block font-ui">
+      <div className="absolute top-12 left-12 text-[10px] tracking-[0.4em] uppercase text-black/50 font-medium vertical-text hidden lg:block font-ui">
         REF: VAULT_ARCHIVE_2026 // 51.5074° N, 0.1278° W
       </div>
-      <div className="absolute bottom-12 right-12 text-[10px] tracking-[0.4em] uppercase text-black/30 font-medium text-right hidden lg:block font-ui">
+      <div className="absolute bottom-12 right-12 text-[10px] tracking-[0.4em] uppercase text-black/50 font-medium text-right hidden lg:block font-ui">
         LIMITED RELEASE // NOT FOR REPRODUCTION
       </div>
 
@@ -70,7 +70,7 @@ export default function EditorialMarquee() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 1.0 }}
-          className="text-base max-w-2xl mx-auto text-black/40 tracking-[0.25em] uppercase font-medium font-ui"
+          className="text-base max-w-2xl mx-auto text-black/60 tracking-[0.25em] uppercase font-medium font-ui"
         >
           CURATED FOR THE ARCHIVE. DEFINED BY THE BOLD.
         </motion.p>

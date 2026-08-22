@@ -25,7 +25,7 @@ const TESTIMONIALS = [
 
 export default function Testimonials() {
   return (
-    <section className="py-24 container-px bg-white overflow-hidden border-b border-black/5">
+    <section className="py-24 container-px bg-white overflow-hidden border-b border-black/10">
       <div className="flex items-end justify-between mb-16">
         <div className="overflow-hidden">
           <motion.h2 
@@ -38,7 +38,7 @@ export default function Testimonials() {
             Voices of the <span className="italic text-accent">Archive</span>
           </motion.h2>
         </div>
-        <div className="hidden md:block text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui font-medium">
+        <div className="hidden md:block text-[9px] tracking-[0.4em] uppercase text-black/50 font-ui font-medium">
           Drag to Explore →
         </div>
       </div>
@@ -65,7 +65,7 @@ export default function Testimonials() {
               <h4 className="text-[12px] tracking-[0.2em] uppercase font-bold text-black font-ui">
                 {item.author}
               </h4>
-              <span className="text-[10px] tracking-[0.1em] text-black/40 uppercase font-ui">
+              <span className="text-[10px] tracking-[0.1em] text-black/60 uppercase font-ui">
                 {item.role}
               </span>
             </div>
@@ -74,7 +74,7 @@ export default function Testimonials() {
       </motion.div>
       
       {/* Progress Line */}
-      <div className="w-full h-[1px] bg-black/5 mt-20 relative">
+      <div className="w-full h-[1px] bg-black/15 mt-20 relative">
         <motion.div 
           className="absolute top-0 left-0 h-full bg-accent w-1/4"
           initial={{ x: 0 }}
