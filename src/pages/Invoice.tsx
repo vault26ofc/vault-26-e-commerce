@@ -32,6 +32,7 @@ export default function Invoice() {
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
   const [tpl, setTpl] = useState<InvoiceSettings>({});
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -42,10 +43,12 @@ export default function Invoice() {
       ]);
       setOrder(o);
       setTpl((s?.value as InvoiceSettings) || {});
+      setReady(true);
     })();
   }, [id]);
 
-  if (!order) return <div className="p-10 text-center">Loading…</div>;
+  if (!ready) return <div className="p-10 text-center">Loading…</div>;
+  if (!order) return <div className="p-10 text-center text-muted-foreground">Invoice not found.</div>;
 
   const addr = order.shipping_address || {};
   const subtotal = Number(order.subtotal);

@@ -1,13 +1,13 @@
 
 -- ===== ENUMS =====
-CREATE TYPE public.app_role AS ENUM ('admin', 'customer');
-CREATE TYPE public.order_status AS ENUM ('PENDING','PACKED','SHIPPED','DELIVERED','CANCELLED');
-CREATE TYPE public.payment_method AS ENUM ('RAZORPAY','COD');
-CREATE TYPE public.payment_status AS ENUM ('PENDING','PAID','FAILED','REFUNDED');
-CREATE TYPE public.coupon_type AS ENUM ('PERCENT','FLAT');
+DO $$ BEGIN CREATE TYPE public.app_role AS ENUM ('admin', 'customer'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE public.order_status AS ENUM ('PENDING','PACKED','SHIPPED','DELIVERED','CANCELLED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE public.payment_method AS ENUM ('RAZORPAY','COD'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE public.payment_status AS ENUM ('PENDING','PAID','FAILED','REFUNDED'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE public.coupon_type AS ENUM ('PERCENT','FLAT'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- ===== PROFILES =====
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT,
   email TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- ===== USER ROLES =====
-CREATE TABLE public.user_roles (
+CREATE TABLE IF NOT EXISTS public.user_roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   role app_role NOT NULL,
@@ -41,11 +41,12 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
 FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ===== ADDRESSES =====
-CREATE TABLE public.addresses (
+CREATE TABLE IF NOT EXISTS public.addresses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT NOT NULL,
@@ -61,7 +62,7 @@ CREATE TABLE public.addresses (
 ALTER TABLE public.addresses ENABLE ROW LEVEL SECURITY;
 
 -- ===== BRANDS =====
-CREATE TABLE public.brands (
+CREATE TABLE IF NOT EXISTS public.brands (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -74,7 +75,7 @@ CREATE TABLE public.brands (
 ALTER TABLE public.brands ENABLE ROW LEVEL SECURITY;
 
 -- ===== CATEGORIES =====
-CREATE TABLE public.categories (
+CREATE TABLE IF NOT EXISTS public.categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -87,7 +88,7 @@ CREATE TABLE public.categories (
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
 -- ===== PRODUCTS =====
-CREATE TABLE public.products (
+CREATE TABLE IF NOT EXISTS public.products (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   slug TEXT UNIQUE NOT NULL,
@@ -103,7 +104,7 @@ CREATE TABLE public.products (
 );
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE public.product_variants (
+CREATE TABLE IF NOT EXISTS public.product_variants (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
   size TEXT,
@@ -118,7 +119,7 @@ CREATE TABLE public.product_variants (
 ALTER TABLE public.product_variants ENABLE ROW LEVEL SECURITY;
 
 -- ===== CART =====
-CREATE TABLE public.carts (
+CREATE TABLE IF NOT EXISTS public.carts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   session_id TEXT,
@@ -128,7 +129,7 @@ CREATE TABLE public.carts (
 );
 ALTER TABLE public.carts ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE public.cart_items (
+CREATE TABLE IF NOT EXISTS public.cart_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cart_id UUID NOT NULL REFERENCES public.carts(id) ON DELETE CASCADE,
   variant_id UUID NOT NULL REFERENCES public.product_variants(id) ON DELETE CASCADE,
@@ -138,7 +139,7 @@ CREATE TABLE public.cart_items (
 ALTER TABLE public.cart_items ENABLE ROW LEVEL SECURITY;
 
 -- ===== COUPONS =====
-CREATE TABLE public.coupons (
+CREATE TABLE IF NOT EXISTS public.coupons (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT UNIQUE NOT NULL,
   type coupon_type NOT NULL,
@@ -153,7 +154,7 @@ CREATE TABLE public.coupons (
 ALTER TABLE public.coupons ENABLE ROW LEVEL SECURITY;
 
 -- ===== ORDERS =====
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_number TEXT UNIQUE NOT NULL DEFAULT 'V26-' || upper(substring(gen_random_uuid()::text, 1, 8)),
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
@@ -177,7 +178,7 @@ CREATE TABLE public.orders (
 );
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
-CREATE TABLE public.order_items (
+CREATE TABLE IF NOT EXISTS public.order_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
   variant_id UUID REFERENCES public.product_variants(id) ON DELETE SET NULL,
@@ -190,7 +191,7 @@ CREATE TABLE public.order_items (
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
 -- ===== WISHLIST =====
-CREATE TABLE public.wishlist_items (
+CREATE TABLE IF NOT EXISTS public.wishlist_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   product_id UUID NOT NULL REFERENCES public.products(id) ON DELETE CASCADE,
@@ -200,7 +201,7 @@ CREATE TABLE public.wishlist_items (
 ALTER TABLE public.wishlist_items ENABLE ROW LEVEL SECURITY;
 
 -- ===== SETTINGS =====
-CREATE TABLE public.settings (
+CREATE TABLE IF NOT EXISTS public.settings (
   key TEXT PRIMARY KEY,
   value JSONB NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -213,72 +214,107 @@ INSERT INTO public.settings (key, value) VALUES
   ('announcement', '{"text":"Free shipping on orders above ₹999 · COD available","active":true}'::jsonb),
   ('whatsapp_number', '"919999999999"'::jsonb),
   ('free_shipping_threshold', '999'::jsonb),
-  ('shipping_fee', '79'::jsonb);
+  ('shipping_fee', '79'::jsonb)
+ON CONFLICT (key) DO NOTHING;
 
 -- ===== RLS POLICIES =====
 
 -- profiles
+DROP POLICY IF EXISTS "profiles self select" ON public.profiles;
 CREATE POLICY "profiles self select" ON public.profiles FOR SELECT USING (auth.uid() = id OR public.has_role(auth.uid(),'admin'));
+DROP POLICY IF EXISTS "profiles self update" ON public.profiles;
 CREATE POLICY "profiles self update" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
 -- user_roles
+DROP POLICY IF EXISTS "roles self read" ON public.user_roles;
 CREATE POLICY "roles self read" ON public.user_roles FOR SELECT USING (auth.uid() = user_id OR public.has_role(auth.uid(),'admin'));
+DROP POLICY IF EXISTS "roles admin manage" ON public.user_roles;
 CREATE POLICY "roles admin manage" ON public.user_roles FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
 -- addresses
+DROP POLICY IF EXISTS "addr select own" ON public.addresses;
 CREATE POLICY "addr select own" ON public.addresses FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "addr modify own" ON public.addresses;
 CREATE POLICY "addr modify own" ON public.addresses FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
--- brands / categories / products / variants: public read, admin write
+-- brands
+DROP POLICY IF EXISTS "brands public read" ON public.brands;
 CREATE POLICY "brands public read" ON public.brands FOR SELECT USING (true);
+DROP POLICY IF EXISTS "brands admin write" ON public.brands;
 CREATE POLICY "brands admin write" ON public.brands FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
+-- categories
+DROP POLICY IF EXISTS "cats public read" ON public.categories;
 CREATE POLICY "cats public read" ON public.categories FOR SELECT USING (true);
+DROP POLICY IF EXISTS "cats admin write" ON public.categories;
 CREATE POLICY "cats admin write" ON public.categories FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
+-- products
+DROP POLICY IF EXISTS "prod public read" ON public.products;
 CREATE POLICY "prod public read" ON public.products FOR SELECT USING (true);
+DROP POLICY IF EXISTS "prod admin write" ON public.products;
 CREATE POLICY "prod admin write" ON public.products FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
+-- product_variants
+DROP POLICY IF EXISTS "var public read" ON public.product_variants;
 CREATE POLICY "var public read" ON public.product_variants FOR SELECT USING (true);
+DROP POLICY IF EXISTS "var admin write" ON public.product_variants;
 CREATE POLICY "var admin write" ON public.product_variants FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
--- carts: owner or session
+-- carts
+DROP POLICY IF EXISTS "cart select" ON public.carts;
 CREATE POLICY "cart select" ON public.carts FOR SELECT USING (auth.uid() = user_id OR user_id IS NULL);
+DROP POLICY IF EXISTS "cart insert" ON public.carts;
 CREATE POLICY "cart insert" ON public.carts FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+DROP POLICY IF EXISTS "cart update" ON public.carts;
 CREATE POLICY "cart update" ON public.carts FOR UPDATE USING (auth.uid() = user_id OR user_id IS NULL);
+DROP POLICY IF EXISTS "cart delete" ON public.carts;
 CREATE POLICY "cart delete" ON public.carts FOR DELETE USING (auth.uid() = user_id OR user_id IS NULL);
 
+DROP POLICY IF EXISTS "ci all" ON public.cart_items;
 CREATE POLICY "ci all" ON public.cart_items FOR ALL USING (
   EXISTS (SELECT 1 FROM public.carts c WHERE c.id = cart_id AND (c.user_id = auth.uid() OR c.user_id IS NULL))
 ) WITH CHECK (
   EXISTS (SELECT 1 FROM public.carts c WHERE c.id = cart_id AND (c.user_id = auth.uid() OR c.user_id IS NULL))
 );
 
--- coupons: public read active, admin write
+-- coupons
+DROP POLICY IF EXISTS "coupons read active" ON public.coupons;
 CREATE POLICY "coupons read active" ON public.coupons FOR SELECT USING (is_active = true OR public.has_role(auth.uid(),'admin'));
+DROP POLICY IF EXISTS "coupons admin write" ON public.coupons;
 CREATE POLICY "coupons admin write" ON public.coupons FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
 -- orders
+DROP POLICY IF EXISTS "orders select own" ON public.orders;
 CREATE POLICY "orders select own" ON public.orders FOR SELECT USING (auth.uid() = user_id OR public.has_role(auth.uid(),'admin'));
+DROP POLICY IF EXISTS "orders insert own" ON public.orders;
 CREATE POLICY "orders insert own" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
+DROP POLICY IF EXISTS "orders admin update" ON public.orders;
 CREATE POLICY "orders admin update" ON public.orders FOR UPDATE USING (public.has_role(auth.uid(),'admin'));
 
+DROP POLICY IF EXISTS "oi select" ON public.order_items;
 CREATE POLICY "oi select" ON public.order_items FOR SELECT USING (
   EXISTS (SELECT 1 FROM public.orders o WHERE o.id = order_id AND (o.user_id = auth.uid() OR public.has_role(auth.uid(),'admin')))
 );
+DROP POLICY IF EXISTS "oi insert" ON public.order_items;
 CREATE POLICY "oi insert" ON public.order_items FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM public.orders o WHERE o.id = order_id)
 );
 
 -- wishlist
+DROP POLICY IF EXISTS "wish own" ON public.wishlist_items;
 CREATE POLICY "wish own" ON public.wishlist_items FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 -- settings
+DROP POLICY IF EXISTS "settings public read" ON public.settings;
 CREATE POLICY "settings public read" ON public.settings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "settings admin write" ON public.settings;
 CREATE POLICY "settings admin write" ON public.settings FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'));
 
 -- updated_at trigger
 CREATE OR REPLACE FUNCTION public.touch_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+DROP TRIGGER IF EXISTS carts_touch ON public.carts;
 CREATE TRIGGER carts_touch BEFORE UPDATE ON public.carts FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+DROP TRIGGER IF EXISTS orders_touch ON public.orders;
 CREATE TRIGGER orders_touch BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();

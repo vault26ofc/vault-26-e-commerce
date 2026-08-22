@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Package, ArrowRight, Truck, CheckCircle2, Clock } from 'lucide-react';
+import { Package, ArrowRight, Truck, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 const STATUS_LABELS = ['PENDING', 'PACKED', 'SHIPPED', 'DELIVERED'];
 
@@ -95,21 +96,33 @@ export function OrderDetail() {
   const { id } = useParams();
   const [o, setO] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
 
-  useEffect(() => {
+  const load = async () => {
     if (!id) return;
-    (async () => {
-      setLoading(true);
-      const { data } = await supabase.from('orders').select('*, order_items(*)').eq('id', id).maybeSingle();
-      setO(data);
-      setLoading(false);
-    })();
-  }, [id]);
+    setLoading(true);
+    const { data } = await supabase.from('orders').select('*, order_items(*)').eq('id', id).maybeSingle();
+    setO(data);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, [id]);
+
+  const cancel = async () => {
+    if (!o || !confirm('Cancel this order? This cannot be undone.')) return;
+    setCancelling(true);
+    const { error } = await supabase.from('orders').update({ status: 'CANCELLED' as any }).eq('id', o.id);
+    setCancelling(false);
+    if (error) return toast.error(error.message);
+    toast.success('Order cancelled. Refunds (if any) will be processed shortly.');
+    load();
+  };
 
   if (loading) return <div className="container-px py-48 text-center uppercase tracking-[0.5em] text-[10px] animate-pulse">Decrypting Order Data...</div>;
   if (!o) return <div className="container-px py-48 text-center uppercase tracking-[0.5em] text-[10px]">Log Not Found</div>;
 
   const stage = STATUS_LABELS.indexOf(o.status);
+  const canCancel = o.status === 'PENDING';
 
   return (
     <div className="container-px py-24 min-h-screen bg-white">
@@ -200,7 +213,24 @@ export function OrderDetail() {
               <div className="text-[9px] text-black/50 tracking-[0.2em] uppercase font-ui mt-6 border-t border-black/10 pt-6">
                 Method: {o.payment_method} // {o.payment_status}
               </div>
+              {o.refund_status && o.refund_status !== 'NONE' && (
+                <div className="mt-6 border border-accent/30 bg-accent/5 p-4 text-[10px] font-ui tracking-[0.2em] uppercase">
+                  <div className="font-bold mb-1">Refund: {o.refund_status}</div>
+                  {Number(o.refund_amount) > 0 && <div>Amount: {inr(Number(o.refund_amount))}</div>}
+                  {o.refund_notes && <div className="mt-2 normal-case tracking-normal text-black/60">{o.refund_notes}</div>}
+                </div>
+              )}
             </div>
+
+            {canCancel && (
+              <button
+                onClick={cancel}
+                disabled={cancelling}
+                className="w-full border border-black px-6 py-4 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-3 disabled:opacity-50"
+              >
+                <XCircle className="h-4 w-4" /> {cancelling ? 'Cancelling…' : 'Cancel Order'}
+              </button>
+            )}
           </aside>
         </div>
       </motion.div>

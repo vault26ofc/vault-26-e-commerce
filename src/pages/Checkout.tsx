@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronRight, ArrowLeft, ShieldCheck, Truck, CreditCard } from 'lucide-react';
+import { triggerOrderNotification } from '@/lib/whatsapp';
 
 const addressSchema = z.object({
   full_name: z.string().trim().min(2).max(80),
@@ -50,17 +51,22 @@ export default function Checkout() {
     if (user?.email) setAddr((a) => ({ ...a, email: user.email || '' }));
   }, [user]);
 
+  // Stable key: only changes when actual cart contents change, not on every Zustand re-render
+  const itemsKey = items.map((i) => `${i.variantId}:${i.quantity}`).join(',');
+
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       if (!couponCode) { setDiscount(0); return; }
       const { data } = await supabase.from('coupons').select('*').eq('code', couponCode).maybeSingle();
-      if (!data) return;
+      if (cancelled || !data) return;
       const sub = subtotal();
       if (sub < Number(data.min_order)) { setDiscount(0); return; }
       const d = data.type === 'PERCENT' ? Math.round(sub * Number(data.value) / 100) : Number(data.value);
-      setDiscount(Math.min(d, sub));
+      if (!cancelled) setDiscount(Math.min(d, sub));
     })();
-  }, [couponCode, items]);
+    return () => { cancelled = true; };
+  }, [couponCode, itemsKey]);
 
   if (items.length === 0) {
     return (
@@ -119,40 +125,28 @@ export default function Checkout() {
   const placeOrder = async () => {
     setPlacing(true);
     try {
-      const orderItems = items.map((i) => ({
-        variant_id: i.variantId,
-        product_name: i.name,
-        variant_label: [i.size, i.color].filter(Boolean).join(' · '),
-        image: i.image,
-        quantity: i.quantity,
-        price_at_purchase: i.price,
-      }));
-
-      const { data: order, error } = await supabase.from('orders').insert({
-        user_id: user?.id ?? null,
-        email: addr.email,
-        shipping_address: addr,
-        subtotal: sub,
-        discount,
-        shipping,
-        total,
-        payment_method: payment,
-        payment_status: 'PENDING',
-        cod_advance_amount: payment === 'COD' ? codAdvance : 0,
-        coupon_code: couponCode,
-      }).select().single();
+      // Server-side order creation: prices are re-validated from DB, not trusted from client
+      const { data: orderData, error } = await supabase.rpc('create_order', {
+        p_user_id: user?.id ?? null,
+        p_email: addr.email,
+        p_shipping_address: addr,
+        p_items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
+        p_coupon_code: couponCode ?? null,
+        p_payment_method: payment,
+      });
 
       if (error) throw error;
-
-      const { error: itemsErr } = await supabase.from('order_items').insert(orderItems.map((it) => ({ ...it, order_id: order.id })));
-      if (itemsErr) throw itemsErr;
+      const order = orderData as { id: string; order_number: string; total: number; cod_advance_amount: number; payment_method: string };
 
       if (payment === 'RAZORPAY') {
-        await payWithRazorpay(order, total);
-      } else if (payment === 'COD' && codAdvance > 0) {
-        await payWithRazorpay(order, codAdvance);
+        await payWithRazorpay(order, order.total);
+      } else if (payment === 'COD' && order.cod_advance_amount > 0) {
+        await payWithRazorpay(order, order.cod_advance_amount);
       }
 
+      if (addr.phone) {
+        triggerOrderNotification('order_placed', { ...order, email: addr.email, shipping_address: addr, user_id: user?.id }, addr.phone).catch(() => {});
+      }
       toast.success('Order secured in the archive');
       clear();
       navigate(`/order-success/${order.id}`);
@@ -164,7 +158,7 @@ export default function Checkout() {
   };
 
   return (
-    <div className="container-px py-12 md:py-24 min-h-screen bg-white">
+    <div className="container-px pt-24 pb-12 md:py-24 min-h-screen bg-white">
       <div className="max-w-[1400px] mx-auto grid lg:grid-cols-[1fr_480px] gap-12 lg:gap-32">
         <div className="flex flex-col">
           <header className="mb-10 md:mb-16">
@@ -324,7 +318,7 @@ export default function Checkout() {
         {/* Sidebar Summary */}
         <aside className="lg:sticky lg:top-32 h-fit bg-muted/30 p-6 md:p-10 border border-black/10">
           <h2 className="text-[11px] tracking-[0.5em] font-ui font-bold uppercase mb-12 border-b border-black pb-4">Archive Contents</h2>
-          <div className="space-y-8 max-h-[500px] overflow-y-auto pr-4 scrollbar-hide">
+          <div className="space-y-8">
             {items.map((i) => (
               <div key={i.variantId} className="flex gap-6">
                 <div className="w-20 aspect-[3/4] bg-muted overflow-hidden flex-shrink-0">

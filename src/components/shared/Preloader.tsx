@@ -11,8 +11,8 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsDone(true);
-      setTimeout(onComplete, 1200);
-    }, 2800);
+      setTimeout(onComplete, 400);
+    }, 1000);
     return () => clearTimeout(timer);
   }, [onComplete]);
 

@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSEO } from '@/lib/useSEO';
 import { LogOut, Package, Heart, Settings, MapPin, Trash2, Plus, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export default function Account() {
+  useSEO({ title: 'My Account — Vault 26', noindex: true });
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
@@ -17,10 +19,12 @@ export default function Account() {
   const empty = { full_name: '', phone: '', line1: '', line2: '', city: '', state: '', pincode: '' };
   const [newAddr, setNewAddr] = useState(empty);
 
-  useEffect(() => { if (!loading && !user) navigate('/login'); }, [user, loading]);
+  const loadAddresses = () => {
+    if (!user) return;
+    supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => setAddresses(data || []));
+  };
 
-  const loadAddresses = () => user && supabase.from('addresses').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).then(({ data }) => setAddresses(data || []));
-
+  // useEffect must be before any conditional returns (Rules of Hooks)
   useEffect(() => {
     if (!user) return;
     supabase.from('profiles').select('*').eq('id', user.id).maybeSingle().then(({ data }) => {
@@ -28,7 +32,10 @@ export default function Account() {
       setProfileForm({ name: data?.name || '', phone: data?.phone || '' });
     });
     loadAddresses();
-  }, [user]);
+  }, [user?.id]);
+
+  if (loading) return <div className="min-h-screen bg-white" />;
+  if (!user) return <Navigate to="/login" replace />;
 
   const saveProfile = async () => {
     const { error } = await supabase.from('profiles').update(profileForm).eq('id', user!.id);
@@ -54,14 +61,22 @@ export default function Account() {
   if (!user && !loading) return null;
 
   return (
-    <div className="container-px py-24 min-h-screen bg-white">
+    <div className="container-px pt-36 pb-24 min-h-screen bg-white">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         className="max-w-5xl mx-auto"
       >
-        <span className="eyebrow block mb-4">Member Archive</span>
+        <div className="flex items-start justify-between mb-4">
+          <span className="eyebrow">Member Archive</span>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); toast.success('Signed out'); navigate('/'); }}
+            className="flex items-center gap-2 text-[10px] tracking-[0.35em] uppercase font-ui font-bold text-black/40 hover:text-black transition-colors"
+          >
+            <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} /> Sign Out
+          </button>
+        </div>
         <h1 className="display-2 mb-16">
           Hello, <span className="italic font-elegant font-light">{profile?.name || user?.email?.split('@')[0] || 'Member'}</span>
         </h1>
@@ -76,11 +91,11 @@ export default function Account() {
             <Link 
               key={i} 
               to={item.to} 
-              className="group border border-black/10 p-8 hover:border-black transition-all duration-500 bg-muted/30"
+              className="group border border-black/5 p-8 hover:border-black transition-all duration-500 bg-muted/30"
             >
               <item.icon className="h-5 w-5 text-accent mb-6 transition-transform group-hover:scale-110" strokeWidth={1.5} />
               <h3 className="text-sm font-ui font-bold tracking-[0.2em] uppercase mb-2">{item.title}</h3>
-              <p className="text-[10px] text-black/60 tracking-[0.1em] uppercase font-ui">{item.desc}</p>
+              <p className="text-[10px] text-black/40 tracking-[0.1em] uppercase font-ui">{item.desc}</p>
               <div className="mt-8 flex items-center gap-2 text-[9px] font-bold tracking-[0.3em] uppercase opacity-0 group-hover:opacity-100 transition-opacity">
                 Access <ArrowRight className="h-3 w-3" />
               </div>
@@ -100,11 +115,11 @@ export default function Account() {
                 { label: 'Mobile Contact', value: profileForm.phone, key: 'phone' }
               ].map((field) => (
                 <div key={field.key} className="space-y-3">
-                  <label className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/50">{field.label}</label>
+                  <label className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/30">{field.label}</label>
                   <input 
                     value={field.value} 
                     onChange={(e) => setProfileForm({ ...profileForm, [field.key]: e.target.value })}
-                    className="w-full border-b border-black/20 bg-transparent py-4 text-sm font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
+                    className="w-full border-b border-black/10 bg-transparent py-4 text-sm font-ui outline-none focus:border-black transition-colors placeholder:text-black/10"
                     placeholder={`Enter ${field.label.toLowerCase()}`}
                   />
                 </div>
@@ -145,7 +160,7 @@ export default function Account() {
                         placeholder={k.replace('_', ' ').toUpperCase()} 
                         value={(newAddr as any)[k]}
                         onChange={(e) => setNewAddr({ ...newAddr, [k]: e.target.value })}
-                        className="border border-black/10 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors"
+                        className="border border-black/5 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors"
                       />
                     ))}
                   </div>
@@ -153,11 +168,11 @@ export default function Account() {
                     placeholder="STREET ADDRESS" 
                     value={newAddr.line1}
                     onChange={(e) => setNewAddr({ ...newAddr, line1: e.target.value })}
-                    className="w-full border border-black/10 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors"
+                    className="w-full border border-black/5 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors"
                   />
                   <div className="flex gap-4 pt-2">
                     <button onClick={addAddress} className="flex-1 bg-black text-white py-4 text-[9px] tracking-[0.4em] uppercase font-bold">Confirm Address</button>
-                    <button onClick={() => setAdding(false)} className="px-8 border border-black/20 py-4 text-[9px] tracking-[0.4em] uppercase font-bold">Cancel</button>
+                    <button onClick={() => setAdding(false)} className="px-8 border border-black/10 py-4 text-[9px] tracking-[0.4em] uppercase font-bold">Cancel</button>
                   </div>
                 </motion.div>
               )}
@@ -165,10 +180,10 @@ export default function Account() {
 
             <div className="space-y-4">
               {addresses.length === 0 && !adding && (
-                <p className="text-[10px] tracking-[0.2em] text-black/50 uppercase font-ui">No saved shipping locations.</p>
+                <p className="text-[10px] tracking-[0.2em] text-black/30 uppercase font-ui">No saved shipping locations.</p>
               )}
               {addresses.map((a) => (
-                <div key={a.id} className="group border border-black/10 p-6 relative hover:bg-muted/20 transition-colors">
+                <div key={a.id} className="group border border-black/5 p-6 relative hover:bg-muted/20 transition-colors">
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="text-[11px] font-ui font-bold tracking-[0.2em] uppercase mb-2">{a.full_name}</div>
@@ -180,7 +195,7 @@ export default function Account() {
                     </div>
                     <button 
                       onClick={() => deleteAddr(a.id)} 
-                      className="text-black/40 hover:text-accent transition-colors"
+                      className="text-black/20 hover:text-accent transition-colors"
                     >
                       <Trash2 className="h-4 w-4" strokeWidth={1} />
                     </button>
@@ -191,15 +206,6 @@ export default function Account() {
           </section>
         </div>
 
-        {/* Sign Out */}
-        <div className="mt-32 pt-12 border-t border-black/10 flex justify-center">
-          <button 
-            onClick={async () => { await supabase.auth.signOut(); toast.success('Session ended'); navigate('/'); }}
-            className="flex items-center gap-3 text-[10px] tracking-[0.5em] uppercase font-ui font-bold text-black/50 hover:text-black transition-colors"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.5} /> Terminate Session
-          </button>
-        </div>
       </motion.div>
     </div>
   );

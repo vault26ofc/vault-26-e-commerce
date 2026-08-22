@@ -7,6 +7,7 @@ type SEO = {
   type?: 'website' | 'product' | 'article';
   canonical?: string;
   jsonLd?: Record<string, any>;
+  noindex?: boolean;
 };
 
 function setMeta(selector: string, attr: 'name' | 'property', name: string, content: string) {
@@ -19,7 +20,7 @@ function setMeta(selector: string, attr: 'name' | 'property', name: string, cont
   el.setAttribute('content', content);
 }
 
-export function useSEO({ title, description, image, type = 'website', canonical, jsonLd }: SEO) {
+export function useSEO({ title, description, image, type = 'website', canonical, jsonLd, noindex = false }: SEO) {
   useEffect(() => {
     document.title = title.length > 60 ? title.slice(0, 57) + '…' : title;
     const desc = (description || '').slice(0, 160);
@@ -36,6 +37,8 @@ export function useSEO({ title, description, image, type = 'website', canonical,
     if (desc) setMeta('meta[name="twitter:description"]', 'name', 'twitter:description', desc);
     if (image) setMeta('meta[name="twitter:image"]', 'name', 'twitter:image', image);
 
+    setMeta('meta[name="robots"]', 'name', 'robots', noindex ? 'noindex, nofollow' : 'index, follow');
+
     const canonHref = canonical || window.location.href.split('?')[0];
     let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!link) { link = document.createElement('link'); link.rel = 'canonical'; document.head.appendChild(link); }
@@ -48,5 +51,5 @@ export function useSEO({ title, description, image, type = 'website', canonical,
     } else if (ld) {
       ld.remove();
     }
-  }, [title, description, image, type, canonical, JSON.stringify(jsonLd)]);
+  }, [title, description, image, type, canonical, noindex, JSON.stringify(jsonLd)]);
 }

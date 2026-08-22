@@ -1,0 +1,25 @@
+# Vault 26
+
+> Vault 26 is a premium minimalist streetwear brand from India. We offer curated menswear, footwear, and accessories — crafted for the modern wardrobe. Free shipping over ₹999.
+
+## Shop
+
+- [Shop All](https://vault26.co.in/shop): Browse the full Vault 26 archive
+- [Men](https://vault26.co.in/category/men): Menswear — shirts, trousers, outerwear
+- [Shoes](https://vault26.co.in/category/shoes): Premium footwear
+- [Accessories](https://vault26.co.in/category/accessories): Bags, belts, and finishing pieces
+- [New Arrivals](https://vault26.co.in/category/new-arrivals): Latest drops
+
+## Editorial
+
+- [Lookbook](https://vault26.co.in/lookbook): Visual lookbook and styling edits
+- [About](https://vault26.co.in/about): Our story and ethos
+
+## Account
+
+- [Sign In](https://vault26.co.in/login): Member login
+- [Register](https://vault26.co.in/register): Create a new account
+
+## Optional
+
+- [Sitemap](https://vault26.co.in/sitemap.xml): Full site index
