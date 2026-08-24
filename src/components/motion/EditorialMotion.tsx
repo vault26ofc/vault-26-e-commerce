@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 // Refined easing curves as specified in VAULT 26 Motion System
-export const EASE_PRIMARY = [0.22, 1, 0.36, 1];   // Entrance: cubic-bezier(0.22, 1, 0.36, 1)
-export const EASE_SECONDARY = [0.16, 1, 0.3, 1]; // Transitions: cubic-bezier(0.16, 1, 0.3, 1)
-export const EASE_FAST = [0.4, 0, 0.2, 1];       // Fast interaction: cubic-bezier(0.4, 0, 0.2, 1)
+export const EASE_PRIMARY = [0.22, 1, 0.36, 1] as const;   // Entrance: cubic-bezier(0.22, 1, 0.36, 1)
+export const EASE_SECONDARY = [0.16, 1, 0.3, 1] as const; // Transitions: cubic-bezier(0.16, 1, 0.3, 1)
+export const EASE_FAST = [0.4, 0, 0.2, 1] as const;       // Fast interaction: cubic-bezier(0.4, 0, 0.2, 1)
 
 interface TextRevealProps {
   children: React.ReactNode;
