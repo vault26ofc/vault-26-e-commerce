@@ -5,7 +5,7 @@ import type {
   BrandSettings, ThemeSettings, SEOSettings,
 } from '../types';
 
-const DEFAULT_HOME_SECTIONS: CMSSection[] = [
+export const DEFAULT_HOME_SECTIONS: CMSSection[] = [
   {
     id: 'default-hero',
     page_slug: 'home',
@@ -100,58 +100,6 @@ const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     is_visible: true,
     is_locked: false,
     config: {}
-  },
-  {
-    id: 'default-category-grid',
-    page_slug: 'home',
-    section_type: 'category_grid',
-    label: 'Category Grid',
-    position: 60,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      categories: [
-        {
-          slug: 'men',
-          title: 'Men Collection',
-          image: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&q=90&w=800',
-          href: '/category/men',
-          watermark: 'MEN'
-        },
-        {
-          slug: 'shoes',
-          title: 'Footwear & Sneakers',
-          image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=90&w=800',
-          href: '/category/shoes',
-          watermark: 'SHOES'
-        },
-        {
-          slug: 'accessories',
-          title: 'Leather & Accessories',
-          image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=90&w=800',
-          href: '/category/accessories',
-          watermark: 'ACC'
-        }
-      ]
-    }
-  },
-  {
-    id: 'default-lookbook',
-    page_slug: 'home',
-    section_type: 'lookbook',
-    label: 'Lookbook',
-    position: 90,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      heading: 'LOOKBOOK 2026',
-      images: [
-        'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=90&w=800',
-        'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&q=90&w=800',
-        'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&q=90&w=800',
-        'https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?auto=format&fit=crop&q=90&w=800'
-      ]
-    }
   },
   {
     id: 'default-instagram-reels',

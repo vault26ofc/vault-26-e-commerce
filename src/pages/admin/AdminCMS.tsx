@@ -18,6 +18,7 @@ import type {
   AnnouncementBar, BrandSettings, ThemeSettings, SEOSettings,
   MediaAsset, FieldDef,
 } from '@/cms/types';
+import { DEFAULT_HOME_SECTIONS } from '@/cms/hooks/useCMSPage';
 
 // ─── Field Editor ────────────────────────────────────────────────────────────
 
@@ -239,6 +240,30 @@ export default function AdminCMS() {
     loadSections();
   };
 
+  const resetToDefaultLayout = async () => {
+    if (!confirm('Are you sure you want to reset the Home page layout to default clean order in the database?')) return;
+    setSectionsLoading(true);
+    try {
+      await supabase.from('website_sections').delete().eq('page_slug', 'home');
+      const rowsToInsert = DEFAULT_HOME_SECTIONS.map(({ id: _id, ...sec }) => ({
+        ...sec,
+        page_slug: 'home',
+        updated_at: new Date().toISOString()
+      }));
+      const { error } = await supabase.from('website_sections').insert(rowsToInsert);
+      if (error) {
+        toast.error('Failed to reset layout: ' + error.message);
+      } else {
+        toast.success('Successfully reset Home page layout in live database!');
+        await loadSections();
+      }
+    } catch (e) {
+      toast.error('Error resetting layout');
+    } finally {
+      setSectionsLoading(false);
+    }
+  };
+
   // ── Theme / Brand / SEO saves ───────────────────────────────────────────────
 
   const saveTheme = async () => {
@@ -351,9 +376,19 @@ export default function AdminCMS() {
               placeholder="home"
               onBlur={loadSections}
             />
-            <Button variant="ghost" size="sm" onClick={loadSections}>
+            <Button variant="ghost" size="sm" onClick={loadSections} title="Refresh sections">
               <RefreshCw className="h-3.5 w-3.5" />
             </Button>
+            {pageSlug === 'home' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto text-xs gap-2 border-amber-500/30 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
+                onClick={resetToDefaultLayout}
+              >
+                <RefreshCw className="h-3.5 w-3.5" /> Reset Home Layout to Default
+              </Button>
+            )}
           </div>
 
           {sectionsLoading ? (

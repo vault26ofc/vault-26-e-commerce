@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import type { CMSSection, HeroConfig } from '../types';
 
-const EASE_PRIMARY = [0.22, 1, 0.36, 1];
+const EASE_PRIMARY = [0.22, 1, 0.36, 1] as const;
 
 export default function HeroSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as HeroConfig;
