@@ -14,8 +14,10 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
     offset: ['start start', 'end start']
   });
 
-  const titleParallaxY = useTransform(scrollYProgress, [0, 1], [0, -80]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  const titleParallaxY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+  const metaParallaxY = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  const ctaParallaxY = useTransform(scrollYProgress, [0, 1], [0, -40]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
   const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
 
   const headingText = cfg.heading || 'VAULT 26';
