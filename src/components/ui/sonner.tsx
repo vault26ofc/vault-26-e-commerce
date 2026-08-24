@@ -1,6 +1,36 @@
-import { Toaster as Sonner, toast } from "sonner";
+import { Toaster as Sonner, toast as rawToast } from "sonner";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
+
+const safeToast = (message: any, data?: any) => {
+  if (!message || (typeof message === 'string' && !message.trim())) return;
+  return rawToast(message, data);
+};
+
+safeToast.error = (message: any, data?: any) => {
+  if (!message || (typeof message === 'string' && !message.trim())) return;
+  return rawToast.error(message, data);
+};
+
+safeToast.success = (message: any, data?: any) => {
+  if (!message || (typeof message === 'string' && !message.trim())) return;
+  return rawToast.success(message, data);
+};
+
+safeToast.info = (message: any, data?: any) => {
+  if (!message || (typeof message === 'string' && !message.trim())) return;
+  return rawToast.info(message, data);
+};
+
+safeToast.warning = (message: any, data?: any) => {
+  if (!message || (typeof message === 'string' && !message.trim())) return;
+  return rawToast.warning(message, data);
+};
+
+safeToast.dismiss = rawToast.dismiss;
+safeToast.loading = rawToast.loading;
+safeToast.promise = rawToast.promise;
+safeToast.custom = rawToast.custom;
 
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
@@ -36,4 +66,4 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
-export { Toaster, toast };
+export { Toaster, safeToast as toast };

@@ -139,3 +139,9 @@
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { scrollbar-width: none; }
 }
+
+/* Suppress any empty toast containers */
+[data-sonner-toast]:empty,
+[data-sonner-toast]:not(:has([data-title]:not(:empty))) {
+  display: none !important;
+}
