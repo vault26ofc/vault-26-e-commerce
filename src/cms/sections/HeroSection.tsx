@@ -17,6 +17,7 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
   const metaParallaxY = useTransform(scrollYProgress, [0, 1], [0, -60]);
   const ctaParallaxY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
+  const imageScale = useTransform(scrollYProgress, [0, 1], [1, 1.08]);
 
   const headingText = cfg.heading || 'VAULT26';
   const eyebrowText = cfg.eyebrow || '01 / SPRING — SUMMER 26';
@@ -28,7 +29,7 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
       {/* Background Image — Full 100vh Viewport */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
         <motion.img
-          style={{ scale: useTransform(scrollYProgress, [0, 1], [1, 1.08]) }}
+          style={{ scale: imageScale }}
           src={
             cfg.background_image ||
             'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=95&w=2400'
