@@ -57,9 +57,12 @@ All new copy/branding is Vault 26's own voice — no "Studio Deny" naming or cop
 ## Conventions this work must follow (already established in this codebase)
 
 - **RLS**: every new table gets `... FOR SELECT USING (true)` (public read) +
-  `... FOR ALL USING (has_role(auth.uid(),'admin'::app_role)) WITH CHECK (has_role(auth.uid(),'admin'::app_role))`
-  (admin write), matching `supabase/migrations/20260515200000_cms_system.sql` exactly. `has_role`
-  is defined in `20260503083732_....sql`.
+  `... FOR ALL USING (public.has_role(auth.uid(),'admin')) WITH CHECK (public.has_role(auth.uid(),'admin'))`
+  (admin write) — this exact form (no `::app_role` cast, `public.` prefix), matching every policy
+  in `20260503083732_....sql` and `20260515100000_whatsapp_system.sql`. **Correction**: this
+  project's `app_role` enum is only `('admin', 'customer')` — there is no `'staff'` role here
+  (unlike the reference project), so every RLS policy and admin-check in this work checks
+  `'admin'` only.
 - **Timestamps**: reuse the existing `touch_updated_at()` trigger function for any table with an
   `updated_at` column (already used by several `whatsapp_system.sql` tables) — don't write a new
   one.
@@ -100,8 +103,8 @@ create table if not exists public.sizes (
 alter table public.sizes enable row level security;
 create policy "sizes public read" on public.sizes for select using (true);
 create policy "sizes admin write" on public.sizes for all
-  using (has_role(auth.uid(),'admin'::app_role))
-  with check (has_role(auth.uid(),'admin'::app_role));
+  using (public.has_role(auth.uid(),'admin'))
+  with check (public.has_role(auth.uid(),'admin'));
 ```
 
 Admin: `/admin/sizes`, `CrudPanel`-derived — category picker (reuses the existing category list),
@@ -176,8 +179,8 @@ create table if not exists public.preloader_settings (
 alter table public.preloader_settings enable row level security;
 create policy "preloader public read" on public.preloader_settings for select using (true);
 create policy "preloader admin write" on public.preloader_settings for all
-  using (has_role(auth.uid(),'admin'::app_role))
-  with check (has_role(auth.uid(),'admin'::app_role));
+  using (public.has_role(auth.uid(),'admin'))
+  with check (public.has_role(auth.uid(),'admin'));
 create trigger trg_preloader_settings_updated_at before update on public.preloader_settings
   for each row execute function touch_updated_at();
 insert into public.preloader_settings (content_text) values ('26');
@@ -209,16 +212,31 @@ create table if not exists public.lookbook_slides (
 alter table public.lookbook_slides enable row level security;
 create policy "lookbook_slides public read" on public.lookbook_slides for select using (true);
 create policy "lookbook_slides admin write" on public.lookbook_slides for all
-  using (has_role(auth.uid(),'admin'::app_role))
-  with check (has_role(auth.uid(),'admin'::app_role));
+  using (public.has_role(auth.uid(),'admin'))
+  with check (public.has_role(auth.uid(),'admin'));
 ```
 
-`LookbookSection.tsx` currently reads its slide list out of the `lookbook` section_type's
-`config` JSON (via `website_sections`). Rewire it to read from `lookbook_slides` instead — this is
-a real upgrade (per-slide product linking, easier reordering, real per-slide media picker) over
-hand-editing a JSON blob. The `website_sections` row for `lookbook` stays (still controls
-position/visibility/locking on the homepage and on `/lookbook`, per `LookbookSection.tsx`'s
-`isPage` prop) but its `config` becomes minimal (optional heading/subtitle only).
+**Correction from an earlier draft of this spec**: `LookbookSection.tsx` does NOT currently read
+from `website_sections.config` despite a `LookbookConfig` type existing for it in
+`src/cms/types.ts` (`{heading, images}`) — verified by reading the full component. It ignores its
+`section` prop entirely and renders ~11 fully hardcoded mock editorial-magazine cards (fake
+articles like "Hideo Kojima: The Creator", "Katseye", stock Unsplash photography) in a fixed
+3-layout-role structure (2 stacked horizontal stories, 1 vertical feature, 4 mini stories, 4
+bottom-row cards) — content unrelated to Vault 26 product photography, evidently a placeholder
+that was never wired up.
+
+This is a bigger, clearer win than "upgrade a working config path" — it's making a currently
+non-functional (from an admin's perspective) mock section real for the first time. Rewrite
+`LookbookSection.tsx` to render a responsive photo grid from `lookbook_slides` (variable slide
+count, not the fixed 11-role magazine layout — that fixed structure doesn't fit admin-managed,
+variable-length content, and the "editorial articles" framing doesn't fit product lookbook photos
+anyway). Keep the section's existing header treatment (eyebrow label, "VAULT 26 JOURNAL"-style
+heading, "explore all" link to `/lookbook`) since that chrome is real and on-brand — only the
+hardcoded card content is replaced. The `website_sections` row for `lookbook` stays (still
+controls position/visibility/locking on the homepage and on `/lookbook`, per `LookbookSection.tsx`'s
+`isPage` prop) with its `config` reduced to optional heading/subtitle override only — the
+`LookbookConfig` type in `src/cms/types.ts` should be updated to match (drop the unused `images`
+field) rather than left describing a shape nothing produces or consumes.
 
 Admin: `/admin/lookbook`, dedicated page — table, modal add/edit form (media upload-or-URL toggle,
 product picker populated from `products`, caption text, active toggle), reorder chevrons, delete
