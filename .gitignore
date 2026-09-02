@@ -40,3 +40,4 @@ tests/e2e/videos/
 .vercel
 .env*
 supabase/.temp/
+.superpowers/
