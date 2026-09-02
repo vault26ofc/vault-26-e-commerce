@@ -171,6 +171,7 @@ export default function AdminMegaMenu() {
       tab_id: activeTabId, heading: heading.trim(), position: maxPos + 1,
     });
     if (error) return toast.error(error.message);
+    toast.success('Group added');
     load();
   };
 
@@ -178,6 +179,7 @@ export default function AdminMegaMenu() {
     if (!confirm('Remove this group and all its links?')) return;
     const { error } = await supabase.from('mega_menu_groups' as any).delete().eq('id', id);
     if (error) return toast.error(error.message);
+    toast.success('Group removed');
     load();
   };
 
@@ -203,6 +205,7 @@ export default function AdminMegaMenu() {
       group_id: groupId, link_type: 'category', category_id: categoryId, position: maxPos + 1,
     });
     if (error) return toast.error(error.message);
+    toast.success('Link added');
     load();
   };
 
@@ -217,12 +220,14 @@ export default function AdminMegaMenu() {
       group_id: groupId, link_type: 'custom', custom_label: label.trim(), custom_href: href.trim(), position: maxPos + 1,
     });
     if (error) return toast.error(error.message);
+    toast.success('Link added');
     load();
   };
 
   const removeLink = async (id: string) => {
     const { error } = await supabase.from('mega_menu_links' as any).delete().eq('id', id);
     if (error) return toast.error(error.message);
+    toast.success('Link removed');
     load();
   };
 
