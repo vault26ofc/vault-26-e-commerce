@@ -3,6 +3,50 @@
 Date: 2026-09-02
 Status: approved for planning
 
+## Addendum (2026-09-02, mid-execution): mega menu reversed to fully wired, schema redesigned
+
+The user reversed the "mega menu backend only" decision below after 5 tasks had already shipped
+(sizes, mega menu backend v1, preloader, lookbook migration) — see the ledger at
+`.superpowers/sdd/2026-09-02-admin-cms-buildout/progress.md` for the full exchange. Two things
+changed as a result:
+
+1. **`Navbar.tsx` now gets wired to real data**, not deferred. Its full-screen mega-menu
+   (`VAULT_INDEX_DATA`) is far richer than assumed when the "backend only" call was made: each
+   tab has its own hero image, poetic subhead copy, multiple numbered heading groups each with
+   several labeled links, per-link hover images, and a fixed 4-slot image/video thumbnail strip.
+   Confirmed by user: hero image, subhead, and per-link hover images all become admin-editable;
+   the 4-thumbnail strip stays a fixed, non-admin-managed creative element (a deliberate,
+   disclosed cut, not a silent one).
+
+2. **The mega_menu_categories/links/products tables shipped in the original Tasks 4–5 are
+   replaced**, not extended — they only supported flat category-only tabs, which doesn't fit
+   the real Navbar's two-level (tab → heading group → link) structure, and doesn't support
+   `LOOKBOOK`/`ABOUT`-style tabs that point at static pages rather than product categories
+   (confirmed by user: those must be admin-controllable too). Safe to replace outright since no
+   real admin data existed in the old tables yet (Task 5's admin page had shipped but nothing had
+   been entered through it). New schema:
+   - `mega_menu_tabs` (was `mega_menu_categories`): `tab_type` (`'category'|'custom'`), plus
+     either `category_id` (category tabs) or `custom_label`+`custom_href` (custom tabs, e.g.
+     Lookbook → `/lookbook`, About → `/about`), `hero_image_url`, `subhead`, `position`,
+     `is_active`.
+   - `mega_menu_groups` (new): the heading groups within a tab (`tab_id`, `heading`, `position`)
+     — e.g. "(01) NEW IN", "(02) CLOTHING".
+   - `mega_menu_links` (redesigned): items within a group, each either `link_type='category'`
+     (`category_id`, label = the category's name) or `link_type='custom'` (`custom_label` +
+     `custom_href`), plus `hover_image_url`.
+   - `mega_menu_products` (redesigned): unchanged shape, FK renamed from `menu_category_id` to
+     `tab_id`.
+
+**Real-data finding that affects seeding**: the live `categories` table has no "MEN" or "SHOES"
+row — the actual catalog is `Shirts`, `Trousers`, `Outerwear`, `Knitwear`, `Accessories`. The
+hardcoded Navbar's MEN/SHOES tabs were themselves placeholder content with no catalog backing,
+the same pattern as the Lookbook section's hardcoded mock content found earlier in this plan.
+Seed data uses the 5 real categories as category-type tabs plus Lookbook/About as custom tabs —
+this visibly changes the storefront's top-level tab labels from MEN/SHOES/ACCESSORIES/LOOKBOOK/ABOUT
+to SHIRTS/TROUSERS/OUTERWEAR/KNITWEAR/ACCESSORIES/LOOKBOOK/ABOUT. Disclosed to the user rather than
+asked, since it's immediately editable through the admin page this same work builds — not a
+one-way door.
+
 ## Context
 
 A prior client project ("Studio Deny", same builder/pattern lineage as this app) accumulated a
@@ -36,10 +80,9 @@ explicitly NOT part of this spec:
 - **Section headings registry** — cut as unnecessary. Every section already gets its heading/copy
   edited directly through `AdminCMS.tsx`'s per-section `config` field editor (see `SECTION_FIELDS`
   in `src/cms/registry.ts`); a separate global-heading-override table would duplicate that.
-- **Mega menu → Navbar wiring** — admin backend only this round. `Navbar.tsx`'s existing
-  full-screen mega-menu (`VAULT_INDEX_DATA`) is hardcoded and works well; rewiring it to read from
-  the DB is deferred to a future, explicitly-requested pass so as not to risk regressing a UI
-  that already looks right.
+- ~~**Mega menu → Navbar wiring** — admin backend only this round.~~ **Superseded by the addendum
+  above** — the user reversed this decision mid-execution; the mega menu is now fully wired into
+  `Navbar.tsx`, not deferred.
 
 ## Scope for this spec
 
