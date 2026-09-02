@@ -112,6 +112,10 @@ export default function AdminCMS() {
   const [brand, setBrand] = useState<Partial<BrandSettings>>({});
   const [brandId, setBrandId] = useState<string | null>(null);
 
+  // Preloader tab
+  const [preloader, setPreloader] = useState<Record<string, any>>({});
+  const [preloaderId, setPreloaderId] = useState<string | null>(null);
+
   // SEO tab
   const [seoSlug, setSeoSlug] = useState('home');
   const [seo, setSeo] = useState<Partial<SEOSettings>>({});
@@ -148,6 +152,9 @@ export default function AdminCMS() {
     });
     supabase.from('brand_settings').select('*').limit(1).maybeSingle().then(({ data }) => {
       if (data) { setBrand(data as any); setBrandId((data as any).id); }
+    });
+    supabase.from('preloader_settings').select('*').limit(1).maybeSingle().then(({ data }) => {
+      if (data) { setPreloader(data as any); setPreloaderId((data as any).id); }
     });
     supabase.from('media_assets').select('*').order('created_at', { ascending: false }).limit(50).then(({ data }) =>
       setMedia((data as unknown as MediaAsset[]) ?? []));
@@ -288,6 +295,16 @@ export default function AdminCMS() {
     toast.success('Brand settings saved');
   };
 
+  const savePreloader = async () => {
+    const { id: _id, ...rest } = preloader as any;
+    if (preloaderId) {
+      await supabase.from('preloader_settings').update({ ...rest, updated_at: new Date().toISOString() }).eq('id', preloaderId);
+    } else {
+      await supabase.from('preloader_settings').insert(rest);
+    }
+    toast.success('Preloader settings saved');
+  };
+
   const saveSeo = async () => {
     const payload = { ...seo, page_slug: seoSlug };
     if (seoId) {
@@ -357,6 +374,7 @@ export default function AdminCMS() {
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
           <TabsTrigger value="theme">Theme</TabsTrigger>
           <TabsTrigger value="brand">Brand</TabsTrigger>
+          <TabsTrigger value="preloader">Preloader</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="media">Media</TabsTrigger>
         </TabsList>
@@ -629,6 +647,65 @@ export default function AdminCMS() {
             </div>
             <Button onClick={saveBrand}><Save className="h-4 w-4 mr-2" /> Save Brand</Button>
           </div>
+        </TabsContent>
+
+        {/* ── PRELOADER ────────────────────────────────────────────────────── */}
+        <TabsContent value="preloader" className="space-y-6 max-w-2xl">
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background type</label>
+            <select
+              value={preloader.bg_type || 'color'}
+              onChange={(e) => setPreloader({ ...preloader, bg_type: e.target.value })}
+              className="w-full border border-border bg-transparent px-3 py-2 text-sm"
+            >
+              <option value="color">Solid color</option>
+              <option value="image">Image</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+          {preloader.bg_type === 'image' && (
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background image URL</label>
+              <input value={preloader.bg_image_url || ''} onChange={(e) => setPreloader({ ...preloader, bg_image_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+            </div>
+          )}
+          {preloader.bg_type === 'video' && (
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background video URL</label>
+              <input value={preloader.bg_video_url || ''} onChange={(e) => setPreloader({ ...preloader, bg_video_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+            </div>
+          )}
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Content type</label>
+            <select
+              value={preloader.content_type || 'text'}
+              onChange={(e) => setPreloader({ ...preloader, content_type: e.target.value })}
+              className="w-full border border-border bg-transparent px-3 py-2 text-sm"
+            >
+              <option value="text">Text</option>
+              <option value="image">Image</option>
+            </select>
+          </div>
+          {preloader.content_type === 'text' ? (
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Content text</label>
+              <input value={preloader.content_text || ''} onChange={(e) => setPreloader({ ...preloader, content_text: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Content image URL</label>
+              <input value={preloader.content_image_url || ''} onChange={(e) => setPreloader({ ...preloader, content_image_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+            </div>
+          )}
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Text color</label>
+            <input type="color" value={preloader.text_color || '#000000'} onChange={(e) => setPreloader({ ...preloader, text_color: e.target.value })} className="h-10 w-24 border border-border" />
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Duration (ms)</label>
+            <input type="number" value={preloader.duration_ms ?? 1000} onChange={(e) => setPreloader({ ...preloader, duration_ms: Number(e.target.value) })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+          </div>
+          <button onClick={savePreloader} className="bg-foreground text-background py-2 px-6 text-xs uppercase tracking-widest">Save</button>
         </TabsContent>
 
         {/* ── SEO ──────────────────────────────────────────────────────────── */}
