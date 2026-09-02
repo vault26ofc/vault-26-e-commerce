@@ -32,6 +32,7 @@ const AdminOrders = lazy(() => import("@/pages/admin/AdminOrders"));
 const AdminRefunds = lazy(() => import("@/pages/admin/AdminRefunds"));
 const AdminProducts = lazy(() => import("@/pages/admin/AdminProducts"));
 const AdminCatalog = lazy(() => import("@/pages/admin/AdminCatalog"));
+const AdminSizes = lazy(() => import("@/pages/admin/AdminSizes"));
 const AdminCoupons = lazy(() =>
   import("@/pages/admin/AdminMisc").then((m) => ({ default: m.AdminCoupons }))
 );
@@ -139,6 +140,7 @@ const App = () => {
                 <Route path="refunds" element={<AdminRefunds />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="catalog" element={<AdminCatalog />} />
+                <Route path="sizes" element={<AdminSizes />} />
                 <Route path="coupons" element={<AdminCoupons />} />
                 <Route path="customers" element={<AdminCustomers />} />
                 <Route
