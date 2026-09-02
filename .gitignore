@@ -37,3 +37,6 @@ tests/e2e/videos/
 *.njsproj
 *.sln
 *.sw?
+.vercel
+.env*
+supabase/.temp/
