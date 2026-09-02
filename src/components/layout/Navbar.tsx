@@ -12,207 +12,28 @@ type Suggestion = { id: string; name: string; slug: string; image: string; price
 
 const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png";
 
-// Exact Reference Data Structure for Vault 26 Editorial Index
-type SectionData = {
-  num: string;
-  title: string;
-  subhead: string;
-  heroImage: string;
-  categories: {
-    num: string;
-    heading: string;
-    items: { label: string; href: string; hoverImg?: string }[];
-  }[];
-  thumbnails: {
-    num: string;
-    label: string;
-    type: 'image' | 'video';
-    src: string;
-  }[];
-};
+// Fixed creative element in the mega-menu right-bottom grid — intentionally NOT sourced
+// from mega_menu_tabs/groups/links (that schema has no thumbnails column by design; the
+// same 4 thumbnails show regardless of which tab is active, per an earlier product decision).
+const FIXED_THUMBNAILS = [
+  { num: '01', label: 'CAMPAIGN', type: 'image' as const, src: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800' },
+  { num: '02', label: 'DETAILS', type: 'image' as const, src: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800' },
+  { num: '03', label: 'LOOKS', type: 'image' as const, src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800' },
+  { num: '04', label: 'FILM', type: 'video' as const, src: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-black-jacket-41584-large.mp4' },
+];
 
-const VAULT_INDEX_DATA: Record<string, SectionData> = {
-  MEN: {
-    num: '01',
-    title: 'MEN',
-    subhead: 'MEN / COLLECTION 001\nSPRING / SUMMER 24',
-    heroImage: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=90&w=1400',
-    categories: [
-      {
-        num: '(01)',
-        heading: 'NEW IN',
-        items: [
-          { label: 'THE NEW', href: '/category/men?filter=new', hoverImg: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=1200' },
-          { label: 'JUST LANDED', href: '/category/men?filter=drop', hoverImg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200' },
-          { label: 'BEST SELLERS', href: '/category/men?filter=bestsellers', hoverImg: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200' }
-        ]
-      },
-      {
-        num: '(02)',
-        heading: 'CLOTHING',
-        items: [
-          { label: 'T-SHIRTS', href: '/category/men?type=tshirts', hoverImg: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200' },
-          { label: 'SHIRTS', href: '/category/men?type=shirts', hoverImg: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=1200' },
-          { label: 'TROUSERS', href: '/category/men?type=trousers', hoverImg: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=1200' },
-          { label: 'DENIM', href: '/category/men?type=denim', hoverImg: 'https://images.unsplash.com/photo-1542272604-780c36856842?q=80&w=1200' },
-          { label: 'JACKETS', href: '/category/men?type=jackets', hoverImg: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1200' },
-          { label: 'HOODIES', href: '/category/men?type=hoodies', hoverImg: 'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?q=80&w=1200' },
-          { label: 'SWEATERS', href: '/category/men?type=sweaters', hoverImg: 'https://images.unsplash.com/photo-1578587018452-892bacefd3f2?q=80&w=1200' }
-        ]
-      },
-      {
-        num: '(03)',
-        heading: 'COLLECTIONS',
-        items: [
-          { label: 'ESSENTIALS', href: '/category/men?filter=essentials', hoverImg: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1200' },
-          { label: 'SUMMER EDIT', href: '/category/men?filter=summer', hoverImg: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?q=80&w=1200' },
-          { label: 'TAILORED', href: '/category/men?filter=tailored', hoverImg: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=1200' },
-          { label: 'LIMITED EDIT', href: '/category/men?filter=limited', hoverImg: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=1200' }
-        ]
-      }
-    ],
-    thumbnails: [
-      { num: '01', label: 'CAMPAIGN', type: 'image', src: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800' },
-      { num: '02', label: 'DETAILS', type: 'image', src: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800' },
-      { num: '03', label: 'LOOKS', type: 'image', src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800' },
-      { num: '04', label: 'FILM', type: 'video', src: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-black-jacket-41584-large.mp4' }
-    ]
-  },
-  SHOES: {
-    num: '02',
-    title: 'SHOES',
-    subhead: 'FOOTWEAR ARCHIVE 002\nSPRING / SUMMER 24',
-    heroImage: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=90&w=1400',
-    categories: [
-      {
-        num: '(01)',
-        heading: 'NEW IN',
-        items: [
-          { label: 'LATEST DROP', href: '/category/shoes?filter=new', hoverImg: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1200' },
-          { label: 'BEST SELLERS', href: '/category/shoes?filter=bestsellers', hoverImg: 'https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=1200' }
-        ]
-      },
-      {
-        num: '(02)',
-        heading: 'MEN & WOMEN',
-        items: [
-          { label: 'SNEAKERS', href: '/category/shoes?type=sneakers', hoverImg: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=1200' },
-          { label: 'LOAFERS', href: '/category/shoes?type=loafers', hoverImg: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?q=80&w=1200' },
-          { label: 'BOOTS', href: '/category/shoes?type=boots', hoverImg: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?q=80&w=1200' },
-          { label: 'SANDALS', href: '/category/shoes?type=sandals', hoverImg: 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?q=80&w=1200' }
-        ]
-      },
-      {
-        num: '(03)',
-        heading: 'COLLECTIONS',
-        items: [
-          { label: 'ESSENTIALS', href: '/category/shoes?filter=essentials' },
-          { label: 'STATEMENT', href: '/category/shoes?filter=statement' },
-          { label: 'LIMITED EDIT', href: '/category/shoes?filter=limited' }
-        ]
-      }
-    ],
-    thumbnails: [
-      { num: '01', label: 'CAMPAIGN', type: 'image', src: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800' },
-      { num: '02', label: 'DETAILS', type: 'image', src: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?q=80&w=800' },
-      { num: '03', label: 'LOOKS', type: 'image', src: 'https://images.unsplash.com/photo-1614252369475-531eba835eb1?q=80&w=800' },
-      { num: '04', label: 'FILM', type: 'video', src: 'https://assets.mixkit.co/videos/preview/mixkit-feet-of-a-person-walking-in-sneakers-42686-large.mp4' }
-    ]
-  },
-  ACCESSORIES: {
-    num: '03',
-    title: 'ACCESSORIES',
-    subhead: 'ACCESSORIES / ATELIER 003\nSPRING / SUMMER 24',
-    heroImage: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=90&w=1400',
-    categories: [
-      {
-        num: '(01)',
-        heading: 'NEW IN',
-        items: [
-          { label: 'LATEST DROP', href: '/category/accessories?filter=new' },
-          { label: 'BEST SELLERS', href: '/category/accessories?filter=bestsellers' }
-        ]
-      },
-      {
-        num: '(02)',
-        heading: 'ESSENTIALS',
-        items: [
-          { label: 'BAGS', href: '/category/accessories?type=bags', hoverImg: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1200' },
-          { label: 'BELTS', href: '/category/accessories?type=belts', hoverImg: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=1200' },
-          { label: 'SUNGLASSES', href: '/category/accessories?type=eyewear', hoverImg: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=1200' },
-          { label: 'CAPS', href: '/category/accessories?type=headwear', hoverImg: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=1200' }
-        ]
-      },
-      {
-        num: '(03)',
-        heading: 'COLLECTIONS',
-        items: [
-          { label: 'SIGNATURE', href: '/category/accessories?filter=signature' },
-          { label: 'LIMITED EDIT', href: '/category/accessories?filter=limited' }
-        ]
-      }
-    ],
-    thumbnails: [
-      { num: '01', label: 'CAMPAIGN', type: 'image', src: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800' },
-      { num: '02', label: 'DETAILS', type: 'image', src: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800' },
-      { num: '03', label: 'LOOKS', type: 'image', src: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=800' },
-      { num: '04', label: 'FILM', type: 'video', src: 'https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-leather-wallet-41589-large.mp4' }
-    ]
-  },
-  LOOKBOOK: {
-    num: '04',
-    title: 'LOOKBOOK',
-    subhead: 'EDITORIAL ARCHIVE 004\nSPRING / SUMMER 24',
-    heroImage: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=90&w=1400',
-    categories: [
-      {
-        num: '(01)',
-        heading: 'NEW IN',
-        items: [
-          { label: 'SPRING / SUMMER 24', href: '/lookbook', hoverImg: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=1200' },
-          { label: 'THE EVERYDAY EDIT', href: '/lookbook', hoverImg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1200' }
-        ]
-      },
-      {
-        num: '(02)',
-        heading: 'CLOTHING',
-        items: [
-          { label: 'AFTER DARK', href: '/lookbook', hoverImg: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1200' },
-          { label: 'THE NEW CLASSICS', href: '/lookbook', hoverImg: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1200' }
-        ]
-      }
-    ],
-    thumbnails: [
-      { num: '01', label: 'CAMPAIGN', type: 'image', src: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800' },
-      { num: '02', label: 'DETAILS', type: 'image', src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800' },
-      { num: '03', label: 'LOOKS', type: 'image', src: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800' },
-      { num: '04', label: 'FILM', type: 'video', src: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-black-jacket-41584-large.mp4' }
-    ]
-  },
-  ABOUT: {
-    num: '05',
-    title: 'ABOUT',
-    subhead: 'BRAND PHILOSOPHY\nESTABLISHED 2026',
-    heroImage: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=90&w=1400',
-    categories: [
-      {
-        num: '(01)',
-        heading: 'THE BRAND',
-        items: [
-          { label: 'OUR STORY', href: '/about' },
-          { label: 'STORES', href: '/about' },
-          { label: 'JOURNAL', href: '/about' },
-          { label: 'CONTACT', href: '/about' }
-        ]
-      }
-    ],
-    thumbnails: [
-      { num: '01', label: 'CAMPAIGN', type: 'image', src: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800' },
-      { num: '02', label: 'DETAILS', type: 'image', src: 'https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?q=80&w=800' },
-      { num: '03', label: 'LOOKS', type: 'image', src: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=800' },
-      { num: '04', label: 'FILM', type: 'video', src: 'https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-leather-wallet-41589-large.mp4' }
-    ]
-  }
+// Admin-managed mega menu data shape — fetched at mount from mega_menu_tabs/groups/links
+// (joined to categories), replacing the old hardcoded VAULT_INDEX_DATA.
+type MegaLink = { id: string; label: string; href: string; hoverImg: string | null };
+type MegaGroup = { id: string; heading: string; links: MegaLink[] };
+type MegaTab = {
+  id: string;
+  label: string;
+  isCustom: boolean;
+  href: string | null; // set only for custom tabs — clicking navigates here
+  heroImage: string | null;
+  subhead: string | null;
+  groups: MegaGroup[];
 };
 
 export default function Navbar() {
@@ -226,7 +47,8 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [hideNavbar, setHideNavbar] = useState(location.pathname === '/');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('MEN');
+  const [megaTabs, setMegaTabs] = useState<MegaTab[]>([]);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [hoveredHeroImg, setHoveredHeroImg] = useState<string | null>(null);
   
@@ -274,6 +96,59 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Fetch mega menu data (tabs, groups, links) from the admin-managed tables on mount.
+  useEffect(() => {
+    (async () => {
+      const [{ data: tabs }, { data: groups }, { data: links }, { data: cats }] = await Promise.all([
+        supabase.from('mega_menu_tabs' as any).select('*').eq('is_active', true).order('position'),
+        supabase.from('mega_menu_groups' as any).select('*').order('position'),
+        supabase.from('mega_menu_links' as any).select('*').order('position'),
+        supabase.from('categories').select('id, name, slug'),
+      ]);
+      const catById = new Map((cats || []).map((c: any) => [c.id, c]));
+      const groupsByTab = new Map<string, any[]>();
+      (groups || []).forEach((g: any) => {
+        if (!groupsByTab.has(g.tab_id)) groupsByTab.set(g.tab_id, []);
+        groupsByTab.get(g.tab_id)!.push(g);
+      });
+      const linksByGroup = new Map<string, any[]>();
+      (links || []).forEach((l: any) => {
+        if (!linksByGroup.has(l.group_id)) linksByGroup.set(l.group_id, []);
+        linksByGroup.get(l.group_id)!.push(l);
+      });
+
+      const built: MegaTab[] = (tabs || []).map((t: any) => {
+        const cat = t.category_id ? catById.get(t.category_id) : null;
+        const tabGroups: MegaGroup[] = (groupsByTab.get(t.id) || []).map((g: any) => ({
+          id: g.id,
+          heading: g.heading,
+          links: (linksByGroup.get(g.id) || []).map((l: any) => {
+            if (l.link_type === 'category') {
+              const lc = l.category_id ? catById.get(l.category_id) : null;
+              return { id: l.id, label: lc?.name || '', href: `/category/${lc?.slug || ''}`, hoverImg: l.hover_image_url };
+            }
+            return { id: l.id, label: l.custom_label || '', href: l.custom_href || '#', hoverImg: l.hover_image_url };
+          }),
+        }));
+        return {
+          id: t.id,
+          label: t.tab_type === 'category' ? (cat?.name?.toUpperCase() || '') : (t.custom_label || ''),
+          isCustom: t.tab_type === 'custom',
+          href: t.tab_type === 'custom' ? t.custom_href : null,
+          heroImage: t.hero_image_url,
+          subhead: t.subhead,
+          groups: tabGroups,
+        };
+      });
+      setMegaTabs(built);
+    })();
+  }, []);
+
+  // Default the active tab once mega menu data has loaded.
+  useEffect(() => {
+    if (!activeSection && megaTabs.length) setActiveSection(megaTabs[0].id);
+  }, [megaTabs, activeSection]);
+
   // Live search input suggestions
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
@@ -317,8 +192,9 @@ export default function Navbar() {
     setSuggestions([]);
   };
 
-  const activeData = VAULT_INDEX_DATA[activeSection] || VAULT_INDEX_DATA['MEN'];
-  const currentHeroSrc = hoveredHeroImg || activeData.heroImage;
+  const activeData = megaTabs.find((t) => t.id === activeSection) || megaTabs[0];
+  const fallbackHero = activeData?.groups[0]?.links.find((l) => l.hoverImg)?.hoverImg || null;
+  const currentHeroSrc = hoveredHeroImg || activeData?.heroImage || fallbackHero;
 
   return (
     <>
@@ -470,36 +346,28 @@ export default function Navbar() {
             </div>
 
             {/* Main Middle 2-Half Canvas (Left 45% Navigation Canvas, Right 55% Full Hero Showcase) */}
+            {activeData && (
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-              
+
               {/* LEFT HALF (45% Width: 2 Inner Navigation Columns with zero text collision) */}
               <div className="w-full lg:w-[45%] px-8 md:px-12 lg:px-14 py-8 flex grid grid-cols-12 gap-6 lg:gap-8 items-start overflow-y-auto">
-                
+
                 {/* Col 1: Numbered Primary Sections (7 Cols out of 12 for ample text width) */}
                 <div className="col-span-12 sm:col-span-7 space-y-6 lg:space-y-7 pr-2 pt-1">
-                  {[
-                    { key: 'MEN', num: '01', label: 'MEN' },
-                    { key: 'SHOES', num: '02', label: 'SHOES' },
-                    { key: 'ACCESSORIES', num: '03', label: 'ACCESSORIES' },
-                    { key: 'LOOKBOOK', num: '04', label: 'LOOKBOOK' },
-                    { key: 'ABOUT', num: '05', label: 'ABOUT' }
-                  ].map((sec, idx) => {
-                    const isActive = activeSection === sec.key;
+                  {megaTabs.map((sec, idx) => {
+                    const isActive = activeSection === sec.id;
 
                     return (
                       <div
-                        key={sec.key}
+                        key={sec.id}
                         onMouseEnter={() => {
-                          setActiveSection(sec.key);
+                          setActiveSection(sec.id);
                           setHoveredHeroImg(null);
                         }}
                         onClick={() => {
-                          setActiveSection(sec.key);
-                          if (sec.key === 'LOOKBOOK') {
-                            navigate('/lookbook');
-                            setMenuOpen(false);
-                          } else if (sec.key === 'ABOUT') {
-                            navigate('/about');
+                          setActiveSection(sec.id);
+                          if (sec.isCustom && sec.href) {
+                            navigate(sec.href);
                             setMenuOpen(false);
                           }
                         }}
@@ -511,7 +379,7 @@ export default function Navbar() {
                           transition={{ duration: 0.6, delay: idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
                         >
                           <span className="text-[10px] font-mono text-black/40 tracking-widest block">
-                            {sec.num}
+                            {String(idx + 1).padStart(2, '0')}
                           </span>
                           <div className="relative inline-block">
                             <h2
@@ -548,15 +416,15 @@ export default function Navbar() {
                       transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                       className="space-y-5"
                     >
-                      {activeData.categories.map((catGroup, idx) => (
-                        <div key={catGroup.heading} className="space-y-2.5">
+                      {activeData.groups.map((group, idx) => (
+                        <div key={group.id} className="space-y-2.5">
                           {idx > 0 && <div className="h-[1px] w-full bg-black/10 my-3" />}
                           <span className="text-xs font-mono text-black/50 tracking-widest block">
-                            {catGroup.num} {catGroup.heading}
+                            {group.heading}
                           </span>
                           <ul className="space-y-2">
-                            {catGroup.items.map((item) => (
-                              <li key={item.label}>
+                            {group.links.map((item) => (
+                              <li key={item.id}>
                                 <Link
                                   to={item.href}
                                   onMouseEnter={() => {
@@ -580,21 +448,27 @@ export default function Navbar() {
 
               {/* RIGHT HALF (55% Width: Full Height Main Hero Showcase + 4 Bottom Grid Thumbnails) */}
               <div className="w-full lg:w-[55%] flex flex-col h-full bg-[#111111] border-l border-black/10 overflow-hidden relative">
-                
+
                 {/* Top 72% Height: Taller Main Hero Photo Showcase */}
                 <div className="relative flex-1 w-full overflow-hidden bg-black">
-                  <AnimatePresence mode="wait">
-                    <motion.img
-                      key={currentHeroSrc}
-                      initial={{ opacity: 0.7, scale: 1.015 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0.7, scale: 0.985 }}
-                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                      src={currentHeroSrc}
-                      alt={activeData.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </AnimatePresence>
+                  {currentHeroSrc ? (
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={currentHeroSrc}
+                        initial={{ opacity: 0.7, scale: 1.015 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0.7, scale: 0.985 }}
+                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                        src={currentHeroSrc}
+                        alt={activeData.label}
+                        className="w-full h-full object-cover"
+                      />
+                    </AnimatePresence>
+                  ) : (
+                    // No hero image set on this tab yet and no hover image to fall back to —
+                    // a plain neutral block instead of a broken <img>.
+                    <div className="w-full h-full bg-[#1a1a1a]" />
+                  )}
 
                   {/* Monospace Overlay Text Top-Left with dark gradient backdrop for high contrast */}
                   <div className="absolute top-0 left-0 right-0 p-8 bg-gradient-to-b from-black/75 via-black/30 to-transparent text-white z-10 space-y-1.5 pointer-events-none drop-shadow-md">
@@ -605,9 +479,9 @@ export default function Navbar() {
                   </div>
                 </div>
 
-                {/* Bottom 28% Height: 4 Equal Grid Thumbnails Side-by-Side (01 CAMPAIGN, 02 DETAILS, 03 LOOKS, 04 FILM ▷) */}
+                {/* Bottom 28% Height: 4 Equal Grid Thumbnails Side-by-Side (01 CAMPAIGN, 02 DETAILS, 03 LOOKS, 04 FILM ▷) — fixed creative element, same regardless of active tab */}
                 <div className="h-44 md:h-48 grid grid-cols-4 border-t border-white/10 shrink-0 bg-black">
-                  {activeData.thumbnails.map((t) => (
+                  {FIXED_THUMBNAILS.map((t) => (
                     <div
                       key={t.num + t.label}
                       onMouseEnter={() => {
@@ -655,6 +529,7 @@ export default function Navbar() {
               </div>
 
             </div>
+            )}
 
             {/* Bottom Fixed Footer Bar */}
             <div className="px-8 md:px-12 py-4 flex items-center justify-between border-t border-black/10 shrink-0 bg-[#F5F3EE] text-[10px] font-mono tracking-widest uppercase text-black/60">
@@ -851,36 +726,35 @@ export default function Navbar() {
                 SHOP ALL
               </Link>
 
-              {['MEN', 'SHOES', 'ACCESSORIES'].map((key) => {
-                const isExpanded = mobileExpanded === key;
-                const data = VAULT_INDEX_DATA[key as keyof typeof VAULT_INDEX_DATA];
+              {megaTabs.filter((t) => !t.isCustom).map((tab) => {
+                const isExpanded = mobileExpanded === tab.id;
 
                 return (
-                  <div key={key} className="border-b border-black/10 pb-4">
+                  <div key={tab.id} className="border-b border-black/10 pb-4">
                     <button
-                      onClick={() => setMobileExpanded(isExpanded ? null : key)}
+                      onClick={() => setMobileExpanded(isExpanded ? null : tab.id)}
                       className="w-full flex items-center justify-between text-2xl font-serif tracking-tight uppercase text-[#111111] cursor-pointer"
                     >
-                      <span>{key}</span>
+                      <span>{tab.label}</span>
                       <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {isExpanded && data && (
+                    {isExpanded && (
                       <div className="pt-4 pl-4 space-y-4">
-                        {data.categories.map((cat) => (
-                          <div key={cat.heading} className="space-y-2">
+                        {tab.groups.map((group) => (
+                          <div key={group.id} className="space-y-2">
                             <span className="text-xs font-mono tracking-widest uppercase text-black/50 block">
-                              {cat.num} {cat.heading}
+                              {group.heading}
                             </span>
                             <div className="space-y-2 pl-2">
-                              {cat.items.map((item) => (
+                              {group.links.map((link) => (
                                 <Link
-                                  key={item.label}
-                                  to={item.href}
+                                  key={link.id}
+                                  to={link.href}
                                   onClick={() => setMobileOpen(false)}
                                   className="text-sm font-mono tracking-wide text-black/80 block uppercase"
                                 >
-                                  {item.label}
+                                  {link.label}
                                 </Link>
                               ))}
                             </div>
