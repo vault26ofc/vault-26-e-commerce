@@ -453,10 +453,12 @@ git commit -m "feat(db): add mega menu backend tables"
 
 ### Task 5: Mega menu admin page
 
-> **SUPERSEDED by Task 19.** This task shipped and was implemented, but it manages the schema
-> from Task 4, which no longer exists after Task 18's migration. Task 19 replaces
-> `AdminMegaMenu.tsx` entirely with a version built against the new tables. Left here for the
-> historical record — do not build against this version.
+> **SUPERSEDED by Task 19 — correction: this task was never actually dispatched/built.** The
+> controller's ledger incorrectly implied it had shipped; Task 19's implementer verified via git
+> history that no `/admin/mega-menu` route, NAV entry, or `AdminMegaMenu.tsx` content existed
+> before it ran. Task 19 built the page from scratch against the Task 18 schema, adding minimal
+> route/NAV wiring itself since nothing existed to build on. This note is left for the historical
+> record of what the plan originally intended — do not build against this task's described output.
 
 **Files:**
 - Create: `src/pages/admin/AdminMegaMenu.tsx`
@@ -732,10 +734,17 @@ git commit -m "feat(admin): add mega menu backend admin page"
 
 ### Task 6: Shared Cloudinary upload hook (bug fix + consolidation)
 
+> **Scope addition:** Task 19 shipped before this task, and its `AdminMegaMenu.tsx` needed an
+> upload helper that didn't exist yet — it added a small local, unexported copy of
+> `AdminProducts.tsx`'s existing inline pattern rather than inventing shared infra prematurely
+> (the right call, not a defect). When this task runs, also replace that local helper in
+> `AdminMegaMenu.tsx` with the shared hook, so there ends up being one implementation, not two.
+
 **Files:**
 - Create: `src/lib/useCloudinaryUpload.ts`
 - Modify: `src/pages/admin/AdminCMS.tsx`
 - Modify: `src/pages/admin/AdminProducts.tsx`
+- Modify: `src/pages/admin/AdminMegaMenu.tsx` (replace its local upload helper, added in Task 19, with this shared hook)
 
 **Interfaces:**
 - Produces: `useCloudinaryUpload()` hook returning `{ upload(file: File, opts?: { resourceType?: 'image' | 'video'; folder?: string }): Promise<string>, uploading: boolean, progress: number }`.
