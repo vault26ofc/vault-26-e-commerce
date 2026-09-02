@@ -676,29 +676,28 @@ export default function AdminCMS() {
             </div>
           )}
           <div>
-            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Content type</label>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Foreground content</label>
             <select
               value={preloader.content_type || 'text'}
               onChange={(e) => setPreloader({ ...preloader, content_type: e.target.value })}
               className="w-full border border-border bg-transparent px-3 py-2 text-sm"
             >
-              <option value="text">Text</option>
-              <option value="image">Image</option>
+              <option value="text">Default (logo, progress bar &amp; caption)</option>
+              <option value="image">Custom image (replaces logo, progress bar &amp; caption)</option>
             </select>
           </div>
-          {preloader.content_type === 'text' ? (
+          {preloader.content_type === 'image' && (
             <div>
-              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Content text</label>
-              <input value={preloader.content_text || ''} onChange={(e) => setPreloader({ ...preloader, content_text: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
-            </div>
-          ) : (
-            <div>
-              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Content image URL</label>
+              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Custom foreground image URL</label>
               <input value={preloader.content_image_url || ''} onChange={(e) => setPreloader({ ...preloader, content_image_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
             </div>
           )}
           <div>
-            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Text color</label>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background watermark text</label>
+            <input value={preloader.content_text || ''} onChange={(e) => setPreloader({ ...preloader, content_text: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Watermark text color</label>
             <input type="color" value={preloader.text_color || '#000000'} onChange={(e) => setPreloader({ ...preloader, text_color: e.target.value })} className="h-10 w-24 border border-border" />
           </div>
           <div>
