@@ -84,7 +84,7 @@ export default function AdminProducts() {
     if (!editing) return;
     setUploading(true);
     try {
-      const secureUrl = await uploadToCloudinary(file, { folder: 'vault26/products' });
+      const { secureUrl } = await uploadToCloudinary(file, { folder: 'vault26/products' });
       setEditing((prev) => prev ? { ...prev, images: [...prev.images, secureUrl] } : prev);
     } catch (e: any) {
       toast.error(e.message || 'Image upload failed');

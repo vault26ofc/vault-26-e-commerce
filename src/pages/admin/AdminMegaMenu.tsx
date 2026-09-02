@@ -136,7 +136,7 @@ export default function AdminMegaMenu() {
   const handleHeroUpload = async (file: File) => {
     setUploading(true);
     try {
-      const url = await uploadToCloudinary(file, { folder: 'vault26/mega-menu' });
+      const { secureUrl: url } = await uploadToCloudinary(file, { folder: 'vault26/mega-menu' });
       setEditingTab((prev) => ({ ...prev, hero_image_url: url }));
     } catch (e: any) {
       toast.error(e.message || 'Upload failed');
@@ -219,7 +219,7 @@ export default function AdminMegaMenu() {
   const handleLinkHoverUpload = async (linkId: string, file: File) => {
     setUploading(true);
     try {
-      const url = await uploadToCloudinary(file, { folder: 'vault26/mega-menu' });
+      const { secureUrl: url } = await uploadToCloudinary(file, { folder: 'vault26/mega-menu' });
       const { error } = await supabase.from('mega_menu_links' as any).update({ hover_image_url: url }).eq('id', linkId);
       if (error) return toast.error(error.message);
       load();

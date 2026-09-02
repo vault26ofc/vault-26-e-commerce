@@ -304,22 +304,16 @@ export default function AdminCMS() {
   const uploadMedia = async (file: File) => {
     setUploading(true);
     try {
-      const secureUrl = await uploadToCloudinary(file, { folder: 'vault26/cms' });
-      // The shared hook resolves with just the resulting secure_url (not the full
-      // Cloudinary upload response), so derive the remaining media_assets columns from
-      // the URL itself: .../<cloud>/<resource_type>/upload/v<version>/<public_id>.<format>
-      const match = secureUrl.match(/\/([^/]+)\/upload\/(?:v\d+\/)?(.+)\.([a-zA-Z0-9]+)$/);
-      const resourceType = match?.[1] === 'video' ? 'video' : 'image';
-      const publicId = match?.[2] ?? secureUrl;
-      const format = match?.[3] ?? null;
+      const { secureUrl, publicId, format, resourceType, width, height } =
+        await uploadToCloudinary(file, { folder: 'vault26/cms' });
       await supabase.from('media_assets').insert({
         cloudinary_public_id: publicId,
         url: secureUrl,
         secure_url: secureUrl,
         resource_type: resourceType,
         format,
-        width: null,
-        height: null,
+        width,
+        height,
         tags: [],
       });
       const { data } = await supabase.from('media_assets').select('*').order('created_at', { ascending: false }).limit(50);
