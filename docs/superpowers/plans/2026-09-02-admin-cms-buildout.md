@@ -917,6 +917,17 @@ git commit -m "feat(db): add preloader_settings singleton table"
 
 ### Task 8: Preloader settings admin tab + component rewire
 
+> **Correction (controller error, caught after this task shipped):** this section's original
+> `Preloader.tsx` replacement code below was written from an incomplete read of the file during
+> spec research (`head -40`, which happened to stop exactly where the file's simple content
+> ends) — the real file has a VAULT26 logo reveal animation, a progress-bar sweep, an "Archive //
+> established mmxxvi" caption, and 4 corner accent marks that were never seen and got discarded
+> by the first version of this task. See the ledger (`.superpowers/sdd/.../progress.md`) for the
+> full incident and the corrected `Preloader.tsx` that was actually shipped, which restores all
+> of that content as the default rendering and layers configurability on top instead of
+> replacing it. The code below is left for the historical record — do not use it as a reference
+> for what `Preloader.tsx` should look like.
+
 **Files:**
 - Modify: `src/pages/admin/AdminCMS.tsx`
 - Modify: `src/components/shared/Preloader.tsx`
