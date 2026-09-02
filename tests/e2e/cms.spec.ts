@@ -253,6 +253,15 @@ test.describe('CMS → Frontend integration', () => {
     expect(images).toBeGreaterThanOrEqual(2);
   });
 
+  test('Lookbook: renders real slides from lookbook_slides, not hardcoded mock content', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(3000);
+    const body = await page.textContent('body');
+    // The old hardcoded mock content must be gone
+    expect(body).not.toContain('BRUTALISMUS 3000');
+    expect(body).not.toContain('Hideo Kojima');
+  });
+
   // ── NEWSLETTER (CMS + DB write) ────────────────────────────────────────────
 
   test('Newsletter: heading and body text from CMS config', async ({ page }) => {

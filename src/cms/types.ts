@@ -109,8 +109,8 @@ export interface TestimonialsConfig {
 }
 
 export interface LookbookConfig {
-  heading: string;
-  images: string[];
+  heading?: string;
+  subtitle?: string;
 }
 
 export interface NewsletterConfig {
