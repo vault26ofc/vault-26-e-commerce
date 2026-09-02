@@ -23,7 +23,8 @@ export default function LookbookSection({ section, isPage = false }: { section?:
       .select('id, image_url, media_type, caption, product_slug')
       .eq('is_active', true)
       .order('position')
-      .then(({ data }) => setSlides((data as unknown as Slide[]) || []));
+      .then(({ data }) => setSlides((data as unknown as Slide[]) || []))
+      .catch((e) => console.warn('Lookbook slides error:', e));
   }, []);
 
   if (!slides.length) return null;
