@@ -49,6 +49,7 @@ const AdminInvoiceTemplate = lazy(
 );
 const AdminWhatsApp = lazy(() => import("@/pages/admin/AdminWhatsApp"));
 const AdminCMS = lazy(() => import("@/pages/admin/AdminCMS"));
+const AdminMegaMenu = lazy(() => import("@/pages/admin/AdminMegaMenu"));
 
 // ─── Query client with sensible cache defaults ───────────────────────────────
 const queryClient = new QueryClient({
@@ -150,6 +151,7 @@ const App = () => {
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="whatsapp" element={<AdminWhatsApp />} />
                 <Route path="cms" element={<AdminCMS />} />
+                <Route path="mega-menu" element={<AdminMegaMenu />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
