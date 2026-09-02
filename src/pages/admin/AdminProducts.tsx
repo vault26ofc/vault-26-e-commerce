@@ -24,6 +24,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [brands, setBrands] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [sizeOptions, setSizeOptions] = useState<{ label: string }[]>([]);
   const [editing, setEditing] = useState<ProductForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -43,6 +44,16 @@ export default function AdminProducts() {
     supabase.from('brands').select('id, name').order('name').then(({ data }) => setBrands(data || []));
     supabase.from('categories').select('id, name').order('name').then(({ data }) => setCategories(data || []));
   }, []);
+
+  useEffect(() => {
+    if (!editing?.category_id) { setSizeOptions([]); return; }
+    supabase
+      .from('sizes' as any)
+      .select('label')
+      .eq('category_id', editing.category_id)
+      .order('position')
+      .then(({ data }) => setSizeOptions((data as any) || []));
+  }, [editing?.category_id]);
 
   const openNew = () => setEditing({ ...empty, variants: [{ size: 'M', color: 'Black', color_hex: '#000000', price: 0, stock: 0 }] });
 
@@ -247,7 +258,15 @@ export default function AdminProducts() {
                     <div key={i} className="border border-border p-4 space-y-3 relative group">
                       <button onClick={() => setEditing({ ...editing, variants: editing.variants.filter((_, j) => j !== i) })} className="absolute top-2 right-2 text-destructive p-1 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="h-4 w-4" /></button>
                       <div className="grid grid-cols-2 gap-3">
-                        <Field label="Size"><input placeholder="Size" value={v.size} onChange={(e) => updateVariant(editing, setEditing, i, { size: e.target.value })} className={inputCls} /></Field>
+                        <Field label="Size">
+                          <input
+                            placeholder="Size"
+                            list="size-options"
+                            value={v.size}
+                            onChange={(e) => updateVariant(editing, setEditing, i, { size: e.target.value })}
+                            className={inputCls}
+                          />
+                        </Field>
                         <Field label="Color"><input placeholder="Color" value={v.color} onChange={(e) => updateVariant(editing, setEditing, i, { color: e.target.value })} className={inputCls} /></Field>
                       </div>
                       <div className="grid grid-cols-3 gap-3">
@@ -261,6 +280,11 @@ export default function AdminProducts() {
                       </div>
                     </div>
                   ))}
+                  <datalist id="size-options">
+                    {sizeOptions.map((s) => (
+                      <option key={s.label} value={s.label} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
 
