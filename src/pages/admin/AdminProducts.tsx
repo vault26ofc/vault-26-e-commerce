@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X, Upload } from 'lucide-react';
+import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 
 type Variant = { id?: string; size: string; color: string; color_hex: string; price: number; compare_price?: number | null; stock: number; sku?: string };
 type ProductForm = {
@@ -30,6 +31,7 @@ export default function AdminProducts() {
   const [uploading, setUploading] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [search, setSearch] = useState('');
+  const { upload: uploadToCloudinary } = useCloudinaryUpload();
 
   const load = async () => {
     const { data } = await supabase
@@ -82,17 +84,8 @@ export default function AdminProducts() {
     if (!editing) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-      formData.append('folder', 'vault26/products');
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: 'POST', body: formData }
-      );
-      if (!res.ok) throw new Error('Upload failed');
-      const data = await res.json();
-      setEditing((prev) => prev ? { ...prev, images: [...prev.images, data.secure_url] } : prev);
+      const secureUrl = await uploadToCloudinary(file, { folder: 'vault26/products' });
+      setEditing((prev) => prev ? { ...prev, images: [...prev.images, secureUrl] } : prev);
     } catch (e: any) {
       toast.error(e.message || 'Image upload failed');
     } finally {

@@ -2,23 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Trash2, ChevronUp, ChevronDown, X, Upload, Pencil } from 'lucide-react';
-
-// No shared upload hook exists in this codebase yet (@/lib/useCloudinaryUpload is not
-// implemented) — this mirrors the inline Cloudinary upload used in AdminProducts.tsx so this
-// page works today. Swap for a real useCloudinaryUpload() import if/when one lands.
-async function uploadToCloudinary(file: File, folder: string): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
-  formData.append('folder', folder);
-  const res = await fetch(
-    `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-    { method: 'POST', body: formData }
-  );
-  if (!res.ok) throw new Error('Upload failed');
-  const data = await res.json();
-  return data.secure_url as string;
-}
+import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 
 type Category = { id: string; name: string };
 type Tab = {
@@ -53,6 +37,7 @@ export default function AdminMegaMenu() {
   const [editingTab, setEditingTab] = useState<Partial<Tab> | null>(null);
   const [savingTab, setSavingTab] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const { upload: uploadToCloudinary } = useCloudinaryUpload();
 
   const load = async () => {
     const [{ data: cats }, { data: t }, { data: g }, { data: l }] = await Promise.all([
@@ -151,7 +136,7 @@ export default function AdminMegaMenu() {
   const handleHeroUpload = async (file: File) => {
     setUploading(true);
     try {
-      const url = await uploadToCloudinary(file, 'vault26/mega-menu');
+      const url = await uploadToCloudinary(file, { folder: 'vault26/mega-menu' });
       setEditingTab((prev) => ({ ...prev, hero_image_url: url }));
     } catch (e: any) {
       toast.error(e.message || 'Upload failed');
@@ -234,7 +219,7 @@ export default function AdminMegaMenu() {
   const handleLinkHoverUpload = async (linkId: string, file: File) => {
     setUploading(true);
     try {
-      const url = await uploadToCloudinary(file, 'vault26/mega-menu');
+      const url = await uploadToCloudinary(file, { folder: 'vault26/mega-menu' });
       const { error } = await supabase.from('mega_menu_links' as any).update({ hover_image_url: url }).eq('id', linkId);
       if (error) return toast.error(error.message);
       load();

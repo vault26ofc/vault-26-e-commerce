@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SECTION_FIELDS, SECTION_META } from '@/cms/registry';
+import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import type {
   CMSSection, SectionType, Testimonial, FAQItem,
   AnnouncementBar, BrandSettings, ThemeSettings, SEOSettings,
@@ -120,6 +121,7 @@ export default function AdminCMS() {
   const [media, setMedia] = useState<MediaAsset[]>([]);
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const { upload: uploadToCloudinary } = useCloudinaryUpload();
 
   const loadSections = useCallback(async () => {
     setSectionsLoading(true);
@@ -302,23 +304,23 @@ export default function AdminCMS() {
   const uploadMedia = async (file: File) => {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('upload_preset', 'vault26_unsigned');
-      const res = await fetch('https://api.cloudinary.com/v1_1/dsqeawg67/image/upload', {
-        method: 'POST', body: fd,
-      });
-      const d = await res.json();
-      if (d.error) throw new Error(d.error.message);
+      const secureUrl = await uploadToCloudinary(file, { folder: 'vault26/cms' });
+      // The shared hook resolves with just the resulting secure_url (not the full
+      // Cloudinary upload response), so derive the remaining media_assets columns from
+      // the URL itself: .../<cloud>/<resource_type>/upload/v<version>/<public_id>.<format>
+      const match = secureUrl.match(/\/([^/]+)\/upload\/(?:v\d+\/)?(.+)\.([a-zA-Z0-9]+)$/);
+      const resourceType = match?.[1] === 'video' ? 'video' : 'image';
+      const publicId = match?.[2] ?? secureUrl;
+      const format = match?.[3] ?? null;
       await supabase.from('media_assets').insert({
-        cloudinary_public_id: d.public_id,
-        url: d.url,
-        secure_url: d.secure_url,
-        resource_type: d.resource_type,
-        format: d.format ?? null,
-        width: d.width ?? null,
-        height: d.height ?? null,
-        tags: d.tags ?? [],
+        cloudinary_public_id: publicId,
+        url: secureUrl,
+        secure_url: secureUrl,
+        resource_type: resourceType,
+        format,
+        width: null,
+        height: null,
+        tags: [],
       });
       const { data } = await supabase.from('media_assets').select('*').order('created_at', { ascending: false }).limit(50);
       setMedia((data as unknown as MediaAsset[]) ?? []);
