@@ -1,7 +1,8 @@
 export type SectionType =
   | 'hero' | 'cinematic_hero' | 'category_bar' | 'campaign_carousel' | 'best_sellers' | 'text_reveal' | 'editorial_split' | 'bento_grid'
   | 'new_arrivals' | 'category_grid' | 'marquee' | 'testimonials' | 'flagship_stores'
-  | 'lookbook' | 'newsletter' | 'promo_banner' | 'faq' | 'linen_collection' | 'instagram_reels';
+  | 'lookbook' | 'newsletter' | 'promo_banner' | 'faq' | 'linen_collection' | 'instagram_reels'
+  | 'community' | 'influencer_picks';
 
 export interface CMSSection {
   id: string;
@@ -132,6 +133,11 @@ export interface PromoBannerConfig {
 export interface FAQConfig {
   heading: string;
   category?: string;
+}
+
+export interface CommunityConfig {
+  heading?: string;
+  subtitle?: string;
 }
 
 // ── DB table types ────────────────────────────────────────────────────────────

@@ -22,6 +22,7 @@ export const SECTION_COMPONENTS = {
   linen_collection:  lazy(() => import('./sections/LinenCollectionSection')),
   instagram_reels:   lazy(() => import('./sections/InstagramReelsSection')),
   flagship_stores:   lazy(() => import('./sections/FlagshipStoresSection')),
+  community:         lazy(() => import('./sections/CommunitySection')),
 };
 
 export const SECTION_META: Record<string, { label: string; description: string }> = {
@@ -45,6 +46,7 @@ export const SECTION_META: Record<string, { label: string; description: string }
   linen_collection: { label: 'Linen Collection', description: 'Summer European linen capsule showcase' },
   instagram_reels:  { label: 'Instagram Reels',   description: 'Interactive video reels showcase' },
   flagship_stores:  { label: 'Flagship Stores',  description: 'Daily Paper style flagship storefront showcase with giant brand text' },
+  community:        { label: 'Community',        description: 'Bento-grid gallery of community/customer photos' },
 };
 
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {
@@ -132,5 +134,9 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   faq: [
     { key: 'heading',  label: 'Section Heading',         type: 'text' },
     { key: 'category', label: 'Category Filter (empty=all)', type: 'text' },
+  ],
+  community: [
+    { key: 'heading', label: 'Heading', type: 'text', placeholder: 'WORN BY VAULT 26' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text', placeholder: 'FROM THE COMMUNITY' },
   ],
 };

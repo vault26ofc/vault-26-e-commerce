@@ -353,6 +353,20 @@ test.describe('CMS → Frontend integration', () => {
     expect(sectionCount).toBeGreaterThanOrEqual(8);
   });
 
+  // ── COMMUNITY SECTION (bento gallery, live DB data) ────────────────────────
+
+  test('Community section renders seeded photos', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(3000);
+    const body = await page.textContent('body');
+    // Note: '@vault26' alone is not a sufficient discriminator — InstagramReelsSection's
+    // hardcoded mock data already renders '@vault26.official' on every homepage load,
+    // which is a substring match for '@vault26'. Assert the CommunitySection's own
+    // heading text too, which is unique to this new section.
+    expect(body).toContain('WORN BY VAULT 26');
+    expect(body).toContain('@vault26');
+  });
+
   // ── ADMIN CMS PANEL (auth guard) ──────────────────────────────────────────
 
   test('Admin CMS /admin/cms is gated behind authentication', async ({ page }) => {
