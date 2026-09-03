@@ -80,6 +80,9 @@ export default function AdminMegaMenu() {
     if (editingTab.tab_type === 'custom') {
       if (!editingTab.custom_label?.trim()) return toast.error('Label required');
       if (!editingTab.custom_href?.trim()) return toast.error('Link required');
+      if (!/^(\/|https?:\/\/)/.test(editingTab.custom_href.trim())) {
+        return toast.error('Link must start with / or http(s)://');
+      }
     }
     setSavingTab(true);
     const payload = {
@@ -199,6 +202,9 @@ export default function AdminMegaMenu() {
     if (!label?.trim()) return;
     const href = prompt('Link URL (e.g. /about)');
     if (!href?.trim()) return;
+    if (!/^(\/|https?:\/\/)/.test(href.trim())) {
+      return toast.error('Link must start with / or http(s)://');
+    }
     const existing = groupLinks(groupId);
     const maxPos = existing.reduce((m, l) => Math.max(m, l.position), -1);
     const { error } = await supabase.from('mega_menu_links' as any).insert({

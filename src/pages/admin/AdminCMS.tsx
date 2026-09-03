@@ -153,7 +153,7 @@ export default function AdminCMS() {
     supabase.from('brand_settings').select('*').limit(1).maybeSingle().then(({ data }) => {
       if (data) { setBrand(data as any); setBrandId((data as any).id); }
     });
-    supabase.from('preloader_settings').select('*').limit(1).maybeSingle().then(({ data }) => {
+    supabase.from('preloader_settings' as any).select('*').limit(1).maybeSingle().then(({ data }) => {
       if (data) { setPreloader(data as any); setPreloaderId((data as any).id); }
     });
     supabase.from('media_assets').select('*').order('created_at', { ascending: false }).limit(50).then(({ data }) =>
@@ -298,9 +298,9 @@ export default function AdminCMS() {
   const savePreloader = async () => {
     const { id: _id, ...rest } = preloader as any;
     if (preloaderId) {
-      await supabase.from('preloader_settings').update({ ...rest, updated_at: new Date().toISOString() }).eq('id', preloaderId);
+      await supabase.from('preloader_settings' as any).update({ ...rest, updated_at: new Date().toISOString() }).eq('id', preloaderId);
     } else {
-      await supabase.from('preloader_settings').insert(rest);
+      await supabase.from('preloader_settings' as any).insert(rest);
     }
     toast.success('Preloader settings saved');
   };

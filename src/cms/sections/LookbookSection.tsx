@@ -27,7 +27,7 @@ export default function LookbookSection({ section, isPage = false }: { section?:
       .catch((e) => console.warn('Lookbook slides error:', e));
   }, []);
 
-  if (!slides.length) return null;
+  if (!isPage && !slides.length) return null;
 
   return (
     <section className="py-12 md:py-20 bg-white text-black font-sans w-full border-t border-black/10">
@@ -50,6 +50,10 @@ export default function LookbookSection({ section, isPage = false }: { section?:
             </Link>
           )}
         </div>
+
+        {!slides.length && (
+          <p className="text-sm text-black/50 py-12 text-center">No lookbook photos yet — check back soon.</p>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
           {slides.map((slide, i) => (

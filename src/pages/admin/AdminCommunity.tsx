@@ -29,7 +29,7 @@ export default function AdminCommunity() {
 
   const addBlank = async () => {
     const { error } = await supabase.from('community_photos' as any).insert({
-      image_url: '', handle: '', bento_size: 'md', position: photos.length,
+      image_url: '', handle: '', bento_size: 'md', position: photos.length, is_active: false,
     });
     if (error) return toast.error(error.message);
     load();

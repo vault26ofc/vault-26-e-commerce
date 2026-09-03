@@ -116,8 +116,8 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { key: 'heading_italic', label: 'Heading Italic',     type: 'text' },
   ],
   lookbook: [
-    { key: 'heading', label: 'Heading',               type: 'text' },
-    { key: 'images',  label: 'Image URLs (JSON)',      type: 'json', hint: '["https://...","https://..."]' },
+    { key: 'heading', label: 'Heading', type: 'text', placeholder: 'VAULT 26 JOURNAL' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text', placeholder: 'EDITORIAL & LOOKBOOK' },
   ],
   newsletter: [
     { key: 'heading_line1', label: 'Heading Line 1',  type: 'text' },

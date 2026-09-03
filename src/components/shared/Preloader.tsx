@@ -33,7 +33,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
 
   useEffect(() => {
-    supabase.from('preloader_settings').select('*').limit(1).maybeSingle().then(({ data }) => {
+    supabase.from('preloader_settings' as any).select('*').limit(1).maybeSingle().then(({ data }) => {
       if (data) setSettings({ ...DEFAULTS, ...(data as any) });
     });
   }, []);
@@ -58,7 +58,14 @@ export default function Preloader({ onComplete }: PreloaderProps) {
             transition: { duration: 1, ease: [0.7, 0, 0.3, 1] }
           }}
           className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-          style={{ backgroundColor: settings.bg_type === 'color' ? '#ffffff' : undefined }}
+          style={{
+            backgroundColor:
+              settings.bg_type === 'color' ||
+              (settings.bg_type === 'image' && !settings.bg_image_url) ||
+              (settings.bg_type === 'video' && !settings.bg_video_url)
+                ? '#ffffff'
+                : undefined,
+          }}
         >
           {settings.bg_type === 'image' && settings.bg_image_url && (
             <img src={settings.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />

@@ -23,11 +23,11 @@ export default function AdminSizes() {
 
   const loadSizes = async (categoryId: string) => {
     const { data } = await supabase
-      .from('sizes')
+      .from('sizes' as any)
       .select('*')
       .eq('category_id', categoryId)
       .order('position');
-    setSizes((data as Size[]) || []);
+    setSizes((data as unknown as Size[]) || []);
   };
 
   useEffect(() => {
@@ -43,13 +43,13 @@ export default function AdminSizes() {
     if (dup) return toast.error('That size already exists in this category');
     setSaving(true);
     if (editing?.id) {
-      const { error } = await supabase.from('sizes').update({ label }).eq('id', editing.id);
+      const { error } = await supabase.from('sizes' as any).update({ label }).eq('id', editing.id);
       setSaving(false);
       if (error) return toast.error(error.message);
     } else {
       const maxPos = sizes.reduce((m, s) => Math.max(m, s.position), -1);
       const { error } = await supabase
-        .from('sizes')
+        .from('sizes' as any)
         .insert({ category_id: activeCategoryId, label, position: maxPos + 1 });
       setSaving(false);
       if (error) return toast.error(error.message);
@@ -61,7 +61,7 @@ export default function AdminSizes() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this size?')) return;
-    const { error } = await supabase.from('sizes').delete().eq('id', id);
+    const { error } = await supabase.from('sizes' as any).delete().eq('id', id);
     if (error) return toast.error(error.message);
     toast.success('Deleted');
     loadSizes(activeCategoryId);
@@ -73,8 +73,8 @@ export default function AdminSizes() {
     if (swapIdx < 0 || swapIdx >= sizes.length) return;
     const swap = sizes[swapIdx];
     await Promise.all([
-      supabase.from('sizes').update({ position: swap.position }).eq('id', size.id),
-      supabase.from('sizes').update({ position: size.position }).eq('id', swap.id),
+      supabase.from('sizes' as any).update({ position: swap.position }).eq('id', size.id),
+      supabase.from('sizes' as any).update({ position: size.position }).eq('id', swap.id),
     ]);
     loadSizes(activeCategoryId);
   };
