@@ -367,6 +367,19 @@ test.describe('CMS → Frontend integration', () => {
     expect(body).toContain('@vault26');
   });
 
+  // ── INFLUENCER PICKS SECTION (live DB data) ────────────────────────────────
+
+  test('Influencer picks section renders seeded content', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(3000);
+    const body = await page.textContent('body');
+    // Note: the seeded quote text is unique to this section's DB row — verified
+    // it does not collide with InstagramReelsSection's hardcoded mock content
+    // (which uses '@vault26.official' and 'minimalist-cargo-trousers', neither
+    // of which contains this exact phrase).
+    expect(body).toContain('Effortless, minimal, made in India.');
+  });
+
   // ── ADMIN CMS PANEL (auth guard) ──────────────────────────────────────────
 
   test('Admin CMS /admin/cms is gated behind authentication', async ({ page }) => {

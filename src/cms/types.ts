@@ -140,6 +140,11 @@ export interface CommunityConfig {
   subtitle?: string;
 }
 
+export interface InfluencerPicksConfig {
+  heading?: string;
+  subtitle?: string;
+}
+
 // ── DB table types ────────────────────────────────────────────────────────────
 
 export interface Testimonial {

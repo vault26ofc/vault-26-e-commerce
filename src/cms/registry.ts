@@ -23,6 +23,7 @@ export const SECTION_COMPONENTS = {
   instagram_reels:   lazy(() => import('./sections/InstagramReelsSection')),
   flagship_stores:   lazy(() => import('./sections/FlagshipStoresSection')),
   community:         lazy(() => import('./sections/CommunitySection')),
+  influencer_picks:  lazy(() => import('./sections/InfluencerPicksSection')),
 };
 
 export const SECTION_META: Record<string, { label: string; description: string }> = {
@@ -47,6 +48,7 @@ export const SECTION_META: Record<string, { label: string; description: string }
   instagram_reels:  { label: 'Instagram Reels',   description: 'Interactive video reels showcase' },
   flagship_stores:  { label: 'Flagship Stores',  description: 'Daily Paper style flagship storefront showcase with giant brand text' },
   community:        { label: 'Community',        description: 'Bento-grid gallery of community/customer photos' },
+  influencer_picks: { label: 'Influencer Picks', description: 'Grid of influencer/creator style picks with video or link' },
 };
 
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {
@@ -138,5 +140,9 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   community: [
     { key: 'heading', label: 'Heading', type: 'text', placeholder: 'WORN BY VAULT 26' },
     { key: 'subtitle', label: 'Subtitle', type: 'text', placeholder: 'FROM THE COMMUNITY' },
+  ],
+  influencer_picks: [
+    { key: 'heading', label: 'Heading', type: 'text', placeholder: 'STYLED BY' },
+    { key: 'subtitle', label: 'Subtitle', type: 'text', placeholder: 'INFLUENCER PICKS' },
   ],
 };
