@@ -5,8 +5,8 @@ import verifyPaymentHandler from '../../api/verify-payment';
 import { loadRazorpayScript } from '../lib/razorpay';
 
 describe('Razorpay Serverless Handlers', () => {
-  const TEST_KEY_ID = 'rzp_test_TXztHZnONanpCN';
-  const TEST_KEY_SECRET = 'KehS6U9nM5mKJH1wz67DT1ku';
+  const TEST_KEY_ID = 'rzp_test_TY0F0C7ALYu1Uy';
+  const TEST_KEY_SECRET = 'nc8tPtj1Yo5S0HLVCsx05Xpy';
 
   beforeEach(() => {
     process.env.RAZORPAY_KEY_ID = TEST_KEY_ID;
