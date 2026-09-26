@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, animate } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { TornEdge, TextColumns } from '@/components/polka/Polka';
 
 interface PreloaderProps {
   onComplete: () => void;
@@ -28,9 +29,21 @@ const DEFAULTS: Settings = {
   duration_ms: 1000,
 };
 
+const WORD = 'VAULT 26';
+const EASE = [0.65, 0, 0.35, 1] as const;
+// Long enough for the letters and counter to read, short enough not to annoy.
+const MIN_MS = 1900;
+
+/*
+ * Polka loader: Editor's Red paper with drifting text columns, the wordmark
+ * rising letter by letter, a 000→100 counter, then the whole sheet lifts
+ * away with a torn bottom edge to reveal the page.
+ */
 export default function Preloader({ onComplete }: PreloaderProps) {
   const [isDone, setIsDone] = useState(false);
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
+  const [count, setCount] = useState(0);
+  const duration = Math.max(MIN_MS, settings.duration_ms);
 
   useEffect(() => {
     supabase.from('preloader_settings' as any).select('*').limit(1).maybeSingle().then(({ data }) => {
@@ -39,104 +52,91 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   }, []);
 
   useEffect(() => {
+    const controls = animate(0, 100, { duration: duration / 1000, ease: [0.4, 0, 0.2, 1], onUpdate: (v) => setCount(Math.round(v)) });
     const timer = setTimeout(() => {
       setIsDone(true);
-      setTimeout(onComplete, 400);
-    }, settings.duration_ms);
-    return () => clearTimeout(timer);
-  }, [onComplete, settings.duration_ms]);
+      setTimeout(onComplete, 900);
+    }, duration + 150);
+    return () => {
+      controls.stop();
+      clearTimeout(timer);
+    };
+  }, [onComplete, duration]);
+
+  const customBg = (settings.bg_type === 'image' && settings.bg_image_url) || (settings.bg_type === 'video' && settings.bg_video_url);
 
   return (
     <AnimatePresence>
       {!isDone && (
         <motion.div
-          initial={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            scale: 1.1,
-            filter: 'blur(20px)',
-            transition: { duration: 1, ease: [0.7, 0, 0.3, 1] }
-          }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-          style={{
-            backgroundColor:
-              settings.bg_type === 'color' ||
-              (settings.bg_type === 'image' && !settings.bg_image_url) ||
-              (settings.bg_type === 'video' && !settings.bg_video_url)
-                ? '#ffffff'
-                : undefined,
-          }}
+          initial={{ y: 0 }}
+          exit={{ y: '-110%', transition: { duration: 0.9, ease: EASE } }}
+          className="fixed inset-0 z-[9999] overflow-visible text-white select-none"
+          aria-label="Loading VAULT 26"
+          role="status"
         >
-          {settings.bg_type === 'image' && settings.bg_image_url && (
-            <img src={settings.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          )}
-          {settings.bg_type === 'video' && settings.bg_video_url && (
-            <video src={settings.bg_video_url} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover" />
-          )}
+          <div className="absolute inset-0 bg-[#BB0006] overflow-hidden">
+            {settings.bg_type === 'image' && settings.bg_image_url && (
+              <img src={settings.bg_image_url} alt="" className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-multiply" />
+            )}
+            {settings.bg_type === 'video' && settings.bg_video_url && (
+              <video src={settings.bg_video_url} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover grayscale mix-blend-multiply" />
+            )}
+            {!customBg && (
+              <>
+                <img src="/hero_paper_texture.jpg" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40" />
+                <TextColumns count={12} color="rgba(0,0,0,0.14)" className="absolute inset-0" />
+              </>
+            )}
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.03 }}
-            transition={{ duration: 2 }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-          >
-            <h2 className="text-[80vw] font-bold" style={{ fontFamily: 'Playfair Display, serif', color: settings.text_color }}>
-              {settings.content_text}
-            </h2>
-          </motion.div>
-
-          {settings.content_type === 'image' && settings.content_image_url ? (
-            <motion.img
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              src={settings.content_image_url}
-              alt=""
-              className="relative max-w-[60vw] max-h-[40vh] object-contain"
-            />
-          ) : (
-            <div className="relative flex flex-col items-center">
-              <div className="relative w-64 h-64 md:w-80 md:h-80 overflow-hidden">
+            {/* Wordmark */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-4">
+              {settings.content_type === 'image' && settings.content_image_url ? (
                 <motion.img
-                  src="https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/WhatsApp_Image_2026-04-21_at_23.40.39-removebg-preview_1_ztvyke.png"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: EASE }}
+                  src={settings.content_image_url}
                   alt="VAULT 26"
-                  initial={{ y: '100%', opacity: 0, scale: 0.8 }}
-                  animate={{
-                    y: '0%',
-                    opacity: 1,
-                    scale: 1,
-                    transition: { duration: 1.4, ease: [0.16, 1, 0.3, 1] }
-                  }}
-                  className="w-full h-full object-contain brightness-0"
+                  className="max-w-[60vw] max-h-[40vh] object-contain"
                 />
-              </div>
-
-              <div className="w-48 h-[1px] bg-black/15 mt-12 relative overflow-hidden">
-                <motion.div
-                  initial={{ x: '-100%' }}
-                  animate={{ x: '0%' }}
-                  transition={{ duration: 2.5, ease: "easeInOut" }}
-                  className="absolute inset-0 bg-[#B11226]"
-                />
-              </div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.2, duration: 1 }}
-                className="mt-6 overflow-hidden"
+              ) : (
+                <h1 className="font-display font-[800] uppercase leading-[0.85] text-[clamp(72px,17vw,280px)] flex" aria-label={WORD}>
+                  {WORD.split('').map((ch, i) => (
+                    <span key={i} className="inline-block overflow-hidden">
+                      <motion.span
+                        className="inline-block"
+                        initial={{ y: '105%' }}
+                        animate={{ y: '0%' }}
+                        transition={{ duration: 0.8, delay: 0.1 + i * 0.07, ease: EASE }}
+                      >
+                        {ch === ' ' ? ' ' : ch}
+                      </motion.span>
+                    </span>
+                  ))}
+                </h1>
+              )}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="mt-4 font-sans uppercase text-[12px] md:text-[14px] tracking-[0.04em]"
               >
-                <p className="text-[10px] tracking-[0.6em] uppercase text-black/60 font-light font-ui">
-                  Archive // established mmxxvi
-                </p>
-              </motion.div>
+                Online store · Archive 01 · 2026
+              </motion.p>
             </div>
-          )}
 
-          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute top-12 left-12 w-24 h-[1px] bg-black/15" />
-          <motion.div initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute top-12 left-12 w-[1px] h-24 bg-black/15" />
-          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute bottom-12 right-12 w-24 h-[1px] bg-black/15" />
-          <motion.div initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 1, delay: 0.5 }} className="absolute bottom-12 right-12 w-[1px] h-24 bg-black/15" />
+            {/* Counter + progress */}
+            <div className="absolute left-4 right-4 md:left-8 md:right-8 bottom-10 md:bottom-12 flex items-end gap-6">
+              <span className="font-display font-[800] tabular-nums leading-none text-[48px] md:text-[72px]">{String(count).padStart(3, '0')}</span>
+              <div className="flex-1 h-[3px] bg-white/30 mb-3 md:mb-4">
+                <div className="h-full bg-white" style={{ width: `${count}%` }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Torn edge that leads the sheet away */}
+          <TornEdge color="#BB0006" position="top" seed={151} height="clamp(30px,5vw,70px)" className="!top-auto !bottom-0 !translate-y-[97%] !rotate-0" />
         </motion.div>
       )}
     </AnimatePresence>

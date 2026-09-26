@@ -80,18 +80,10 @@ function RouteErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  const [loading, setLoading] = useState(() => {
-    try {
-      return !sessionStorage.getItem("v26_preloader_seen");
-    } catch {
-      return false;
-    }
-  });
+  // The loader plays on every full page load (refresh or first visit); in-app navigation never re-triggers it.
+  const [loading, setLoading] = useState(true);
 
   const handlePreloaderComplete = useCallback(() => {
-    try {
-      sessionStorage.setItem("v26_preloader_seen", "true");
-    } catch {}
     setLoading(false);
   }, []);
 
