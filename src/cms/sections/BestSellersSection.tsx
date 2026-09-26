@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { PromoTile, SectionHead, Wrap } from '@/components/polka/Polka';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import type { CMSSection, BestSellersConfig } from '../types';
@@ -67,81 +66,62 @@ export default function BestSellersSection({ section }: { section: CMSSection })
       .from('products')
       .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
       .eq('is_active', true)
-      .limit(cfg.product_count || 4)
+      .limit(Math.max(cfg.product_count || 0, 6))
       .then(({ data }) => {
         const loaded = (data || []).map((p: any) => {
           const variants = p.product_variants || [];
-          const price = Number(variants[0]?.price || 0);
-          const comparePrice = variants[0]?.compare_price ? Number(variants[0].compare_price) : null;
           return {
             id: p.id,
             slug: p.slug,
             name: p.name,
             images: Array.isArray(p.images) && p.images.length > 0 ? p.images : ['/camo_zip_up_hoodie.png', '/camo_zip_up_hoodie_back.png'],
-            price: price,
-            comparePrice: comparePrice,
+            price: Number(variants[0]?.price || 0),
+            comparePrice: variants[0]?.compare_price ? Number(variants[0].compare_price) : null,
             brand: p.brands?.name || 'VAULT 26',
           };
         });
-
-        if (loaded.length > 0) {
-          setProducts(loaded);
-        } else {
-          setProducts(FALLBACK_BEST_SELLERS);
-        }
-      })
-      .catch(() => {
-        setProducts(FALLBACK_BEST_SELLERS);
-      });
+        setProducts(loaded.length > 0 ? loaded : FALLBACK_BEST_SELLERS);
+      }, () => setProducts(FALLBACK_BEST_SELLERS));
   }, [cfg.product_count]);
 
-  const displayProducts = products.length > 0 ? products : FALLBACK_BEST_SELLERS;
+  const list = products.length > 0 ? products : FALLBACK_BEST_SELLERS;
+  const [feature, side, ...rest] = list;
+  const blurb = cfg.subtitle || 'Fresh drops picked by the studio. Heavyweight cotton, washed denim and knitwear worth a place in your rotation.';
 
   return (
-    <section className="py-10 md:py-14 bg-white text-black font-sans w-full border-t border-black/5">
-      {/* Edge to Edge Container with Small Padding */}
-      <div className="w-full px-2 sm:px-4 md:px-6 lg:px-8">
-        {/* Section Header (Daily Paper Style: "SUMMER SALE / NOW LIVE") */}
-        <div className="mb-5 md:mb-7 text-left px-1">
-          <div className="overflow-hidden py-0.5">
-            <motion.h2
-              initial={{ opacity: 0, y: '100%' }}
-              whileInView={{ opacity: 1, y: '0%' }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight"
-            >
-              {cfg.title || "SUMMER SALE"}
-            </motion.h2>
-          </div>
-          <motion.p
-            initial={{ opacity: 0, y: 6 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5"
-          >
-            {cfg.subtitle || "NOW LIVE"}
-          </motion.p>
-        </div>
+    <section className="bg-white py-14 md:py-20">
+      <Wrap>
+        <SectionHead title={cfg.title || 'New arrivals'} to={cfg.cta_href || '/shop'} linkLabel={cfg.cta_label || 'View all'} />
 
-        {/* Edge-to-Edge 4-Column Grid with Micro Gap Between Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3">
-          {displayProducts.slice(0, 4).map((p) => (
-            <ProductCard key={p.id} p={p} />
+        {/* Mobile: swipe row */}
+        <div className="md:hidden -mx-4 px-4 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+          {list.slice(0, 6).map((p) => (
+            <div key={p.id} className="snap-start shrink-0 w-[62%]">
+              <ProductCard p={p} />
+            </div>
           ))}
         </div>
+        <p className="md:hidden font-sans text-[14px] leading-relaxed text-[#0F0F0F] mt-5">{blurb}</p>
 
-        {/* Centered Outline SHOP NOW Button */}
-        <div className="pt-10 md:pt-14 text-center">
-          <Link
-            to={cfg.cta_href || "/shop"}
-            className="inline-block border border-black text-black hover:bg-black hover:text-white px-9 py-3.5 text-xs font-sans font-bold tracking-[0.2em] uppercase transition-all duration-300 rounded-none shadow-none cursor-pointer"
-          >
-            {cfg.cta_label || "SHOP NOW"}
-          </Link>
+        {/* Desktop: Polka asymmetric grid */}
+        <div className="hidden md:grid grid-cols-4 gap-x-3 lg:gap-x-4 gap-y-10">
+          {feature && (
+            <div className="col-span-2 row-span-2">
+              <ProductCard p={feature} large />
+            </div>
+          )}
+          <PromoTile className="col-start-3 row-start-1" />
+          <div className="col-start-4 row-start-1">{side && <ProductCard p={side} />}</div>
+          <p className="col-start-3 col-span-2 self-end font-sans text-[15px] leading-relaxed text-[#0F0F0F] max-w-[520px] pb-14">
+            {blurb}
+          </p>
+          {rest.slice(0, 3).map((p, i) => (
+            <div key={p.id} className={i === 0 ? 'col-start-1' : i === 1 ? 'col-start-3' : 'col-start-4'}>
+              <ProductCard p={p} />
+            </div>
+          ))}
         </div>
-      </div>
+      </Wrap>
     </section>
   );
 }
