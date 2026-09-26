@@ -72,8 +72,8 @@ export default function Checkout() {
     return (
       <div className="container-px py-48 text-center bg-white min-h-screen flex flex-col items-center justify-center">
         <span className="eyebrow block mb-8">Empty Collection</span>
-        <h1 className="display-2 mb-12 italic font-elegant">Your bag awaits its first piece.</h1>
-        <Link to="/category/shirts" className="border border-black px-12 py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500">
+        <h1 className="uppercase display-2 mb-12 font-elegant">Your bag awaits its first piece.</h1>
+        <Link to="/category/shirts" className="border border-black px-12 py-5 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] hover:text-white transition-all duration-500">
           Discover Archives
         </Link>
       </div>
@@ -109,7 +109,7 @@ export default function Checkout() {
       name: 'Vault 26',
       description: `Order ${order.order_number}`,
       prefill: { name: addr.full_name, email: addr.email, contact: addr.phone },
-      theme: { color: '#B11226' },
+      theme: { color: '#BB0006' },
       handler: async (resp: any) => {
         const { data: v, error: ve } = await supabase.functions.invoke('razorpay-verify-payment', {
           body: { ...resp, order_id: order.id },
@@ -163,7 +163,7 @@ export default function Checkout() {
         <div className="flex flex-col">
           <header className="mb-10 md:mb-16">
             <span className="eyebrow block mb-3 md:mb-4">Secure Checkout</span>
-            <h1 className="display-2 italic font-elegant text-3xl md:text-5xl">Finalize <span className="text-accent">Piece</span></h1>
+            <h1 className="uppercase display-2 font-elegant text-3xl md:text-5xl">Finalize <span className="text-accent">Piece</span></h1>
           </header>
 
           {/* Editorial Stepper */}
@@ -182,11 +182,11 @@ export default function Checkout() {
               >
                 <span className={cn(
                   'h-7 w-7 md:h-8 md:w-8 rounded-full border border-black flex items-center justify-center text-[9px] md:text-[10px] font-ui font-bold shrink-0',
-                  step === s.id && 'bg-black text-white'
+                  step === s.id && 'bg-[#BB0006] text-white'
                 )}>
                   {s.id}
                 </span>
-                <span className="text-[9px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] uppercase font-ui font-bold">{s.label}</span>
+                <span className="text-[9px] md:text-[10px] tracking-[0.04em] md:tracking-[0.04em] uppercase font-ui font-bold">{s.label}</span>
                 {s.id < 3 && <div className="w-8 md:w-12 h-[1px] bg-black/15 shrink-0" />}
               </div>
             ))}
@@ -218,7 +218,7 @@ export default function Checkout() {
                   { k: 'state', l: 'State Territory', c: 'md:col-span-1' }
                 ].map((field) => (
                   <div key={field.k} className={field.c}>
-                    <label className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/50 mb-2 block">{field.l}</label>
+                    <label className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold text-black/50 mb-2 block">{field.l}</label>
                     <input 
                       value={(addr as any)[field.k]} 
                       onChange={(e) => setAddr({ ...addr, [field.k]: e.target.value })}
@@ -228,7 +228,7 @@ export default function Checkout() {
                   </div>
                 ))}
                 <div className="md:col-span-2 pt-6 md:pt-8">
-                  <button type="submit" className="w-full bg-black text-white py-5 md:py-6 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.5em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 flex items-center justify-center gap-3">
+                  <button type="submit" className="w-full bg-[#BB0006] text-white py-5 md:py-6 text-[10px] md:text-[11px] tracking-[0.04em] md:tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 flex items-center justify-center gap-3">
                     Continue to Archive Logistics <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -249,12 +249,12 @@ export default function Checkout() {
                     onClick={() => setPayment(p)} 
                     className={cn(
                       'w-full text-left p-8 border transition-all duration-500 group',
-                      payment === p ? 'border-black bg-black text-white' : 'border-black/10 hover:border-black'
+                      payment === p ? 'border-black bg-[#BB0006] text-white' : 'border-black/10 hover:border-black'
                     )}
                   >
                     <div className="flex justify-between items-center">
                       <div>
-                        <div className="text-[11px] tracking-[0.3em] font-ui font-bold uppercase mb-2">
+                        <div className="text-[11px] tracking-[0.04em] font-ui font-bold uppercase mb-2">
                           {p === 'RAZORPAY' ? 'Digital Asset Transfer' : 'Manual Settlement (COD)'}
                         </div>
                         <div className={cn("text-[10px] tracking-[0.1em] font-ui uppercase", payment === p ? 'text-white/60' : 'text-black/60')}>
@@ -266,10 +266,10 @@ export default function Checkout() {
                   </button>
                 ))}
                 <div className="flex flex-col md:flex-row gap-4 md:gap-6 pt-10 md:pt-12">
-                  <button onClick={() => setStep(1)} className="order-2 md:order-1 flex-1 border border-black/20 py-5 text-[10px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:border-black transition-colors flex items-center justify-center gap-3">
+                  <button onClick={() => setStep(1)} className="order-2 md:order-1 flex-1 border border-black/20 py-5 text-[10px] tracking-[0.04em] md:tracking-[0.04em] uppercase font-ui font-bold hover:border-black transition-colors flex items-center justify-center gap-3">
                     <ArrowLeft className="w-3 h-3" /> Revisit Location
                   </button>
-                  <button onClick={() => setStep(3)} className="order-1 md:order-2 flex-1 bg-black text-white py-5 text-[10px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">
+                  <button onClick={() => setStep(3)} className="order-1 md:order-2 flex-1 bg-[#BB0006] text-white py-5 text-[10px] tracking-[0.04em] md:tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">
                     Review Selection <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -285,28 +285,28 @@ export default function Checkout() {
               >
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="border border-black/10 p-8 bg-muted/20">
-                    <div className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/50 mb-6">Archive Destination</div>
-                    <div className="text-[11px] font-ui font-bold tracking-[0.2em] uppercase mb-2">{addr.full_name}</div>
+                    <div className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold text-black/50 mb-6">Archive Destination</div>
+                    <div className="text-[11px] font-ui font-bold tracking-[0.04em] uppercase mb-2">{addr.full_name}</div>
                     <div className="text-[10px] text-black/60 leading-relaxed font-ui uppercase tracking-[0.1em]">
                       {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}<br/>
                       {addr.city}, {addr.state} {addr.pincode}<br/>
                       {addr.email} · {addr.phone}
                     </div>
-                    <button onClick={() => setStep(1)} className="text-[9px] tracking-[0.3em] font-ui font-bold uppercase mt-6 text-accent border-b border-accent pb-0.5">Modify Location</button>
+                    <button onClick={() => setStep(1)} className="text-[9px] tracking-[0.04em] font-ui font-bold uppercase mt-6 text-accent border-b border-accent pb-0.5">Modify Location</button>
                   </div>
                   <div className="border border-black/10 p-8 bg-muted/20">
-                    <div className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/50 mb-6">Settlement Choice</div>
-                    <div className="text-[11px] font-ui font-bold tracking-[0.2em] uppercase mb-4">
+                    <div className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold text-black/50 mb-6">Settlement Choice</div>
+                    <div className="text-[11px] font-ui font-bold tracking-[0.04em] uppercase mb-4">
                       {payment === 'RAZORPAY' ? 'Full Digital Payment' : `COD + ${inr(codAdvance)} Advance`}
                     </div>
                     <p className="text-[10px] text-black/60 font-ui uppercase tracking-[0.1em]">Verified via secure server processing.</p>
-                    <button onClick={() => setStep(2)} className="text-[9px] tracking-[0.3em] font-ui font-bold uppercase mt-6 text-accent border-b border-accent pb-0.5">Modify Method</button>
+                    <button onClick={() => setStep(2)} className="text-[9px] tracking-[0.04em] font-ui font-bold uppercase mt-6 text-accent border-b border-accent pb-0.5">Modify Method</button>
                   </div>
                 </div>
                 <button 
                   disabled={placing} 
                   onClick={placeOrder} 
-                  className="w-full bg-black text-white py-6 md:py-8 text-[11px] md:text-[12px] tracking-[0.3em] md:tracking-[0.6em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30"
+                  className="w-full bg-[#BB0006] text-white py-6 md:py-8 text-[11px] md:text-[12px] tracking-[0.04em] md:tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30"
                 >
                   {placing ? 'Finalizing Security Check...' : `Commit Piece to Archive · ${inr(total)}`}
                 </button>
@@ -317,7 +317,7 @@ export default function Checkout() {
 
         {/* Sidebar Summary */}
         <aside className="lg:sticky lg:top-32 h-fit bg-muted/30 p-6 md:p-10 border border-black/10">
-          <h2 className="text-[11px] tracking-[0.5em] font-ui font-bold uppercase mb-12 border-b border-black pb-4">Archive Contents</h2>
+          <h2 className="text-[11px] tracking-[0.04em] font-ui font-bold uppercase mb-12 border-b border-black pb-4">Archive Contents</h2>
           <div className="space-y-8">
             {items.map((i) => (
               <div key={i.variantId} className="flex gap-6">
@@ -326,7 +326,7 @@ export default function Checkout() {
                 </div>
                 <div className="flex-1 flex flex-col justify-center">
                   <div className="text-[11px] font-ui font-bold tracking-[0.1em] uppercase mb-1">{i.name}</div>
-                  <div className="text-[9px] text-black/60 tracking-[0.2em] uppercase font-ui mb-3">
+                  <div className="text-[9px] text-black/60 tracking-[0.04em] uppercase font-ui mb-3">
                     {[i.size, i.color].filter(Boolean).join(' // ')} · QTY {i.quantity}
                   </div>
                   <div className="text-[11px] font-ui font-bold">{inr(i.price * i.quantity)}</div>
@@ -336,27 +336,27 @@ export default function Checkout() {
           </div>
           
           <div className="mt-16 pt-8 border-t border-black/10 space-y-4">
-            <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/60">
+            <div className="flex justify-between text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-black/60">
               <span>Archive Value</span>
               <span className="text-black">{inr(sub)}</span>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-accent">
+              <div className="flex justify-between text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-accent">
                 <span>Voucher Applied</span>
                 <span>−{inr(discount)}</span>
               </div>
             )}
-            <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/60">
+            <div className="flex justify-between text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-black/60">
               <span>Archive Logistics</span>
               <span className="text-black">{shipping === 0 ? 'COMPLIMENTARY' : inr(shipping)}</span>
             </div>
             <div className="flex justify-between items-end pt-8 border-t border-black border-double border-b-0 border-l-0 border-r-0">
-              <span className="text-[12px] tracking-[0.4em] uppercase font-ui font-bold">Total Reserve</span>
+              <span className="text-[12px] tracking-[0.04em] uppercase font-ui font-bold">Total Reserve</span>
               <span className="text-2xl font-ui font-bold tracking-tighter">{inr(total)}</span>
             </div>
           </div>
 
-          <div className="mt-12 flex flex-col gap-4 text-[9px] tracking-[0.2em] text-black/40 uppercase font-ui text-center">
+          <div className="mt-12 flex flex-col gap-4 text-[9px] tracking-[0.04em] text-black/40 uppercase font-ui text-center">
              <div className="flex items-center justify-center gap-2"><ShieldCheck className="w-3 h-3" /> Secure Archive Protocol</div>
              <div className="flex items-center justify-center gap-2">Dispatched via Global Logistics within 24H</div>
           </div>

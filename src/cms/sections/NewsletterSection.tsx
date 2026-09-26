@@ -50,7 +50,7 @@ export default function NewsletterSection({ section }: { section: CMSSection }) 
             whileInView={{ y: '0%' }}
             viewport={{ once: true }}
             transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="block text-[12vw] md:text-[6vw] lg:text-[5vw] leading-tight text-black uppercase tracking-[0.2em] font-elegant font-normal"
+            className="block text-[12vw] md:text-[6vw] lg:text-[5vw] leading-tight text-black uppercase tracking-[0.2em] font-elegant font-[800]"
           >
             {line1}
           </motion.span>

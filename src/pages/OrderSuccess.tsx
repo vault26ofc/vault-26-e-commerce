@@ -18,12 +18,12 @@ export default function OrderSuccess() {
     });
   }, [id]);
 
-  if (loading) return <div className="container-px py-48 text-center uppercase tracking-[0.5em] text-[10px] animate-pulse">Decrypting Order Data...</div>;
+  if (loading) return <div className="container-px py-48 text-center uppercase tracking-[0.04em] text-[10px] animate-pulse">Decrypting Order Data...</div>;
   if (!order) return (
     <div className="container-px py-48 text-center">
-      <h1 className="display-2 italic font-elegant mb-8">Order Not Found</h1>
-      <p className="text-[11px] tracking-[0.2em] uppercase font-ui text-black/50 mb-10">This order either doesn't exist or you don't have access to it.</p>
-      <a href="/orders" className="border border-black px-10 py-4 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-300">View Your Orders</a>
+      <h1 className="uppercase display-2 font-elegant mb-8">Order Not Found</h1>
+      <p className="text-[11px] tracking-[0.04em] uppercase font-ui text-black/50 mb-10">This order either doesn't exist or you don't have access to it.</p>
+      <a href="/orders" className="border border-black px-10 py-4 text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] hover:text-white transition-all duration-300">View Your Orders</a>
     </div>
   );
 
@@ -40,15 +40,15 @@ export default function OrderSuccess() {
         </div>
         
         <span className="eyebrow block mb-4">Transaction Secured</span>
-        <h1 className="display-2 italic font-elegant mb-8">Selection <span className="text-accent">Confirmed</span></h1>
+        <h1 className="uppercase display-2 font-elegant mb-8">Selection <span className="text-accent">Confirmed</span></h1>
         
-        <p className="text-[11px] tracking-[0.2em] text-black/50 uppercase font-ui leading-relaxed mb-12">
+        <p className="text-[11px] tracking-[0.04em] text-black/50 uppercase font-ui leading-relaxed mb-12">
           Order <span className="text-black font-bold">#{order.order_number}</span> has been logged into the Vault 26 Archive. 
           Expect dispatch logistics within 24–48 hours.
         </p>
 
         <div className="border border-black/10 bg-muted/20 p-8 text-left mb-12">
-          <div className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/50 mb-8 border-b border-black/10 pb-4">Order Contents</div>
+          <div className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold text-black/50 mb-8 border-b border-black/10 pb-4">Order Contents</div>
           <div className="space-y-6">
             {order.order_items.map((it: any) => (
               <div key={it.id} className="flex items-center gap-6">
@@ -57,7 +57,7 @@ export default function OrderSuccess() {
                 </div>
                 <div className="flex-1">
                   <div className="text-[11px] font-ui font-bold tracking-[0.1em] uppercase mb-1">{it.product_name}</div>
-                  <div className="text-[9px] text-black/60 tracking-[0.2em] uppercase font-ui">
+                  <div className="text-[9px] text-black/60 tracking-[0.04em] uppercase font-ui">
                     {it.variant_label} · QTY {it.quantity}
                   </div>
                 </div>
@@ -66,16 +66,16 @@ export default function OrderSuccess() {
             ))}
           </div>
           <div className="mt-10 pt-6 border-t border-black border-double flex justify-between items-end">
-             <span className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold">Final Settlement</span>
+             <span className="text-[10px] tracking-[0.04em] uppercase font-ui font-bold">Final Settlement</span>
              <span className="text-xl font-ui font-bold tracking-tighter">{inr(Number(order.total))}</span>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center w-full">
-          <Link to="/" className="flex-1 border border-black/20 py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500">
+          <Link to="/" className="flex-1 border border-black/20 py-5 text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] hover:text-white transition-all duration-500">
             Revisit Collection
           </Link>
-          <Link to={`/orders/${order.id}`} className="flex-1 bg-black text-white py-5 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">
+          <Link to={`/orders/${order.id}`} className="flex-1 bg-[#BB0006] text-white py-5 text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors flex items-center justify-center gap-3">
             Archive Tracking <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

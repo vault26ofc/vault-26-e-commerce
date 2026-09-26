@@ -106,7 +106,7 @@ export default function LinenCollectionSection({ section: _section }: { section?
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
             SPRING / SUMMER LINEN EDIT
           </h2>
-          <p className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5">
+          <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
             NATURAL FIBERS & BREATHABLE SILHOUETTES
           </p>
         </div>

@@ -35,7 +35,7 @@ function FieldEditor({ field, value, onChange }: {
         checked={value === true || value === 'true'}
         onCheckedChange={onChange}
       />
-      <Label htmlFor={`fe-${field.key}`} className="text-sm font-normal">{field.label}</Label>
+      <Label htmlFor={`fe-${field.key}`} className="text-sm font-[800]">{field.label}</Label>
     </div>
   );
   if (field.type === 'textarea') return (

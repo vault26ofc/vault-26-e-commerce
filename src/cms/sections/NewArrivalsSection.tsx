@@ -110,7 +110,7 @@ export default function NewArrivalsSection({ section }: { section: CMSSection })
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
             {cfg.title || "NEW ARRIVALS"}
           </h2>
-          <p className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5">
+          <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
             {cfg.subtitle || cfg.eyebrow || "FRESH DROPS"}
           </p>
         </div>

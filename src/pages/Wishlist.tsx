@@ -31,7 +31,7 @@ export default function Wishlist() {
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <span className="eyebrow block mb-4">Your Curated Collection</span>
-        <h1 className="display-2 mb-16">The <span className="italic">Wishlist</span></h1>
+        <h1 className="uppercase display-2 mb-16">The <span className="">Wishlist</span></h1>
       </motion.div>
 
       {loading ? (
@@ -46,10 +46,10 @@ export default function Wishlist() {
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-black/60 text-sm tracking-[0.2em] uppercase font-ui mb-8">
+          <p className="text-black/60 text-sm tracking-[0.04em] uppercase font-ui mb-8">
             The archive is empty.
           </p>
-          <Link to="/category/shirts" className="border border-black px-10 py-4 text-[11px] tracking-[0.3em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500">
+          <Link to="/category/shirts" className="border border-black px-10 py-4 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] hover:text-white transition-all duration-500">
             Explore Pieces
           </Link>
         </div>

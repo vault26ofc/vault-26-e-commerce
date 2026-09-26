@@ -72,13 +72,13 @@ export default function Account() {
           <span className="eyebrow">Member Archive</span>
           <button
             onClick={async () => { await supabase.auth.signOut(); toast.success('Signed out'); navigate('/'); }}
-            className="flex items-center gap-2 text-[10px] tracking-[0.35em] uppercase font-ui font-bold text-black/40 hover:text-black transition-colors"
+            className="flex items-center gap-2 text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-black/40 hover:text-black transition-colors"
           >
             <LogOut className="h-3.5 w-3.5" strokeWidth={1.5} /> Sign Out
           </button>
         </div>
-        <h1 className="display-2 mb-16">
-          Hello, <span className="italic font-elegant font-light">{profile?.name || user?.email?.split('@')[0] || 'Member'}</span>
+        <h1 className="uppercase display-2 mb-16">
+          Hello, <span className="uppercase font-elegant ">{profile?.name || user?.email?.split('@')[0] || 'Member'}</span>
         </h1>
 
         {/* Quick Actions Grid */}
@@ -94,9 +94,9 @@ export default function Account() {
               className="group border border-black/5 p-8 hover:border-black transition-all duration-500 bg-muted/30"
             >
               <item.icon className="h-5 w-5 text-accent mb-6 transition-transform group-hover:scale-110" strokeWidth={1.5} />
-              <h3 className="text-sm font-ui font-bold tracking-[0.2em] uppercase mb-2">{item.title}</h3>
+              <h3 className="text-sm font-ui font-bold tracking-[0.04em] uppercase mb-2">{item.title}</h3>
               <p className="text-[10px] text-black/40 tracking-[0.1em] uppercase font-ui">{item.desc}</p>
-              <div className="mt-8 flex items-center gap-2 text-[9px] font-bold tracking-[0.3em] uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="mt-8 flex items-center gap-2 text-[9px] font-bold tracking-[0.04em] uppercase opacity-0 group-hover:opacity-100 transition-opacity">
                 Access <ArrowRight className="h-3 w-3" />
               </div>
             </Link>
@@ -107,7 +107,7 @@ export default function Account() {
           {/* Profile Section */}
           <section>
             <div className="flex items-center justify-between mb-10 border-b border-black pb-4">
-              <h2 className="text-[11px] tracking-[0.4em] uppercase font-ui font-bold">Identity Settings</h2>
+              <h2 className="text-[11px] tracking-[0.04em] uppercase font-ui font-bold">Identity Settings</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-8">
               {[
@@ -115,7 +115,7 @@ export default function Account() {
                 { label: 'Mobile Contact', value: profileForm.phone, key: 'phone' }
               ].map((field) => (
                 <div key={field.key} className="space-y-3">
-                  <label className="text-[9px] tracking-[0.4em] uppercase font-ui font-bold text-black/30">{field.label}</label>
+                  <label className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold text-black/30">{field.label}</label>
                   <input 
                     value={field.value} 
                     onChange={(e) => setProfileForm({ ...profileForm, [field.key]: e.target.value })}
@@ -127,7 +127,7 @@ export default function Account() {
             </div>
             <button 
               onClick={saveProfile} 
-              className="mt-12 bg-black text-white px-12 py-4 text-[10px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
+              className="mt-12 bg-[#BB0006] text-white px-12 py-4 text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
             >
               Update Profile
             </button>
@@ -136,10 +136,10 @@ export default function Account() {
           {/* Address Section */}
           <section>
             <div className="flex items-center justify-between mb-10 border-b border-black pb-4">
-              <h2 className="text-[11px] tracking-[0.4em] uppercase font-ui font-bold">Address Book</h2>
+              <h2 className="text-[11px] tracking-[0.04em] uppercase font-ui font-bold">Address Book</h2>
               <button 
                 onClick={() => setAdding(!adding)} 
-                className="text-[9px] tracking-[0.3em] uppercase font-ui font-bold hover:text-accent transition-colors"
+                className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold hover:text-accent transition-colors"
               >
                 {adding ? 'Close' : 'Add New'}
               </button>
@@ -160,7 +160,7 @@ export default function Account() {
                         placeholder={k.replace('_', ' ').toUpperCase()} 
                         value={(newAddr as any)[k]}
                         onChange={(e) => setNewAddr({ ...newAddr, [k]: e.target.value })}
-                        className="border border-black/5 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors"
+                        className="border border-black/5 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors"
                       />
                     ))}
                   </div>
@@ -168,11 +168,11 @@ export default function Account() {
                     placeholder="STREET ADDRESS" 
                     value={newAddr.line1}
                     onChange={(e) => setNewAddr({ ...newAddr, line1: e.target.value })}
-                    className="w-full border border-black/5 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors"
+                    className="w-full border border-black/5 bg-muted/50 px-5 py-4 text-[10px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors"
                   />
                   <div className="flex gap-4 pt-2">
-                    <button onClick={addAddress} className="flex-1 bg-black text-white py-4 text-[9px] tracking-[0.4em] uppercase font-bold">Confirm Address</button>
-                    <button onClick={() => setAdding(false)} className="px-8 border border-black/10 py-4 text-[9px] tracking-[0.4em] uppercase font-bold">Cancel</button>
+                    <button onClick={addAddress} className="flex-1 bg-[#BB0006] text-white py-4 text-[9px] tracking-[0.04em] uppercase font-bold">Confirm Address</button>
+                    <button onClick={() => setAdding(false)} className="px-8 border border-black/10 py-4 text-[9px] tracking-[0.04em] uppercase font-bold">Cancel</button>
                   </div>
                 </motion.div>
               )}
@@ -180,13 +180,13 @@ export default function Account() {
 
             <div className="space-y-4">
               {addresses.length === 0 && !adding && (
-                <p className="text-[10px] tracking-[0.2em] text-black/30 uppercase font-ui">No saved shipping locations.</p>
+                <p className="text-[10px] tracking-[0.04em] text-black/30 uppercase font-ui">No saved shipping locations.</p>
               )}
               {addresses.map((a) => (
                 <div key={a.id} className="group border border-black/5 p-6 relative hover:bg-muted/20 transition-colors">
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="text-[11px] font-ui font-bold tracking-[0.2em] uppercase mb-2">{a.full_name}</div>
+                      <div className="text-[11px] font-ui font-bold tracking-[0.04em] uppercase mb-2">{a.full_name}</div>
                       <div className="text-[10px] text-black/50 leading-relaxed font-ui uppercase tracking-[0.1em]">
                         {a.line1}{a.line2 ? `, ${a.line2}` : ''}<br/>
                         {a.city}, {a.state} {a.pincode}<br/>

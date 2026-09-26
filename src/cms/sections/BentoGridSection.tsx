@@ -54,7 +54,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
             {cfg.heading || "EDITORIAL ARCHIVE"}
           </h2>
-          <p className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5">
+          <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
             {cfg.eyebrow || "CURATED HIGHLIGHTS"}
           </p>
         </div>
@@ -90,7 +90,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
 
                 {/* Details Below Image Container */}
                 <div className="pt-2.5 px-0.5 flex flex-col gap-1 text-left font-sans">
-                  <h3 className="text-xs sm:text-[13px] font-sans font-bold text-black tracking-wide uppercase leading-tight line-clamp-1 group-hover:text-[#B11226] transition-colors">
+                  <h3 className="text-xs sm:text-[13px] font-sans font-bold text-black tracking-wide uppercase leading-tight line-clamp-1 group-hover:text-[#BB0006] transition-colors">
                     {item.title}
                   </h3>
                   <div className="flex items-center justify-between pt-0.5 font-sans">

@@ -68,8 +68,8 @@ export default function CartDrawer() {
             {/* Header */}
             <div className="flex items-center justify-between p-8 border-b border-black/10">
               <div className="flex items-center gap-4">
-                <span className="text-[12px] tracking-[0.5em] font-ui font-bold uppercase">Archive Selection</span>
-                <span className="h-5 w-5 rounded-full bg-black text-white text-[9px] flex items-center justify-center font-bold">{items.length}</span>
+                <span className="text-[12px] tracking-[0.04em] font-ui font-bold uppercase">Archive Selection</span>
+                <span className="h-5 w-5 rounded-full bg-[#BB0006] text-white text-[9px] flex items-center justify-center font-bold">{items.length}</span>
               </div>
               <button 
                 onClick={() => setDrawer(false)}
@@ -84,12 +84,12 @@ export default function CartDrawer() {
                 <div className="w-16 h-16 border border-black/10 rounded-full flex items-center justify-center mb-8">
                   <ShoppingBag className="w-6 h-6 text-black/40" strokeWidth={1} />
                 </div>
-                <h3 className="text-xl font-elegant font-light italic mb-4">Your archive is empty</h3>
-                <p className="text-[10px] tracking-[0.2em] text-black/60 uppercase font-ui mb-10">Select pieces to add to your collection</p>
+                <h3 className="uppercase text-xl font-elegant mb-4">Your archive is empty</h3>
+                <p className="text-[10px] tracking-[0.04em] text-black/60 uppercase font-ui mb-10">Select pieces to add to your collection</p>
                 <Link 
                   to="/category/shirts" 
                   onClick={() => setDrawer(false)} 
-                  className="border border-black px-12 py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500"
+                  className="border border-black px-12 py-5 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] hover:text-white transition-all duration-500"
                 >
                   Explore Drops
                 </Link>
@@ -113,7 +113,7 @@ export default function CartDrawer() {
                       <div className="flex-1 flex flex-col py-1">
                         <div className="flex justify-between items-start gap-4 mb-2">
                           <div>
-                            {it.brand && <div className="text-[9px] tracking-[0.3em] font-ui font-bold text-accent mb-1 uppercase">{it.brand}</div>}
+                            {it.brand && <div className="text-[9px] tracking-[0.04em] font-ui font-bold text-accent mb-1 uppercase">{it.brand}</div>}
                             <Link 
                               to={`/products/${it.slug}`} 
                               onClick={() => setDrawer(false)} 
@@ -161,11 +161,11 @@ export default function CartDrawer() {
                       value={code} 
                       onChange={(e) => setCode(e.target.value.toUpperCase())} 
                       placeholder="ARCHIVE_VOUCHER"
-                      className="flex-1 bg-white border border-black/10 px-4 py-3 text-[10px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/40" 
+                      className="flex-1 bg-white border border-black/10 px-4 py-3 text-[10px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/40" 
                     />
                     <button 
                       onClick={apply} 
-                      className="px-6 bg-black text-white text-[10px] tracking-[0.3em] uppercase font-ui font-bold hover:bg-accent transition-colors"
+                      className="px-6 bg-[#BB0006] text-white text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors"
                     >
                       Apply
                     </button>
@@ -176,7 +176,7 @@ export default function CartDrawer() {
                       <span className="text-[10px] tracking-[0.1em] font-ui font-bold text-accent uppercase">{couponCode} ACTIVATED</span>
                       <button 
                         onClick={() => { setCoupon(null); setCode(''); }} 
-                        className="text-[9px] tracking-[0.2em] font-ui font-bold text-black/50 hover:text-black uppercase"
+                        className="text-[9px] tracking-[0.04em] font-ui font-bold text-black/50 hover:text-black uppercase"
                       >
                         Dismiss
                       </button>
@@ -184,22 +184,22 @@ export default function CartDrawer() {
                   )}
 
                   <div className="space-y-3 pt-2">
-                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/60">
+                    <div className="flex justify-between text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-black/60">
                       <span>Selection Subtotal</span>
                       <span className="text-black">{inr(sub)}</span>
                     </div>
                     {discount > 0 && (
-                      <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-accent">
+                      <div className="flex justify-between text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-accent">
                         <span>Voucher Credit</span>
                         <span>−{inr(discount)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-[10px] tracking-[0.2em] uppercase font-ui font-bold text-black/60">
+                    <div className="flex justify-between text-[10px] tracking-[0.04em] uppercase font-ui font-bold text-black/60">
                       <span>Logistics Estimate</span>
                       <span className="text-black">{shipping === 0 ? 'COMPLIMENTARY' : inr(shipping)}</span>
                     </div>
                     <div className="flex justify-between items-end pt-6 mt-4 border-t border-black">
-                      <span className="text-[12px] tracking-[0.4em] uppercase font-ui font-bold">Total Archive Value</span>
+                      <span className="text-[12px] tracking-[0.04em] uppercase font-ui font-bold">Total Archive Value</span>
                       <span className="text-2xl font-ui font-bold tracking-tighter">{inr(total)}</span>
                     </div>
                   </div>
@@ -207,12 +207,12 @@ export default function CartDrawer() {
                   <Link 
                     to="/checkout" 
                     onClick={() => setDrawer(false)}
-                    className="flex items-center justify-center gap-4 w-full bg-black text-white py-6 text-[11px] tracking-[0.5em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 shadow-xl"
+                    className="flex items-center justify-center gap-4 w-full bg-[#BB0006] text-white py-6 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 shadow-xl"
                   >
                     Secure Order <ArrowRight className="w-4 h-4" />
                   </Link>
                   
-                  <p className="text-[9px] text-center tracking-[0.3em] text-black/40 uppercase font-ui pb-2">
+                  <p className="text-[9px] text-center tracking-[0.04em] text-black/40 uppercase font-ui pb-2">
                     Tax included // Shipping calculated at next step
                   </p>
                 </div>

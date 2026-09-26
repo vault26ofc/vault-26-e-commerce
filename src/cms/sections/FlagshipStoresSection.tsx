@@ -23,7 +23,7 @@ export default function FlagshipStoresSection({ section }: { section?: CMSSectio
               AMSTERDAM
             </h3>
             
-            <div className="space-y-1 text-xs sm:text-sm text-black/80 font-normal leading-relaxed mb-4">
+            <div className="space-y-1 text-xs sm:text-sm text-black/80 font-[800] leading-relaxed mb-4">
               <p>Leidsestraat 27</p>
               <p>1017 NT Amsterdam</p>
             </div>
@@ -75,7 +75,7 @@ export default function FlagshipStoresSection({ section }: { section?: CMSSectio
               LONDON
             </h3>
             
-            <div className="space-y-1 text-xs sm:text-sm text-black/80 font-normal leading-relaxed mb-4">
+            <div className="space-y-1 text-xs sm:text-sm text-black/80 font-[800] leading-relaxed mb-4">
               <p>4-16 Great Pulteney</p>
               <p>London W1F 9ND</p>
             </div>

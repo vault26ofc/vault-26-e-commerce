@@ -19,7 +19,7 @@ const STATUS_COLORS: Record<string, string> = {
   DELIVERED: '#10b981',
   CANCELLED: '#ef4444',
 };
-const PALETTE = ['#b11226', '#0f172a', '#6366f1', '#f59e0b', '#10b981', '#8b5cf6'];
+const PALETTE = ['#BB0006', '#0f172a', '#6366f1', '#f59e0b', '#10b981', '#8b5cf6'];
 
 type Period = 7 | 30 | 90;
 
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 type="monotone"
                 dataKey="revenue"
                 fill="rgba(177,18,38,0.08)"
-                stroke="#b11226"
+                stroke="#BB0006"
                 strokeWidth={2}
                 name="revenue"
               />
@@ -260,7 +260,7 @@ export default function Dashboard() {
                   <XAxis type="number" fontSize={10} />
                   <YAxis dataKey="name" type="category" fontSize={10} width={85} />
                   <Tooltip />
-                  <Bar dataKey="orders" fill="#b11226" radius={[0, 2, 2, 0]} />
+                  <Bar dataKey="orders" fill="#BB0006" radius={[0, 2, 2, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -361,7 +361,7 @@ export default function Dashboard() {
                   />
                   <YAxis dataKey="name" type="category" fontSize={9} width={110} />
                   <Tooltip formatter={(v: any) => inr(v)} />
-                  <Bar dataKey="revenue" fill="#b11226" radius={[0, 2, 2, 0]} />
+                  <Bar dataKey="revenue" fill="#BB0006" radius={[0, 2, 2, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (

@@ -15,7 +15,7 @@ export default function AnnouncementBar() {
       className="w-full py-2.5 bg-black text-white overflow-hidden relative border-b border-white/10 z-50 flex items-center justify-between px-4"
     >
       <div className="flex-1 flex items-center justify-center overflow-hidden">
-        <div className="whitespace-nowrap flex items-center gap-8 text-[11px] font-ui font-normal tracking-[0.15em] text-white/90">
+        <div className="whitespace-nowrap flex items-center gap-8 text-[11px] font-ui font-[800] tracking-[0.15em] text-white/90">
           <span>• {msg}</span>
           <span>• {msg}</span>
           <span className="hidden sm:inline">• {msg}</span>

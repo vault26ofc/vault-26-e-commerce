@@ -106,7 +106,7 @@ export default function CollectionsSection({ section: _section }: { section?: CM
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
             NEW COLLECTION
           </h2>
-          <p className="text-xs md:text-sm font-sans font-normal uppercase text-black/80 tracking-wide mt-0.5">
+          <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
             SEASONAL ARCHIVE 01
           </p>
         </div>

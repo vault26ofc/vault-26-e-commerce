@@ -21,7 +21,7 @@ function GoogleButton({ label = 'Continue with Google' }: { label?: string }) {
     if (error) { toast.error(error.message || 'Google sign-in failed'); setBusy(false); }
   };
   return (
-    <button type="button" onClick={onClick} disabled={busy} className="w-full flex items-center justify-center gap-3 border border-black/15 py-4 text-[11px] tracking-[0.25em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-colors disabled:opacity-40">
+    <button type="button" onClick={onClick} disabled={busy} className="w-full flex items-center justify-center gap-3 border border-black/15 py-4 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] hover:text-white transition-colors disabled:opacity-40">
       <svg viewBox="0 0 24 24" className="w-4 h-4"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
       {busy ? 'Connecting…' : label}
     </button>
@@ -95,7 +95,7 @@ export function Login() {
         
         <div className="text-center mb-12">
           <span className="eyebrow block mb-4">Archive Access</span>
-          <h1 className="display-2 font-elegant italic">Member <span className="text-accent">Login</span></h1>
+          <h1 className="uppercase display-2 font-elegant ">Member <span className="text-accent">Login</span></h1>
         </div>
 
         <form onSubmit={submit} className="space-y-6">
@@ -109,7 +109,7 @@ export function Login() {
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               placeholder="IDENTITY@EMAIL.COM"
-              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
             />
           </div>
           <div className="relative group">
@@ -122,7 +122,7 @@ export function Login() {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="ACCESS_KEY"
-              className="w-full border-b border-black/20 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
+              className="w-full border-b border-black/20 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30"
             />
             <button
               type="button"
@@ -139,20 +139,20 @@ export function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30 mt-8"
+            className="w-full bg-[#BB0006] text-white py-5 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30 mt-8"
           >
             {loading ? 'Verifying Identity...' : 'Authorize Access'}
           </button>
         </form>
         <div className="flex items-center gap-4 my-8">
           <div className="flex-1 h-px bg-black/10" />
-          <span className="text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">Or</span>
+          <span className="text-[9px] tracking-[0.04em] uppercase text-black/30 font-ui">Or</span>
           <div className="flex-1 h-px bg-black/10" />
         </div>
         <GoogleButton />
 
         <div className="mt-12 text-center">
-          <p className="text-[10px] tracking-[0.2em] text-black/60 uppercase font-ui">
+          <p className="text-[10px] tracking-[0.04em] text-black/60 uppercase font-ui">
             New to the Archive? <Link to="/register" className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Apply for Membership</Link>
           </p>
         </div>
@@ -213,7 +213,7 @@ export function Register() {
         
         <div className="text-center mb-12">
           <span className="eyebrow block mb-4">Membership Application</span>
-          <h1 className="display-2 font-elegant italic">Join the <span className="text-accent">Vault</span></h1>
+          <h1 className="uppercase display-2 font-elegant ">Join the <span className="text-accent">Vault</span></h1>
         </div>
 
         <form onSubmit={submit} className="space-y-6">
@@ -226,7 +226,7 @@ export function Register() {
               value={name} 
               onChange={(e) => setName(e.target.value)} 
               placeholder="FULL_NAME" 
-              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
           </div>
           <div className="relative group">
@@ -239,7 +239,7 @@ export function Register() {
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               placeholder="IDENTITY@EMAIL.COM" 
-              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
           </div>
           <div className="relative group">
@@ -250,7 +250,7 @@ export function Register() {
               value={phone} 
               onChange={(e) => setPhone(e.target.value)} 
               placeholder="MOBILE_CONTACT" 
-              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 py-4 text-[11px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
           </div>
           <div className="relative group">
@@ -264,7 +264,7 @@ export function Register() {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
               placeholder="SET_ACCESS_KEY" 
-              className="w-full border-b border-black/20 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.2em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
+              className="w-full border-b border-black/20 bg-transparent pl-8 pr-10 py-4 text-[11px] tracking-[0.04em] font-ui outline-none focus:border-black transition-colors placeholder:text-black/30" 
             />
             <button
               type="button"
@@ -281,20 +281,20 @@ export function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white py-5 text-[11px] tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30 mt-8"
+            className="w-full bg-[#BB0006] text-white py-5 text-[11px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500 disabled:opacity-30 mt-8"
           >
             {loading ? 'Processing Application...' : 'Register Account'}
           </button>
         </form>
         <div className="flex items-center gap-4 my-8">
           <div className="flex-1 h-px bg-black/10" />
-          <span className="text-[9px] tracking-[0.4em] uppercase text-black/30 font-ui">Or</span>
+          <span className="text-[9px] tracking-[0.04em] uppercase text-black/30 font-ui">Or</span>
           <div className="flex-1 h-px bg-black/10" />
         </div>
         <GoogleButton label="Sign up with Google" />
 
         <div className="mt-12 text-center">
-          <p className="text-[10px] tracking-[0.2em] text-black/60 uppercase font-ui">
+          <p className="text-[10px] tracking-[0.04em] text-black/60 uppercase font-ui">
             Already in the Archive? <Link to="/login" className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Authorize Sign In</Link>
           </p>
         </div>

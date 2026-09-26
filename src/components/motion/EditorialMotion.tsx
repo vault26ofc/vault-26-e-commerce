@@ -165,7 +165,7 @@ export function EditorialIndex({ num, label, isActive = false, className = '' }:
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, ease: EASE_PRIMARY }}
-          className={`font-mono text-xs tracking-widest ${isActive ? 'text-[#B11226]' : 'text-neutral-500'}`}
+          className={`font-mono text-xs tracking-widest ${isActive ? 'text-[#BB0006]' : 'text-neutral-500'}`}
         >
           {num}
         </motion.span>
@@ -183,7 +183,7 @@ export function EditorialIndex({ num, label, isActive = false, className = '' }:
       </div>
       {/* Cherry Red Line Reveal */}
       <motion.div
-        className="h-[1.5px] bg-[#B11226] origin-left mt-1"
+        className="h-[1.5px] bg-[#BB0006] origin-left mt-1"
         initial={{ scaleX: 0 }}
         whileInView={{ scaleX: isActive ? 1 : 0 }}
         whileHover={{ scaleX: 1 }}
@@ -200,7 +200,7 @@ export function EditorialIndex({ num, label, isActive = false, className = '' }:
 export function CherryAccentLine({ className = '', isActive = true }: { className?: string; isActive?: boolean }) {
   return (
     <motion.div
-      className={`h-[1px] bg-[#B11226] origin-left ${className}`}
+      className={`h-[1px] bg-[#BB0006] origin-left ${className}`}
       initial={{ scaleX: 0 }}
       animate={{ scaleX: isActive ? 1 : 0 }}
       transition={{ duration: 0.3, ease: EASE_SECONDARY }}
