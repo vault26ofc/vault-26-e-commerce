@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CMSSection } from '../types';
+import { TextColumns, TornEdge, Wrap } from '@/components/polka/Polka';
 
 export interface CampaignSlide {
   id: string;
@@ -42,198 +43,105 @@ const DEFAULT_SLIDES: CampaignSlide[] = [
   }
 ];
 
+const STATS = [
+  { n: '650+', label: 'pieces in the archive', sub: 'built for years of wear' },
+  { n: '50+', label: 'new drops every month', sub: 'the catalogue keeps moving' },
+  { n: '20', label: 'fabric mills we work with', sub: 'independent and heritage' },
+  { n: '100%', label: 'hand-finished', sub: 'every seam checked by the studio' },
+];
+
 export default function CampaignCarouselSection({ section }: { section?: CMSSection }) {
   const cfg = section?.config || {};
   const slides: CampaignSlide[] = cfg.slides && cfg.slides.length > 0 ? cfg.slides : DEFAULT_SLIDES;
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
-  const [isPaused, setIsPaused] = useState(false);
-
-  // Swipe / Drag tracking (Touch & Mouse)
-  const dragStartX = useRef<number | null>(null);
-  const dragEndX = useRef<number | null>(null);
-  const isMouseDown = useRef<boolean>(false);
-
-  // Auto scrolling timer (every 5s)
   useEffect(() => {
-    if (isPaused) return;
-    const interval = setInterval(() => {
-      handleNext();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [currentIndex, isPaused, slides.length]);
+    if (paused || slides.length < 2) return;
+    const t = setInterval(() => setIndex((i) => (i + 1) % slides.length), 5000);
+    return () => clearInterval(t);
+  }, [paused, slides.length]);
 
-  const handleNext = () => {
-    setDirection(1);
-    setCurrentIndex((prev) => (prev + 1) % slides.length);
-  };
-
-  const handlePrev = () => {
-    setDirection(-1);
-    setCurrentIndex((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const goToSlide = (index: number) => {
-    setDirection(index > currentIndex ? 1 : -1);
-    setCurrentIndex(index);
-  };
-
-  // Touch Swipe Handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    dragStartX.current = e.touches[0].clientX;
-    dragEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    dragEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    evaluateSwipe();
-  };
-
-  // Mouse Drag Handlers for Desktop Swiping
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isMouseDown.current = true;
-    dragStartX.current = e.clientX;
-    dragEndX.current = e.clientX;
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isMouseDown.current) return;
-    dragEndX.current = e.clientX;
-  };
-
-  const handleMouseUp = () => {
-    if (!isMouseDown.current) return;
-    isMouseDown.current = false;
-    evaluateSwipe();
-  };
-
-  const handleMouseLeave = () => {
-    setIsPaused(false);
-    if (isMouseDown.current) {
-      isMouseDown.current = false;
-      evaluateSwipe();
-    }
-  };
-
-  const evaluateSwipe = () => {
-    if (dragStartX.current === null || dragEndX.current === null) return;
-    const distance = dragStartX.current - dragEndX.current;
-    if (distance > 40) {
-      handleNext(); // Swiped left -> next slide
-    } else if (distance < -40) {
-      handlePrev(); // Swiped right -> prev slide
-    }
-    dragStartX.current = null;
-    dragEndX.current = null;
-  };
-
-  const currentSlide = slides[currentIndex];
-
-  const variants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? '100%' : '-100%',
-      opacity: 0,
-      scale: 1.05
-    }),
-    center: {
-      x: '0%',
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.7, ease: [0.25, 1, 0.5, 1] }
-    },
-    exit: (dir: number) => ({
-      x: dir < 0 ? '100%' : '-100%',
-      opacity: 0,
-      scale: 0.98,
-      transition: { duration: 0.7, ease: [0.25, 1, 0.5, 1] }
-    })
-  };
+  const slide = slides[index];
 
   return (
-    <section className="w-full py-0 bg-black font-sans">
-      <div className="w-full px-0">
-        {/* Full Edge-to-Edge Sharp Hero Carousel with Manual Swipe & Auto Scroll */}
-        <div
-          className="relative w-full h-[70vh] sm:h-[80vh] md:h-[85vh] min-h-[480px] max-h-[850px] rounded-none overflow-hidden bg-black group select-none cursor-grab active:cursor-grabbing"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={handleMouseLeave}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-        >
-          {/* Animated Slide Image */}
-          <AnimatePresence initial={false} custom={direction}>
-            <motion.div
-              key={currentSlide.id}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="absolute inset-0 w-full h-full pointer-events-none"
-            >
-              <img
-                src={currentSlide.image}
-                alt={currentSlide.title}
-                className="w-full h-full object-cover object-center brightness-90 pointer-events-none"
-                draggable={false}
-              />
-              {/* Vignette gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
-            </motion.div>
-          </AnimatePresence>
+    <section className="relative bg-white">
+      {/* Torn black-and-white campaign photo */}
+      <div
+        className="relative h-[56vw] md:h-[42vw] max-h-[640px] min-h-[300px] overflow-hidden bg-[#0F0F0F]"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        <AnimatePresence initial={false}>
+          <motion.img
+            key={slide.id}
+            src={slide.image}
+            alt={slide.title}
+            initial={{ opacity: 0, scale: 1.04 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.05]"
+          />
+        </AnimatePresence>
+        <TornEdge color="#FFFFFF" position="top" seed={23} />
+        <Wrap className="relative z-[3] h-full">
+          <div className="pt-[clamp(40px,5vw,72px)] flex items-start justify-between">
+            <span className="font-display font-[800] uppercase text-white text-[20px] md:text-[26px] leading-none">Vault 26</span>
+            <Link to={slide.cta_href} className="font-sans text-white text-[13px] md:text-[14px] uppercase underline underline-offset-4">
+              {slide.cta_label}
+            </Link>
+          </div>
+        </Wrap>
+        <TornEdge color="#BB0006" position="bottom" seed={31} height="clamp(30px,4.5vw,70px)" />
+      </div>
 
-          {/* Slide Text Content & CTA Overlay (Centered at Bottom) */}
-          <div className="absolute bottom-12 sm:bottom-16 md:bottom-20 inset-x-0 z-20 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-            <motion.h2
-              key={`title-${currentSlide.id}`}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight uppercase text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)] mb-3 font-sans"
-            >
-              {currentSlide.title}
-            </motion.h2>
+      {/* Red statement + stats */}
+      <div className="relative bg-[#BB0006] text-white pb-[clamp(60px,8vw,120px)]">
+        <Wrap className="pt-6 md:pt-8">
+          <h2 className="font-display font-[800] uppercase leading-[1.02] text-[clamp(30px,4.4vw,64px)] max-w-[1200px]">
+            {slide.title}. Some pieces are worn once. Others{' '}
+            <span className="bg-white text-[#BB0006] px-[0.12em]">become part of you</span>
+          </h2>
 
-            <motion.div
-              key={`cta-${currentSlide.id}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="pointer-events-auto"
-            >
-              <Link
-                to={currentSlide.cta_href || '/shop'}
-                className="inline-block text-xs sm:text-sm font-bold tracking-[0.25em] text-white uppercase border-b-2 border-white pb-1 hover:text-white/80 hover:border-white/80 transition-all duration-300 drop-shadow-md font-sans"
-              >
-                {currentSlide.cta_label || 'SHOP NOW'}
-              </Link>
-            </motion.div>
+          <div className="mt-8 md:mt-10 grid md:grid-cols-2 gap-10">
+            <TextColumns count={6} color="rgba(255,255,255,0.55)" className="hidden md:grid h-[260px]" />
+            <div>
+              <p className="font-sans text-[15px] md:text-[16px] leading-relaxed max-w-[520px]">
+                We believe good clothing doesn&apos;t end at the checkout. It stays in your rotation, takes on your
+                habits and comes back to you in every season of your life.
+              </p>
+              <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8">
+                {STATS.map((s) => (
+                  <div key={s.n}>
+                    <dt className="font-sans font-light text-[44px] md:text-[56px] leading-none border-b border-white/80 pb-1">{s.n}</dt>
+                    <dd className="font-sans text-[13px] md:text-[14px] mt-2 leading-snug">
+                      <span className="font-bold">{s.label} —</span>
+                      <br />
+                      {s.sub}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
 
-          {/* Dot Pagination Indicators (Bottom Center) */}
-          <div className="absolute bottom-5 sm:bottom-6 inset-x-0 z-30 flex items-center justify-center gap-2 pointer-events-auto">
-            {slides.map((slide, idx) => (
-              <button
-                key={slide.id}
-                onClick={() => goToSlide(idx)}
-                aria-label={`Go to slide ${idx + 1}`}
-                className={`transition-all duration-300 cursor-pointer ${
-                  idx === currentIndex
-                    ? 'w-7 sm:w-8 h-2 bg-white rounded-none shadow-md'
-                    : 'w-2 h-2 bg-white/50 hover:bg-white/90 rounded-none'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
+          {slides.length > 1 && (
+            <div className="mt-10 flex gap-2" role="tablist" aria-label="Campaigns">
+              {slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  role="tab"
+                  aria-selected={i === index}
+                  aria-label={s.title}
+                  onClick={() => setIndex(i)}
+                  className={`h-[3px] flex-1 max-w-[120px] transition-colors ${i === index ? 'bg-white' : 'bg-white/35 hover:bg-white/60'}`}
+                />
+              ))}
+            </div>
+          )}
+        </Wrap>
+        <TornEdge color="#FFFFFF" position="bottom" seed={43} />
       </div>
     </section>
   );
