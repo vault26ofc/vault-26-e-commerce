@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Heart, ShoppingBag, User, ArrowRight, ChevronDown, Play } from 'lucide-react';
+import { Search, Heart, ShoppingBag, ShoppingBasket, User, ArrowRight, ChevronDown, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart, useWishlist } from '@/lib/store';
 import { useAuth } from '@/lib/useAuth';
@@ -192,113 +192,110 @@ export default function Navbar() {
     setSuggestions([]);
   };
 
+  const isHome = location.pathname === '/';
   const activeData = megaTabs.find((t) => t.id === activeSection) || megaTabs[0];
   const fallbackHero = activeData?.groups[0]?.links.find((l) => l.hoverImg)?.hoverImg || null;
   const currentHeroSrc = hoveredHeroImg || activeData?.heroImage || fallbackHero;
 
   return (
     <>
-      {/* 01 & 02 — TRANSPARENT CLOSED HEADER */}
+      {/* 01 — POLKA RED HEADER BAR */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
-        animate={{
-          opacity: hideNavbar ? 0 : 1,
-          y: hideNavbar ? -20 : 0
-        }}
+        animate={{ opacity: hideNavbar ? 0 : 1, y: hideNavbar ? -20 : 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-500 ease-out font-sans",
-          hideNavbar ? "pointer-events-none opacity-0 -translate-y-6" : "pointer-events-auto opacity-100 translate-y-0",
-          scrolled ? "py-3.5 h-16 bg-[#FAF8F5]/85 backdrop-blur-md border-b border-[#111111]/[0.06] shadow-sm" : "py-5 h-20 bg-transparent border-b border-transparent"
+          "fixed top-0 left-0 right-0 z-50 font-sans text-white transition-colors duration-300",
+          hideNavbar ? "pointer-events-none" : "pointer-events-auto",
+          "bg-[#BB0006]"
         )}
       >
-        <div className="px-8 md:px-12 lg:px-[56px] h-full flex items-center justify-between">
-          
-          {/* Left VAULT 26 Logo (Clicking opens the Full-Screen Editorial Mega Menu Index) */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="flex items-center h-full group cursor-pointer text-left"
-            aria-label="Open VAULT 26 Editorial Index"
+        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px]">
+          <div
+            className={cn(
+              "h-14 md:h-[62px] flex items-center justify-between gap-6 border-b transition-colors",
+              "border-transparent"
+            )}
           >
-            <img
-              src={LOGO_URL}
-              alt="VAULT 26"
-              className={cn(
-                "w-auto object-contain hover:opacity-90 transition-all duration-500",
-                scrolled ? "h-10 md:h-12 scale-100" : "h-[54px] md:h-[68px] scale-110"
-              )}
-            />
-            <span className="text-[10px] font-mono tracking-widest text-[#111111]/40 hidden sm:inline-block ml-4 pl-4 border-l border-[#111111]/10 uppercase group-hover:text-[#B90F1A] transition-colors">
-              INDEX / EST. 2026
-            </span>
-          </button>
-
-          {/* Right Utility Buttons (SEARCH, ♡, BAG, SIGN IN) with Cherry Red #B90F1A Hover States */}
-          <div className="flex items-center gap-7 text-[11px] md:text-[12px] font-sans tracking-widest text-[#111111]">
-            {/* SEARCH */}
+            {/* Logo (white) — opens the full-screen index */}
             <button
-              onClick={() => {
-                setMenuOpen(false);
-                setSearchOpen(true);
-              }}
-              className="flex items-center gap-2 text-[#111111]/85 hover:text-[#B90F1A] transition-colors duration-200 group cursor-pointer"
-              aria-label="Search"
+              onClick={() => setMenuOpen(true)}
+              className="flex items-center h-full shrink-0 cursor-pointer"
+              aria-label="Open VAULT 26 index"
             >
-              <Search className="w-4 h-4 text-[#111111]/85 group-hover:text-[#B90F1A] transition-colors duration-200" strokeWidth={1.5} />
-              <span className="hidden md:inline text-[11px] md:text-[12px] tracking-[0.2em] uppercase font-medium font-sans">
-                SEARCH
-              </span>
+              <img
+                src={LOGO_URL}
+                alt="VAULT 26"
+                className="h-9 md:h-11 w-auto object-contain brightness-0 invert hover:opacity-85 transition-opacity"
+              />
             </button>
 
-            {/* WISHLIST ♡ */}
-            <Link
-              to="/wishlist"
-              className="relative flex items-center text-[#111111]/85 hover:text-[#B90F1A] transition-colors duration-200 hidden md:flex group"
-              aria-label="Wishlist"
-            >
-              <Heart className="w-4 h-4 text-[#111111]/85 group-hover:text-[#B90F1A] transition-colors duration-200" strokeWidth={1.5} />
-              {wishCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 bg-[#B90F1A] text-white text-[9px] h-4 w-4 rounded-full flex items-center justify-center font-bold">
-                  {wishCount}
-                </span>
-              )}
-            </Link>
+            {/* Centre links — admin-managed mega menu tabs */}
+            <nav className="hidden lg:flex items-center gap-8 xl:gap-10 min-w-0" aria-label="Main">
+              <Link to="/shop" className="text-[13px] xl:text-[14px] hover:underline underline-offset-4 whitespace-nowrap">
+                Shop all
+              </Link>
+              {megaTabs.slice(0, 6).map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    if (tab.isCustom && tab.href) { navigate(tab.href); return; }
+                    setActiveSection(tab.id);
+                    setHoveredHeroImg(null);
+                    setMenuOpen(true);
+                  }}
+                  className="text-[13px] xl:text-[14px] hover:underline underline-offset-4 whitespace-nowrap lowercase first-letter:uppercase cursor-pointer"
+                >
+                  {tab.label}
+                </button>
+              ))}
+              <Link to={user ? "/account" : "/login"} className="text-[13px] xl:text-[14px] hover:underline underline-offset-4 whitespace-nowrap">
+                {user ? "My account" : "Sign in"}
+              </Link>
+            </nav>
 
-            {/* BAG (0) */}
-            <button
-              onClick={() => setDrawer(true)}
-              className="relative flex items-center gap-2 text-[#111111]/85 hover:text-[#B90F1A] transition-colors duration-200 group cursor-pointer"
-              aria-label="Bag"
-            >
-              <ShoppingBag className="w-4 h-4 text-[#111111]/85 group-hover:text-[#B90F1A] transition-colors duration-200" strokeWidth={1.5} />
-              <span className="hidden md:inline text-[11px] md:text-[12px] tracking-[0.2em] uppercase font-medium font-sans">
-                BAG ({cartCount})
-              </span>
-            </button>
-
-            {/* SIGN IN */}
-            <Link
-              to={user ? "/account" : "/login"}
-              className="relative flex items-center gap-2 text-[#111111]/85 hover:text-[#B90F1A] transition-colors duration-200 hidden md:flex"
-              aria-label="User Account"
-            >
-              <User className="w-4 h-4 text-[#111111]/85 hover:text-[#B90F1A] transition-colors duration-200" strokeWidth={1.5} />
-              <span className="hidden md:inline text-[11px] md:text-[12px] tracking-[0.2em] uppercase font-medium font-sans">
-                {user ? "ACCOUNT" : "SIGN IN"}
-              </span>
-            </Link>
-
-            {/* MOBILE MENU TOGGLE */}
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden text-[#111111] p-1 cursor-pointer"
-              aria-label="Toggle Navigation"
-            >
-              <div className="relative w-6 h-6 flex flex-col justify-center items-center">
-                <span className={cn("w-6 h-[1.5px] bg-black transition-all duration-300 transform", menuOpen ? "rotate-45 translate-y-[1px]" : "-translate-y-1")} />
-                <span className={cn("w-6 h-[1.5px] bg-black transition-all duration-300 transform", menuOpen ? "-rotate-45 -translate-y-[0.5px]" : "translate-y-1")} />
-              </div>
-            </button>
+            {/* Right icons */}
+            <div className="flex items-center gap-4 md:gap-5 shrink-0">
+              <button
+                onClick={() => { setMenuOpen(false); setSearchOpen(true); }}
+                className="p-1 hover:opacity-75 transition-opacity cursor-pointer"
+                aria-label="Search"
+              >
+                <Search className="w-[19px] h-[19px]" strokeWidth={1.8} />
+              </button>
+              <Link to="/wishlist" className="relative p-1 hover:opacity-75 transition-opacity hidden sm:block" aria-label="Wishlist">
+                <Heart className="w-[19px] h-[19px]" strokeWidth={1.8} />
+                {wishCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 bg-white text-[#BB0006] text-[9px] h-4 min-w-4 px-0.5 flex items-center justify-center font-bold">
+                    {wishCount}
+                  </span>
+                )}
+              </Link>
+              <button
+                onClick={() => setDrawer(true)}
+                className="relative p-1 hover:opacity-75 transition-opacity cursor-pointer"
+                aria-label={`Bag, ${cartCount} items`}
+              >
+                <ShoppingBasket className="w-[20px] h-[20px]" strokeWidth={1.8} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 bg-white text-[#BB0006] text-[9px] h-4 min-w-4 px-0.5 flex items-center justify-center font-bold">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+              <Link to={user ? "/account" : "/login"} className="p-1 hover:opacity-75 transition-opacity hidden md:block lg:hidden" aria-label="Account">
+                <User className="w-[19px] h-[19px]" strokeWidth={1.8} />
+              </Link>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden p-1 cursor-pointer"
+                aria-label="Open menu"
+              >
+                <span className="block w-6 h-[1.5px] bg-white mb-[6px]" />
+                <span className="block w-6 h-[1.5px] bg-white mb-[6px]" />
+                <span className="block w-6 h-[1.5px] bg-white" />
+              </button>
+            </div>
           </div>
         </div>
       </motion.header>
@@ -311,25 +308,25 @@ export default function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 z-[999] bg-[#F5F3EE] flex flex-col font-sans select-none overflow-hidden"
+            className="fixed inset-0 z-[999] bg-[#BB0006] text-white flex flex-col font-sans select-none overflow-hidden"
           >
             {/* Top Fixed Header Bar */}
-            <div className="px-8 md:px-12 py-5 flex items-center justify-between border-b border-black/10 shrink-0 bg-[#F5F3EE] z-20">
+            <div className="px-8 md:px-12 py-5 flex items-center justify-between border-b border-white/40 shrink-0 bg-[#BB0006] z-20">
               <div className="flex items-center gap-6">
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className="text-black hover:opacity-85 transition-opacity cursor-pointer flex items-center gap-4 group"
+                  className="text-white hover:opacity-85 transition-opacity cursor-pointer flex items-center gap-4 group"
                   aria-label="Close Index"
                 >
                   <span className="text-xl font-light">✕</span>
                   <img
                     src={LOGO_URL}
                     alt="VAULT 26"
-                    className="h-10 md:h-14 w-auto object-contain"
+                    className="h-10 md:h-14 w-auto object-contain brightness-0 invert"
                   />
                 </button>
-                <div className="h-4 w-[1px] bg-black/20" />
-                <span className="text-xs font-mono tracking-widest text-black/60 uppercase">
+                <div className="h-4 w-[1px] bg-white/40" />
+                <span className="text-[13px] font-sans uppercase text-white/85">
                   THE ARCHIVE / 04
                 </span>
               </div>
@@ -339,7 +336,7 @@ export default function Navbar() {
                   setMenuOpen(false);
                   setSearchOpen(true);
                 }}
-                className="text-xs font-mono tracking-[0.25em] uppercase text-[#111111] hover:underline cursor-pointer"
+                className="h-10 px-5 bg-white text-[#BB0006] text-[14px] font-sans hover:bg-[#F1F1F1] cursor-pointer"
               >
                 SEARCH
               </button>
@@ -378,21 +375,21 @@ export default function Navbar() {
                           animate={{ opacity: 1, y: '0%' }}
                           transition={{ duration: 0.6, delay: idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
                         >
-                          <span className="text-[10px] font-mono text-black/40 tracking-widest block">
+                          <span className="font-display font-[800] text-[20px] text-white/70 block leading-none">
                             {String(idx + 1).padStart(2, '0')}
                           </span>
                           <div className="relative inline-block">
                             <h2
                               className={cn(
-                                "text-2xl sm:text-3xl md:text-4xl lg:text-[36px] xl:text-[42px] leading-tight font-serif tracking-[0.02em] uppercase transition-all duration-300 truncate",
-                                isActive ? "text-[#111111] font-normal" : "text-black/30 font-light group-hover:text-[#111111]"
+                                "text-2xl sm:text-3xl md:text-4xl lg:text-[36px] xl:text-[42px] leading-[0.9] font-display font-[800] uppercase transition-all duration-300 truncate",
+                                isActive ? "text-[#0F0F0F] font-[800]" : "text-black/30 font-light group-hover:text-[#0F0F0F]"
                               )}
                             >
                               {sec.label}
                             </h2>
                             {/* Section 11 & 10: Cherry Red Accent Indicator Line */}
                             <motion.div
-                              className="h-[1.5px] bg-[#B11226] origin-left absolute -bottom-0.5 left-0 right-0"
+                              className="h-[3px] bg-white origin-left absolute -bottom-0.5 left-0 right-0"
                               initial={{ scaleX: 0 }}
                               animate={{ scaleX: isActive ? 1 : 0 }}
                               whileHover={{ scaleX: 1 }}
@@ -418,8 +415,8 @@ export default function Navbar() {
                     >
                       {activeData.groups.map((group, idx) => (
                         <div key={group.id} className="space-y-2.5">
-                          {idx > 0 && <div className="h-[1px] w-full bg-black/10 my-3" />}
-                          <span className="text-xs font-mono text-black/50 tracking-widest block">
+                          {idx > 0 && <div className="h-[1px] w-full bg-white/30 my-3" />}
+                          <span className="text-[13px] font-sans uppercase text-white/70 block">
                             {group.heading}
                           </span>
                           <ul className="space-y-2">
@@ -431,7 +428,7 @@ export default function Navbar() {
                                     if (item.hoverImg) setHoveredHeroImg(item.hoverImg);
                                   }}
                                   onClick={() => setMenuOpen(false)}
-                                  className="text-xs font-mono tracking-widest uppercase text-black/80 hover:text-[#111111] hover:font-bold transition-all block truncate"
+                                  className="text-[15px] font-sans text-white hover:underline underline-offset-4 transition-all block truncate"
                                 >
                                   {item.label}
                                 </Link>
@@ -447,7 +444,7 @@ export default function Navbar() {
               </div>
 
               {/* RIGHT HALF (55% Width: Full Height Main Hero Showcase + 4 Bottom Grid Thumbnails) */}
-              <div className="w-full lg:w-[55%] flex flex-col h-full bg-[#111111] border-l border-black/10 overflow-hidden relative">
+              <div className="w-full lg:w-[55%] flex flex-col h-full bg-[#0F0F0F] overflow-hidden relative">
 
                 {/* Top 72% Height: Taller Main Hero Photo Showcase */}
                 <div className="relative flex-1 w-full overflow-hidden bg-black">
@@ -461,7 +458,7 @@ export default function Navbar() {
                         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                         src={currentHeroSrc}
                         alt={activeData.label}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover grayscale contrast-[1.1]"
                       />
                     </AnimatePresence>
                   ) : (
@@ -471,11 +468,11 @@ export default function Navbar() {
                   )}
 
                   {/* Monospace Overlay Text Top-Left with dark gradient backdrop for high contrast */}
-                  <div className="absolute top-0 left-0 right-0 p-8 bg-gradient-to-b from-black/75 via-black/30 to-transparent text-white z-10 space-y-1.5 pointer-events-none drop-shadow-md">
-                    <span className="text-[11px] font-mono tracking-widest uppercase block text-white/90 whitespace-pre-line">
+                  <div className="absolute top-0 left-0 right-0 p-8 bg-transparent text-white z-10 space-y-1.5 pointer-events-none drop-shadow-md">
+                    <span className="inline-block bg-[#BB0006] px-2 py-1 text-[13px] font-sans uppercase text-white whitespace-pre-line">
                       {activeData.subhead}
                     </span>
-                    <div className="w-8 h-[1px] bg-white/60 mt-2" />
+                    <div className="hidden" />
                   </div>
                 </div>
 
@@ -511,10 +508,10 @@ export default function Navbar() {
                       {/* Overlay Monospace Label */}
                       <div className="absolute bottom-4 left-4 right-4 text-white flex items-end justify-between z-10">
                         <div>
-                          <span className="text-[9px] font-mono tracking-widest uppercase block text-white/70">
+                          <span className="font-display font-[800] text-[18px] block text-white leading-none">
                             {t.num}
                           </span>
-                          <span className="text-xs font-mono tracking-widest uppercase font-bold block">
+                          <span className="text-[13px] font-sans uppercase block bg-[#BB0006] px-1.5 py-0.5 mt-1">
                             {t.label}
                           </span>
                         </div>
@@ -532,7 +529,7 @@ export default function Navbar() {
             )}
 
             {/* Bottom Fixed Footer Bar */}
-            <div className="px-8 md:px-12 py-4 flex items-center justify-between border-t border-black/10 shrink-0 bg-[#F5F3EE] text-[10px] font-mono tracking-widest uppercase text-black/60">
+            <div className="px-8 md:px-12 py-4 flex items-center justify-between border-t border-white/40 shrink-0 bg-[#BB0006] text-[12px] font-sans uppercase text-white/85">
               {/* Left Statement */}
               <div className="leading-tight">
                 <div>THE ARCHIVE</div>
@@ -540,14 +537,14 @@ export default function Navbar() {
               </div>
 
               {/* Center / Right Links */}
-              <div className="flex items-center gap-8 text-black/80">
-                <button onClick={() => { setMenuOpen(false); setDrawer(true); }} className="hover:text-black transition-colors cursor-pointer">
+              <div className="flex items-center gap-8 text-white">
+                <button onClick={() => { setMenuOpen(false); setDrawer(true); }} className="hover:underline underline-offset-4 transition-colors cursor-pointer">
                   BAG ({cartCount})
                 </button>
-                <Link to={user ? "/account" : "/login"} onClick={() => setMenuOpen(false)} className="hover:text-black transition-colors">
+                <Link to={user ? "/account" : "/login"} onClick={() => setMenuOpen(false)} className="hover:underline underline-offset-4 transition-colors">
                   SIGN IN
                 </Link>
-                <Link to="/about" onClick={() => setMenuOpen(false)} className="hover:text-black transition-colors">
+                <Link to="/about" onClick={() => setMenuOpen(false)} className="hover:underline underline-offset-4 transition-colors">
                   HELP
                 </Link>
               </div>
@@ -721,7 +718,7 @@ export default function Navbar() {
               <Link
                 to="/shop"
                 onClick={() => setMobileOpen(false)}
-                className="text-2xl font-serif tracking-tight block uppercase text-[#111111]"
+                className="text-2xl font-serif tracking-tight block uppercase text-[#0F0F0F]"
               >
                 SHOP ALL
               </Link>
@@ -733,7 +730,7 @@ export default function Navbar() {
                   <div key={tab.id} className="border-b border-black/10 pb-4">
                     <button
                       onClick={() => setMobileExpanded(isExpanded ? null : tab.id)}
-                      className="w-full flex items-center justify-between text-2xl font-serif tracking-tight uppercase text-[#111111] cursor-pointer"
+                      className="w-full flex items-center justify-between text-2xl font-serif tracking-tight uppercase text-[#0F0F0F] cursor-pointer"
                     >
                       <span>{tab.label}</span>
                       <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -769,7 +766,7 @@ export default function Navbar() {
               <Link
                 to="/lookbook"
                 onClick={() => setMobileOpen(false)}
-                className="text-2xl font-serif tracking-tight block uppercase text-[#111111]"
+                className="text-2xl font-serif tracking-tight block uppercase text-[#0F0F0F]"
               >
                 LOOKBOOK
               </Link>
@@ -777,7 +774,7 @@ export default function Navbar() {
               <Link
                 to="/about"
                 onClick={() => setMobileOpen(false)}
-                className="text-2xl font-serif tracking-tight block uppercase text-[#111111]"
+                className="text-2xl font-serif tracking-tight block uppercase text-[#0F0F0F]"
               >
                 ABOUT
               </Link>
