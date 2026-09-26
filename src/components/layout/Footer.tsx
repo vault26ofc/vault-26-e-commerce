@@ -14,6 +14,18 @@ const SIGNOFF_CLIP = (() => {
   return `polygon(${pts.join(', ')})`;
 })();
 
+// Phones: the same stepped edge turned sideways — red on top, stepping down into the paper.
+const SIGNOFF_CLIP_MOBILE = (() => {
+  const w = 100 / SIGNOFF_STEPS.length;
+  const pts = ['0% 0%', '100% 0%', `100% ${SIGNOFF_STEPS[SIGNOFF_STEPS.length - 1] + 4}%`];
+  for (let i = SIGNOFF_STEPS.length - 1; i >= 0; i--) {
+    const y = SIGNOFF_STEPS[i] + 4;
+    pts.push(`${(w * (i + 1)).toFixed(2)}% ${y}%`, `${(w * i).toFixed(2)}% ${y}%`);
+  }
+  pts.push('0% 100%'.replace('100%', `${SIGNOFF_STEPS[0] + 4}%`));
+  return `polygon(${pts.join(', ')})`;
+})();
+
 type FooterLink = { label: string; to: string; external?: boolean };
 
 const COLUMNS: { title: string; links: FooterLink[] }[] = [
@@ -179,32 +191,34 @@ export default function Footer() {
 
       {/* Sign-off poster: red panel stepping into crumpled paper (mirrors the hero) */}
       <div className="relative mt-4 overflow-hidden">
-        <div className="relative md:h-[440px]">
+        <div className="relative h-[640px] md:h-[440px]">
           <img src="/hero_paper_texture.jpg" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="md:hidden absolute inset-0 bg-[#BB0006]" style={{ clipPath: SIGNOFF_CLIP_MOBILE }} />
           <div className="hidden md:block absolute inset-0 bg-[#BB0006]" style={{ clipPath: SIGNOFF_CLIP }} />
-          <div className="relative mx-auto h-full w-full max-w-[1440px] md:px-8 lg:px-[30px] md:py-12 flex flex-col md:flex-row md:justify-between">
-            <div className="flex flex-col md:max-w-[46%] bg-[#BB0006] md:bg-transparent px-4 sm:px-6 md:px-0 py-10 md:py-0">
+          <div className="relative mx-auto h-full w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px] py-8 md:py-12 flex flex-col md:flex-row justify-between">
+            <div className="flex flex-col md:max-w-[46%]">
               <p className="font-display font-[800] uppercase text-[22px] md:text-[28px] leading-none">Need a hand with your order?</p>
-              <p className="font-sans uppercase text-[13px] md:text-[15px] mt-8">Write to us:</p>
-              <a href="mailto:hello@vault26.co.in" className="font-sans text-[20px] md:text-[26px] mt-1 hover:underline underline-offset-4">hello@vault26.co.in</a>
+              <p className="font-sans uppercase text-[13px] md:text-[15px] mt-5 md:mt-8">Write to us:</p>
+              <a href="mailto:hello@vault26.co.in" className="font-sans text-[19px] md:text-[26px] mt-1 hover:underline underline-offset-4">hello@vault26.co.in</a>
               <a href="https://wa.me/919999999999" target="_blank" rel="noreferrer" className="mt-5 self-start h-11 px-6 bg-white text-[#BB0006] font-sans text-[14px] flex items-center hover:bg-[#F1F1F1] transition-colors">
                 Chat on WhatsApp
               </a>
-              <p className="mt-8 md:mt-auto font-sans text-[12px] leading-relaxed text-white/85 max-w-[340px]">
+              <p className="mt-5 md:mt-auto font-sans text-[12px] leading-relaxed text-white/85 max-w-[340px]">
                 Secure checkout · Free shipping over ₹999 · 7-day returns · Made in India
               </p>
             </div>
-            <div className="flex flex-col items-start md:items-end justify-between gap-8 text-left md:text-right px-4 sm:px-6 md:px-0 pt-10 pb-24 md:py-0">
-              <p className="font-display font-[800] uppercase text-[#BB0006] leading-none text-[clamp(40px,6vw,92px)]">Vault 26</p>
+            <div className="flex flex-col items-end justify-between gap-4 md:gap-8 text-right pb-16 md:pb-0">
+              <p className="font-display font-[800] uppercase text-[#BB0006] leading-none text-[clamp(44px,6vw,92px)] hidden md:block">Vault 26</p>
+              <p className="md:hidden font-display font-[800] uppercase text-[#BB0006] leading-none text-[48px]">Vault 26</p>
               {/* Studio credit */}
               <a
                 href="https://artechstudio.co.in"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col items-start md:items-end text-[#0F0F0F]"
+                className="group flex flex-col items-end text-[#0F0F0F]"
               >
-                <span className="font-display font-[800] uppercase text-[18px] md:text-[22px] leading-none">Developed &amp; maintained by</span>
-                <span className="mt-2 bg-[#BB0006] text-white font-display font-[800] uppercase leading-none text-[clamp(34px,3.8vw,60px)] px-[0.16em] pt-[0.14em] pb-[0.04em] group-hover:bg-[#0F0F0F] transition-colors">
+                <span className="font-display font-[800] uppercase text-[16px] md:text-[22px] leading-none">Developed &amp; maintained by</span>
+                <span className="mt-2 bg-[#BB0006] text-white font-display font-[800] uppercase leading-none text-[clamp(32px,3.8vw,60px)] px-[0.16em] pt-[0.14em] pb-[0.04em] group-hover:bg-[#0F0F0F] transition-colors">
                   AR Tech Studio
                 </span>
                 <span className="mt-2 font-sans text-[13px] md:text-[15px] text-[#BB0006] underline underline-offset-4 decoration-1">
