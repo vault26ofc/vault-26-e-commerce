@@ -1,6 +1,11 @@
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import type { CMSSection, CategoryGridConfig, CategoryItem } from '../types';
+import { Num, Wrap } from '@/components/polka/Polka';
+import { cn } from '@/lib/utils';
 
 export interface NorseCategoryItem extends CategoryItem {
   seasonTag?: string;
@@ -12,7 +17,6 @@ const DEFAULT_CATEGORIES: NorseCategoryItem[] = [
   {
     slug: 'outerwear',
     title: 'OUTERWEAR & JACKETS',
-    seasonTag: 'Autumn/Winter 26',
     subtitle: 'Heavyweight jackets & technical coats',
     image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=95&w=1200',
     href: '/shop?category=jackets'
@@ -20,7 +24,6 @@ const DEFAULT_CATEGORIES: NorseCategoryItem[] = [
   {
     slug: 'knitwear',
     title: 'SWEATERS & KNITWEAR',
-    seasonTag: 'Core Archive',
     subtitle: 'Italian wool & relaxed linen knits',
     image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=95&w=1200',
     href: '/shop?category=sweaters'
@@ -28,160 +31,143 @@ const DEFAULT_CATEGORIES: NorseCategoryItem[] = [
   {
     slug: 'sneakers',
     title: 'SNEAKERS & FOOTWEAR',
-    seasonTag: 'Handcrafted Atelier 26',
     subtitle: 'Minimalist leather trainers & studio sneakers',
     image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=95&w=2000',
     href: '/shop?category=shoes',
-    isFullWidth: true
   }
 ];
 
+type Row = { key: string; title: string; subtitle?: string; image: string; href: string };
+
+/*
+ * Polka “Библиотека” block: oversized ink title with two floating product
+ * tiles, then a numbered category list whose open row turns Editor's Red.
+ */
 export default function CategoryGridSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as CategoryGridConfig;
-  const categories: NorseCategoryItem[] =
-    Array.isArray(cfg.categories) && cfg.categories.length > 0
-      ? (cfg.categories as NorseCategoryItem[])
-      : DEFAULT_CATEGORIES;
+  const cfgCats: NorseCategoryItem[] =
+    Array.isArray(cfg.categories) && cfg.categories.length > 0 ? (cfg.categories as NorseCategoryItem[]) : DEFAULT_CATEGORIES;
 
-  // Split into Top (first 2) and Middle Full-Width (Sneakers/Footwear)
-  const topCategories = categories.slice(0, 2);
-  
-  // Find full-width item or default to index 2
-  const fullWidthIndex = categories.findIndex((c) => c.isFullWidth || c.slug === 'sneakers' || c.slug === 'shoes');
-  const fullWidthCat = fullWidthIndex !== -1 ? categories[fullWidthIndex] : (categories[2] || DEFAULT_CATEGORIES[2]);
+  const [rows, setRows] = useState<Row[]>(() =>
+    cfgCats.map((c, i) => ({ key: c.slug || String(i), title: c.title, subtitle: c.subtitle, image: c.image, href: c.href || '/shop' })),
+  );
+  const [open, setOpen] = useState<number | null>(null);
+
+  // Prefer the live catalogue categories; imagery comes from the CMS list.
+  useEffect(() => {
+    supabase
+      .from('categories')
+      .select('id, name, slug')
+      .order('name')
+      .limit(7)
+      .then(({ data }) => {
+        if (!data || data.length === 0) return;
+        setRows(
+          data.map((c: any, i: number) => ({
+            key: c.id,
+            title: c.name,
+            subtitle: cfgCats[i % cfgCats.length]?.subtitle,
+            image: cfgCats[i % cfgCats.length]?.image,
+            href: `/category/${c.slug}`,
+          })),
+        );
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const floatA = rows[0]?.image;
+  const floatB = rows[1]?.image;
 
   return (
-    <section className="py-10 md:py-16 bg-white text-black font-sans w-full border-t border-black/5 overflow-hidden">
-      {/* Section Header */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-12 mb-6 md:mb-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <span className="text-xs font-mono font-bold tracking-[0.2em] text-black/50 uppercase block mb-1">
-              CATEGORIES
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-sans font-bold uppercase tracking-tight text-black leading-none">
-              SHOP BY SILHOUETTE
-            </h2>
-          </div>
-          <Link
-            to="/shop"
-            className="text-xs font-bold tracking-[0.2em] uppercase text-black border-b-2 border-black pb-1 hover:text-black/60 hover:border-black/60 transition-colors inline-block w-fit"
-          >
-            DISCOVER ALL CATEGORIES →
+    <section className="bg-white py-14 md:py-24 overflow-hidden">
+      <Wrap>
+        {/* Oversized title with floating tiles */}
+        <div className="relative">
+          <h2 className="font-display font-[800] uppercase text-[#0F0F0F] leading-[0.82] text-center text-[clamp(64px,15.4vw,222px)] tracking-[-0.01em]">
+            Categories
+          </h2>
+          {floatA && (
+            <motion.img
+              src={floatA}
+              alt=""
+              aria-hidden="true"
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 0.8, y: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
+              className="absolute left-[53%] -top-[6%] w-[9%] aspect-[3/4] object-cover shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+            />
+          )}
+          {floatB && (
+            <motion.img
+              src={floatB}
+              alt=""
+              aria-hidden="true"
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              animate={{ y: [0, 8, 0] }}
+              transition={{ duration: 0.8, delay: 0.15, y: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
+              className="absolute right-[4%] top-[42%] w-[9%] aspect-[3/4] object-cover shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+            />
+          )}
+        </div>
+
+        {/* Numbered accordion */}
+        <ul className="mt-4 md:mt-6 border-t border-[#0F0F0F]/40">
+          {rows.map((row, i) => {
+            const active = open === i;
+            return (
+              <li key={row.key} className="border-b border-[#0F0F0F]/40">
+                <button
+                  onClick={() => setOpen(active ? null : i)}
+                  aria-expanded={active}
+                  className={cn(
+                    'w-full h-12 md:h-[54px] grid grid-cols-[48px_1fr_48px] md:grid-cols-[80px_1fr_80px] items-center px-3 transition-colors',
+                    active ? 'bg-[#BB0006] text-white' : 'text-[#0F0F0F]/60 hover:text-[#0F0F0F]',
+                  )}
+                >
+                  <Num n={i + 1} className={cn('text-left text-[20px] md:text-[24px]', active ? 'text-white' : 'text-[#0F0F0F]/50')} />
+                  <span className={cn('font-sans uppercase text-[14px] md:text-[18px] tracking-wide truncate', active && 'font-bold')}>
+                    {row.title}
+                  </span>
+                  <ChevronDown className={cn('justify-self-end w-5 h-5 transition-transform', active ? 'rotate-180' : '-rotate-90')} strokeWidth={1.6} />
+                </button>
+                <AnimatePresence initial={false}>
+                  {active && (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: 'auto' }}
+                      exit={{ height: 0 }}
+                      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <div className="grid md:grid-cols-[1fr_2fr] gap-6 py-6 px-3">
+                        <img src={row.image} alt={row.title} loading="lazy" className="w-full aspect-[4/3] object-cover grayscale" />
+                        <div className="flex flex-col justify-between gap-6">
+                          <p className="font-sans text-[15px] md:text-[17px] text-[#0F0F0F] max-w-[520px] leading-relaxed">
+                            {row.subtitle || 'Pieces from the archive, cut to be worn for years.'}
+                          </p>
+                          <Link to={row.href} className="self-start h-12 px-8 bg-[#BB0006] text-white font-sans text-[15px] flex items-center hover:bg-[#AA0001] transition-colors">
+                            Shop {row.title.toLowerCase()}
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="text-center mt-6">
+          <Link to="/shop" className="font-sans text-[13px] md:text-[14px] uppercase text-[#BB0006] underline underline-offset-4">
+            Go to catalogue
           </Link>
         </div>
-      </div>
-
-      {/* 1. TOP ROW: 100% Full Edge-to-Edge 2-Column Grid */}
-      <div className="w-full px-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-2">
-          {topCategories.map((cat, i) => (
-            <CategoryCard key={cat.slug || i} cat={cat} delay={i * 0.08} />
-          ))}
-        </div>
-      </div>
-
-      {/* 2. FULL VIEWPORT WIDTH (100vw Edge-to-Edge) Sneakers Banner Card */}
-      {fullWidthCat && (
-        <div className="w-full mt-1.5 sm:mt-2 px-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="w-full group relative"
-          >
-            <Link to={fullWidthCat.href || '/shop'} className="block w-full relative overflow-hidden group">
-              <div className="relative w-full h-[450px] sm:h-[550px] md:h-[620px] lg:h-[700px] bg-[#F2F2F2] overflow-hidden rounded-none">
-                <img
-                  src={fullWidthCat.image}
-                  alt={fullWidthCat.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-                {/* Vignette Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/25 group-hover:from-black/90 transition-all duration-500" />
-
-                {/* Top-Left Season Tag in Allura Script */}
-                <div className="absolute top-6 left-6 sm:top-10 sm:left-12 md:left-16 z-10 pointer-events-none">
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-secondary font-normal text-amber-100/95 drop-shadow-md tracking-normal capitalize">
-                    {fullWidthCat.seasonTag || 'Handcrafted Atelier 26'}
-                  </span>
-                </div>
-
-                {/* Bottom Title Content Overlay */}
-                <div className="absolute bottom-8 left-6 right-6 sm:bottom-12 sm:left-12 sm:right-12 md:left-16 md:right-16 z-10 text-white flex flex-col gap-1.5 pointer-events-none">
-                  <h3 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-primary font-bold uppercase tracking-tight text-white drop-shadow-md group-hover:translate-x-1 transition-transform duration-300">
-                    {fullWidthCat.title}
-                  </h3>
-                  {fullWidthCat.subtitle && (
-                    <p className="text-xs sm:text-sm md:text-base text-white/85 font-normal tracking-wide hidden sm:block">
-                      {fullWidthCat.subtitle}
-                    </p>
-                  )}
-                  <div className="pt-2 flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-white border-b border-white pb-0.5 group-hover:border-white/70 transition-colors">
-                      EXPLORE FOOTWEAR
-                    </span>
-                    <span className="text-xs sm:text-sm text-white group-hover:translate-x-1 transition-transform">
-                      →
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        </div>
-      )}
+      </Wrap>
     </section>
-  );
-}
-
-function CategoryCard({ cat, delay }: { cat: NorseCategoryItem; delay: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay }}
-      className="group relative w-full flex flex-col"
-    >
-      <Link to={cat.href} className="block w-full h-full relative overflow-hidden group">
-        <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] bg-[#F2F2F2] overflow-hidden rounded-none">
-          <img
-            src={cat.image}
-            alt={cat.title}
-            loading="lazy"
-            className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/25 group-hover:from-black/85 transition-all duration-500" />
-
-          <div className="absolute top-5 left-5 sm:top-8 sm:left-8 z-10 pointer-events-none">
-            <span className="text-xl sm:text-2xl md:text-3xl font-secondary font-normal text-amber-100/95 drop-shadow-md tracking-normal capitalize">
-              {cat.seasonTag || 'Autumn/Winter 26'}
-            </span>
-          </div>
-
-          <div className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-8 z-10 text-white flex flex-col gap-1.5 pointer-events-none">
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-primary font-bold uppercase tracking-tight text-white drop-shadow-md group-hover:translate-x-1 transition-transform duration-300">
-              {cat.title}
-            </h3>
-            {cat.subtitle && (
-              <p className="text-xs sm:text-sm text-white/85 font-normal tracking-wide hidden sm:block">
-                {cat.subtitle}
-              </p>
-            )}
-            <div className="pt-2 flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-white border-b border-white pb-0.5 group-hover:border-white/70 transition-colors">
-                EXPLORE CATEGORY
-              </span>
-              <span className="text-xs sm:text-sm text-white group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </motion.div>
   );
 }
