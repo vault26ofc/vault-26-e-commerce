@@ -25,14 +25,24 @@ export default {
     },
     extend: {
       fontFamily: {
-        primary: ["'Instrument Serif'", "'Bodoni Moda'", "Didot", "Georgia", "serif"],
-        secondary: ["Allura", "cursive"],
-        display: ["'Instrument Serif'", "'Bodoni Moda'", "Didot", "Georgia", "serif"],
-        sans: ["'Instrument Serif'", "Inter", "system-ui", "sans-serif"],
-        serif: ["'Instrument Serif'", "'Bodoni Moda'", "Didot", "Georgia", "serif"],
-        script: ["Allura", "cursive"],
+        // Polka type system: Serpantin-style condensed display (Imbue) + Lato body
+        primary: ["Imbue", "'Bodoni Moda'", "Georgia", "serif"],
+        secondary: ["Imbue", "'Bodoni Moda'", "Georgia", "serif"],
+        display: ["Imbue", "'Bodoni Moda'", "Georgia", "serif"],
+        serif: ["Imbue", "'Bodoni Moda'", "Georgia", "serif"],
+        script: ["Imbue", "'Bodoni Moda'", "Georgia", "serif"],
+        sans: ["Lato", "Inter", "system-ui", "sans-serif"],
+        mono: ["Lato", "Inter", "system-ui", "sans-serif"],
+        body: ["Lato", "Inter", "system-ui", "sans-serif"],
       },
       colors: {
+        polka: {
+          red: "#BB0006",
+          archive: "#AA0001",
+          ink: "#0F0F0F",
+          margin: "#F1F1F1",
+          paper: "#FFFFFF",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -107,6 +117,10 @@ export default {
         "fade-up": {
           from: { opacity: "0", transform: "translateY(12px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "polka-belt": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(-50%)" },
         },
       },
       animation: {
