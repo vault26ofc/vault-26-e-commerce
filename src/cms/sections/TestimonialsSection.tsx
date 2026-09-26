@@ -1,5 +1,7 @@
-import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { TornEdge, Wrap } from '@/components/polka/Polka';
 import { useTestimonials } from '../hooks/useCMSPage';
 import type { CMSSection, TestimonialsConfig, Testimonial } from '../types';
 
@@ -37,77 +39,78 @@ const FALLBACK_TESTIMONIALS: Testimonial[] = [
 export default function TestimonialsSection({ section }: { section: CMSSection }) {
   const cfg = section.config as TestimonialsConfig;
   const { items: dbItems } = useTestimonials();
-
   const testimonials: Testimonial[] = dbItems && dbItems.length > 0 ? dbItems : FALLBACK_TESTIMONIALS;
-  
-  // Multiply array for seamless infinite marquee loop
-  const marqueeItems = [...testimonials, ...testimonials, ...testimonials, ...testimonials];
+  const [i, setI] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const t = testimonials[i % testimonials.length];
+
+  useEffect(() => {
+    if (paused || testimonials.length < 2) return;
+    const id = setInterval(() => setI((n) => (n + 1) % testimonials.length), 6000);
+    return () => clearInterval(id);
+  }, [paused, testimonials.length]);
+
+  const go = (d: number) => setI((n) => (n + d + testimonials.length) % testimonials.length);
 
   return (
-    <section className="py-16 md:py-24 bg-white text-black font-ui border-t border-black/5 overflow-hidden">
-      <div className="container-px mb-8 md:mb-12">
-        {/* Section Header Matching Chienne Reference */}
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xs font-ui text-black/50 tracking-[0.2em] uppercase block mb-1">
-              Client Feedback
-            </span>
-            <h2 className="text-3xl md:text-5xl font-serif-condensed font-medium text-[#B11226] tracking-tight">
-              {cfg.heading || "Testimonials"}
-            </h2>
-          </div>
-          <div className="hidden md:flex items-center gap-1 text-[#B11226]">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <Star key={s} className="w-4 h-4 fill-[#B11226] text-[#B11226]" />
-            ))}
-          </div>
+    <section
+      className="relative bg-[#BB0006] text-white mt-[clamp(30px,4vw,64px)]"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <TornEdge color="#BB0006" position="top" seed={101} className="!-translate-y-[98%] !rotate-0" />
+      <Wrap className="py-14 md:py-20 grid md:grid-cols-[1fr_2fr] gap-10 md:gap-16">
+        <div>
+          <h2 className="font-display font-[800] uppercase text-[48px] md:text-[72px] leading-none">{cfg.heading || 'Reviews'}</h2>
+          <p className="font-sans text-[15px] md:text-[16px] leading-relaxed mt-4 max-w-[360px]">
+            What our customers say about the pieces that made it into their wardrobe. Honest impressions, favourite fits and recommendations.
+          </p>
         </div>
-      </div>
-
-      {/* Infinite Marquee Ticker Container */}
-      <div className="w-full overflow-hidden flex select-none">
-        <motion.div
-          animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 35, repeat: Infinity, ease: 'linear' }}
-          className="flex gap-6 md:gap-8 shrink-0"
-        >
-          {marqueeItems.map((item, index) => (
-            <div
-              key={`${item.id}-${index}`}
-              className="w-[320px] sm:w-[380px] md:w-[440px] shrink-0 bg-[#F8F8F8] p-6 md:p-8 flex flex-col justify-between border border-black/5"
-            >
-              <div>
-                {/* 5-Star Rating */}
-                <div className="flex gap-1 mb-4 text-[#B11226]">
-                  {[...Array(item.rating || 5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-[#B11226] text-[#B11226]" />
-                  ))}
+        <div>
+          <div className="border-y border-white/70 h-12 flex items-center justify-between font-sans uppercase text-[14px]">
+            <span>Newest first</span>
+            <span className="tabular-nums">{String((i % testimonials.length) + 1).padStart(2, '0')} / {String(testimonials.length).padStart(2, '0')}</span>
+          </div>
+          <div className="pt-8 min-h-[240px]">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 md:w-20 md:h-20 bg-white/15 overflow-hidden shrink-0 flex items-center justify-center font-display font-[800] text-[28px]">
+                  {t.avatar ? <img src={t.avatar} alt="" className="w-full h-full object-cover grayscale" /> : t.name.charAt(0)}
                 </div>
-
-                <p className="text-xs md:text-sm font-ui font-light text-black/80 leading-relaxed italic mb-6">
-                  "{item.body}"
-                </p>
-              </div>
-
-              <div className="pt-4 border-t border-black/5 flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs md:text-sm font-ui font-medium text-black tracking-wide uppercase">
-                    {item.name}
-                  </h3>
-                  {item.role && (
-                    <span className="text-[11px] font-ui text-black/40 font-light block">
-                      {item.role}
-                    </span>
-                  )}
+                  <p className="font-sans font-bold uppercase text-[15px] md:text-[16px]">{t.name}</p>
+                  <p className="text-[18px] tracking-[2px] leading-none mt-1" aria-label={`${t.rating || 5} out of 5`}>
+                    {'★'.repeat(t.rating || 5)}
+                    <span className="opacity-40">{'★'.repeat(5 - (t.rating || 5))}</span>
+                  </p>
+                  {t.role && <p className="font-sans text-[13px] text-white/80 mt-1.5">{t.role}</p>}
                 </div>
-                <span className="text-[10px] font-ui text-[#B11226] font-medium uppercase tracking-wider">
-                  Verified Buyer
-                </span>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={() => go(-1)} aria-label="Previous review" className="w-9 h-9 bg-white text-[#BB0006] flex items-center justify-center hover:bg-[#F1F1F1]">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button onClick={() => go(1)} aria-label="Next review" className="w-9 h-9 bg-white text-[#BB0006] flex items-center justify-center hover:bg-[#F1F1F1]">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
               </div>
             </div>
-          ))}
-        </motion.div>
-      </div>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={t.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.35 }}
+                className="font-sans text-[16px] md:text-[18px] leading-relaxed mt-6 max-w-[680px]"
+              >
+                {t.body}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+        </div>
+      </Wrap>
+      <TornEdge color="#FFFFFF" position="bottom" seed={103} />
     </section>
   );
 }
