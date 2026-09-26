@@ -126,21 +126,46 @@ export default function Home() {
       seen.add('instagram_reels');
     }
 
+    // Polka motion sections (from the reference videos) — always present, each slotted
+    // straight after an anchor section type (or at the end if the anchor is missing).
+    const MOTION_SECTIONS: [CMSSection['section_type'], string, CMSSection['section_type']][] = [
+      ['category_cards', 'Category Cards', 'best_sellers'],
+      ['product_marquee', 'Product Belt', 'category_cards'],
+      ['polka_bento', 'Season Board', 'product_marquee'],
+      ['split_scroll', 'Split Scroll', 'campaign_carousel'],
+      ['photo_shuffle', 'Photo Shuffle', 'category_grid'],
+      ['colour_story', 'Colour Stories', 'photo_shuffle'],
+      ['standing_look', 'Standing Look', 'colour_story'],
+      ['phone_showcase', 'Phone Showcase', 'instagram_reels'],
+      ['drop_countdown', 'Drop Countdown', 'phone_showcase'],
+      ['services_strip', 'Store Promise', 'community'],
+    ];
+    for (const [type, label, anchor] of MOTION_SECTIONS) {
+      if (seen.has(type)) continue;
+      const anchorIdx = filtered.findIndex((s) => s.section_type === anchor);
+      const sec: CMSSection = {
+        id: `${type}-section-auto`,
+        page_slug: 'home',
+        section_type: type,
+        label,
+        position: anchorIdx !== -1 ? filtered[anchorIdx].position : 999,
+        is_visible: true,
+        is_locked: false,
+        config: {},
+      };
+      if (anchorIdx !== -1) filtered.splice(anchorIdx + 1, 0, sec);
+      else filtered.push(sec);
+      seen.add(type);
+    }
+
     return filtered;
   }, [sections]);
 
   return (
     <div className="bg-white min-h-screen relative">
-      {dedupedSections.map((section) => {
-        if (section.section_type === 'hero') {
-          return <SectionRenderer key={section.id} section={section} />;
-        }
-        return (
-          <div key={section.id} className="relative z-10 bg-white shadow-[0_-20px_50px_rgba(0,0,0,0.15)]">
-            <SectionRenderer section={section} />
-          </div>
-        );
-      })}
+      {dedupedSections.map((section) => (
+        <SectionRenderer key={section.id} section={section} />
+      ))}
     </div>
   );
 }
