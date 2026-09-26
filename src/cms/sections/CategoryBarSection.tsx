@@ -65,35 +65,30 @@ export default function CategoryBarSection({ section }: { section?: CMSSection }
   const categories = Array.isArray(cfgItems) && cfgItems.length > 0 ? cfgItems : DEFAULT_CATEGORY_ITEMS;
 
   return (
-    <section className="bg-white w-full py-4 md:py-6 font-ui relative z-20">
-      {/* Centered container with left & right side margins/padding matching Daily Paper design */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 lg:px-16">
-        <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5">
+    <section className="bg-white w-full pt-10 md:pt-14 relative">
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px]">
+        <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide md:grid md:overflow-visible"
+          style={{ gridTemplateColumns: `repeat(${Math.min(categories.length + 1, 9)}, minmax(0, 1fr))` }}>
+          <Link
+            to="/shop"
+            className="shrink-0 h-11 md:h-12 px-5 flex items-center justify-center bg-[#BB0006] border border-[#BB0006] text-white font-sans text-[14px] md:text-[15px] whitespace-nowrap"
+          >
+            Shop all
+          </Link>
           {categories.map((cat, i) => (
             <motion.div
               key={cat.slug}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: i * 0.03 }}
+              className="shrink-0"
             >
               <Link
                 to={cat.href}
-                className="group inline-flex items-center gap-2.5 bg-[#EDEDED] hover:bg-black transition-all duration-300 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-none shadow-none"
+                className="group h-11 md:h-12 px-4 flex items-center justify-center gap-2 border border-[#0F0F0F] bg-white text-[#0F0F0F] hover:border-[#BB0006] hover:text-[#BB0006] transition-colors font-sans text-[14px] md:text-[15px] whitespace-nowrap"
               >
-                {/* Apparel Thumbnail Preview Container */}
-                <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white flex items-center justify-center p-0.5 overflow-hidden shrink-0 rounded-none">
-                  <img
-                    src={cat.image}
-                    alt={cat.title}
-                    loading="lazy"
-                    className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-
-                {/* Category Label */}
-                <span className="text-[10px] sm:text-[11px] font-mono font-bold tracking-[0.14em] uppercase text-black group-hover:text-white transition-colors duration-300 whitespace-nowrap">
-                  {cat.title}
-                </span>
+                <img src={cat.image} alt="" loading="lazy" className="w-6 h-6 object-cover mix-blend-multiply shrink-0" />
+                <span className="lowercase first-letter:uppercase">{cat.title}</span>
               </Link>
             </motion.div>
           ))}

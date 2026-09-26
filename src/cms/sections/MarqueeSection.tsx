@@ -12,18 +12,24 @@ export default function MarqueeSection({ section }: { section: CMSSection }) {
     'BEYOND TRENDS'
   ];
 
-  const marqueeText = items.join('   •   ');
-
   return (
-    <section className="bg-black text-white py-3.5 border-b border-white/10 w-full overflow-hidden font-ui relative z-20">
-      <div className="flex w-full overflow-hidden select-none">
+    <section className="relative bg-[#BB0006] text-white w-full overflow-hidden select-none border-y border-[#AA0001]">
+      <div className="flex w-full overflow-hidden h-10 md:h-11 items-center">
         <motion.div
           animate={{ x: ['0%', '-50%'] }}
-          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
-          className="whitespace-nowrap flex items-center gap-8 text-xs uppercase font-ui tracking-[0.2em] font-medium text-white/90"
+          transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
+          className="whitespace-nowrap flex items-center gap-8 font-sans uppercase text-[12px] md:text-[13px] tracking-[0.06em]"
         >
-          <span>• {marqueeText}</span>
-          <span>• {marqueeText}</span>
+          {[0, 1].map((k) => (
+            <span key={k} className="flex items-center gap-8">
+              {(cfg?.heading ? [cfg.heading, ...items.slice(1)] : items).map((t, i) => (
+                <span key={`${k}-${i}`} className="flex items-center gap-8">
+                  {t}
+                  <span className="font-display font-[800] text-[16px] leading-none">✱</span>
+                </span>
+              ))}
+            </span>
+          ))}
         </motion.div>
       </div>
     </section>
