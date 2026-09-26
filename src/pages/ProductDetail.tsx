@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Heart, Share2, MessageCircle, Truck, RefreshCw, Shield, ArrowLeft } from 'lucide-react';
+import { Heart, Share2, Info, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { SectionHead, TornEdge } from '@/components/polka/Polka';
 import { supabase } from '@/integrations/supabase/client';
 import { useCart, useWishlist } from '@/lib/store';
 import { inr } from '@/lib/format';
@@ -23,10 +24,10 @@ const FALLBACK_PRODUCTS_MAP: Record<string, any> = {
     brands: { name: 'VAULT 26', slug: 'vault-26' },
     categories: { name: 'Essentials', slug: 'men', id: 'cat-1' },
     product_variants: [
-      { id: 'v1-1', price: 3490, compare_price: 4490, size: 'S', color: 'Onyx', color_hex: '#111111', stock: 10 },
-      { id: 'v1-2', price: 3490, compare_price: 4490, size: 'M', color: 'Onyx', color_hex: '#111111', stock: 15 },
-      { id: 'v1-3', price: 3490, compare_price: 4490, size: 'L', color: 'Onyx', color_hex: '#111111', stock: 20 },
-      { id: 'v1-4', price: 3490, compare_price: 4490, size: 'XL', color: 'Onyx', color_hex: '#111111', stock: 8 }
+      { id: 'v1-1', price: 3490, compare_price: 4490, size: 'S', color: 'Onyx', color_hex: '#0F0F0F', stock: 10 },
+      { id: 'v1-2', price: 3490, compare_price: 4490, size: 'M', color: 'Onyx', color_hex: '#0F0F0F', stock: 15 },
+      { id: 'v1-3', price: 3490, compare_price: 4490, size: 'L', color: 'Onyx', color_hex: '#0F0F0F', stock: 20 },
+      { id: 'v1-4', price: 3490, compare_price: 4490, size: 'XL', color: 'Onyx', color_hex: '#0F0F0F', stock: 8 }
     ]
   },
   'raw-selvedge-oversized-denim': {
@@ -105,7 +106,9 @@ export default function ProductDetail() {
   const [color, setColor] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
   const [qty, setQty] = useState(1);
-  const [tab, setTab] = useState<'desc' | 'mat' | 'ship'>('desc');
+  const [tab, setTab] = useState<string>('desc');
+  const [reviews, setReviews] = useState<{ name: string; quote: string; rating: number }[]>([]);
+  const [reviewIdx, setReviewIdx] = useState(0);
   const [related, setRelated] = useState<ProductCardData[]>([]);
   const add = useCart((s) => s.add);
   const { ids, toggle } = useWishlist();
@@ -139,8 +142,8 @@ export default function ProductDetail() {
           brands: { name: 'VAULT 26', slug: 'vault-26' },
           categories: { name: 'Archive', slug: 'all', id: 'cat-1' },
           product_variants: [
-            { id: `v-${slug}-1`, price: 4990, compare_price: 5990, size: 'M', color: 'Onyx', color_hex: '#111111', stock: 10 },
-            { id: `v-${slug}-2`, price: 4990, compare_price: 5990, size: 'L', color: 'Onyx', color_hex: '#111111', stock: 15 }
+            { id: `v-${slug}-1`, price: 4990, compare_price: 5990, size: 'M', color: 'Onyx', color_hex: '#0F0F0F', stock: 10 },
+            { id: `v-${slug}-2`, price: 4990, compare_price: 5990, size: 'L', color: 'Onyx', color_hex: '#0F0F0F', stock: 15 }
           ]
         };
       }
@@ -166,6 +169,25 @@ export default function ProductDetail() {
       }
     })();
   }, [slug]);
+
+  useEffect(() => {
+    (supabase.from('testimonials' as any) as any)
+      .select('*')
+      .eq('is_active', true)
+      .order('position', { ascending: true })
+      .limit(10)
+      .then(({ data }: any) => {
+        setReviews(
+          (data || [])
+            .filter((t: any) => t.body || t.quote)
+            .map((t: any) => ({
+              name: t.name || t.author || 'Customer',
+              quote: t.body || t.quote,
+              rating: Math.max(1, Math.min(5, Number(t.rating) || 5)),
+            })),
+        );
+      });
+  }, []);
 
   const colors = useMemo(() => {
     const map = new Map<string, string>();
@@ -204,7 +226,7 @@ export default function ProductDetail() {
   } : { title: 'Loading… — Vault 26' });
 
   if (!product) {
-    return <div className="container-px py-40 grid lg:grid-cols-2 gap-20 animate-pulse"><div className="aspect-[3/4] bg-muted" /><div className="space-y-8"><div className="h-4 bg-muted w-32" /><div className="h-12 bg-muted w-3/4" /></div></div>;
+    return <div className="mx-auto max-w-[1440px] px-4 md:px-8 pt-[110px] pb-20 grid lg:grid-cols-[1fr_1.7fr_1.4fr] gap-4 animate-pulse"><div className="space-y-4"><div className="h-8 bg-[#F1F1F1] w-32" /><div className="h-16 bg-[#F1F1F1] w-3/4" /></div><div className="aspect-[4/5] bg-[#F1F1F1]" /><div className="h-64 bg-[#F1F1F1]" /></div>;
   }
 
   const wished = ids.includes(product.id);
@@ -230,106 +252,86 @@ export default function ProductDetail() {
 
   const buyNow = () => { addToCart(); setTimeout(() => navigate('/checkout'), 100); };
 
-  return (
-    <div className="container-px pt-24 pb-12 md:py-24 min-h-screen bg-white">
-      <button
-        onClick={() => navigate(-1)}
-        className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold text-black/50 hover:text-black transition-colors mb-8 md:mb-12"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Back
-      </button>
-      <div className="grid lg:grid-cols-2 gap-12 lg:gap-24">
-        {/* Visuals */}
-        <div className="space-y-6">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            className="aspect-[3/4] bg-muted overflow-hidden"
-          >
-            <img src={product.images[activeImg]} alt={product.name} className="w-full h-full object-cover" />
-          </motion.div>
-          {product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-4">
-              {product.images.map((img: string, i: number) => (
-                <button 
-                  key={i} 
-                  onClick={() => setActiveImg(i)} 
-                  className={cn(
-                    'aspect-[3/4] overflow-hidden transition-all duration-500', 
-                    activeImg === i ? 'ring-1 ring-black ring-offset-4' : 'opacity-60 hover:opacity-100'
-                  )}
-                >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+  const inStock = activeVariant ? activeVariant.stock > 0 : variants.some((v) => v.stock > 0);
+  const comparePrice = activeVariant?.compare_price || product.product_variants?.[0]?.compare_price;
+  const details: { id: string; label: string; body: React.ReactNode }[] = [
+    { id: 'desc', label: 'About the piece', body: product.description || 'A signature Vault 26 piece, made for the everyday wardrobe.' },
+    { id: 'mat', label: 'Material & care', body: [product.material, product.care && `Care: ${product.care}`].filter(Boolean).join(' · ') || 'Care instructions are on the inside label.' },
+    { id: 'ship', label: 'Payment & delivery', body: 'Free shipping on orders above ₹999. Dispatched within 24 hours. Pay by UPI, card or cash on delivery.' },
+    { id: 'ret', label: 'Returns & exchange', body: '7-day easy returns and size exchanges on unworn pieces with tags attached.' },
+  ];
 
-        {/* Info */}
-        <div className="flex flex-col">
-          <motion.div
+  return (
+    <div className="bg-white min-h-screen pt-[56px] md:pt-[62px]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px]">
+        {/* Breadcrumb */}
+        <nav className="pt-6 md:pt-8 font-sans text-[12px] md:text-[13px] uppercase text-[#0F0F0F]/60 truncate" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-[#0F0F0F]">Home</Link>
+          <span className="mx-2">/</span>
+          <Link to={product.categories?.slug ? `/category/${product.categories.slug}` : '/shop'} className="hover:text-[#0F0F0F]">
+            {product.categories?.name || 'Shop'}
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-[#0F0F0F] underline underline-offset-4">{product.name}</span>
+        </nav>
+
+        {/* Brand tag + title */}
+        <div className="mt-8 md:mt-12">
+          {product.brands?.name && (
+            <Link to={`/brand/${product.brands.slug}`} className="inline-block border border-[#0F0F0F] px-3 py-1.5 font-sans text-[13px] text-[#0F0F0F] hover:border-[#BB0006] hover:text-[#BB0006]">
+              {product.brands.name}
+            </Link>
+          )}
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-2 font-display font-[800] uppercase text-[#0F0F0F] leading-[0.92] text-[clamp(38px,5vw,72px)] max-w-[900px]"
           >
-            {product.brands?.name && (
-              <Link to={`/brand/${product.brands.slug}`} className="text-[11px] tracking-[0.4em] uppercase font-ui font-bold text-accent mb-4 block">
-                {product.brands.name}
-              </Link>
-            )}
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-elegant font-light tracking-tight mb-4 md:mb-6">
-              {product.name}
-            </h1>
-            <div className="flex items-center gap-4 mb-8 md:mb-10">
-              <span className="text-xl md:text-2xl font-ui font-bold tracking-tight">
+            {product.name}
+          </motion.h1>
+        </div>
+
+        <div className="mt-6 grid gap-8 lg:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)_minmax(0,1.4fr)]">
+          {/* Buy column */}
+          <div className="flex flex-col order-2 lg:order-1">
+            <div className="flex items-baseline gap-3">
+              <span className="font-sans text-[34px] md:text-[40px] text-[#0F0F0F] leading-none">
                 {inr(activeVariant ? Number(activeVariant.price) : minPrice)}
               </span>
-              {(activeVariant?.compare_price || product.product_variants?.[0]?.compare_price) && (
-                <span className="text-black/50 line-through text-xs md:text-sm font-ui tracking-tight italic">
-                  {inr(Number(activeVariant?.compare_price || product.product_variants[0].compare_price))}
-                </span>
-              )}
+              {comparePrice && <span className="font-sans text-[16px] text-[#0F0F0F]/40 line-through">{inr(Number(comparePrice))}</span>}
             </div>
 
-            {/* Colors */}
             {colors.length > 1 && (
-              <div className="mb-10">
-                <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold mb-4 block">Archive Shade</span>
-                <div className="flex gap-4">
+              <div className="mt-8">
+                <span className="font-sans uppercase text-[13px] text-[#0F0F0F]">Colour — {color}</span>
+                <div className="flex gap-2 mt-3">
                   {colors.map((c) => (
-                    <button 
-                      key={c.color} 
+                    <button
+                      key={c.color}
                       onClick={() => { setColor(c.color); setSize(null); }}
-                      className={cn(
-                        'h-10 w-10 rounded-full border border-black/10 transition-all duration-500', 
-                        color === c.color ? 'scale-125 ring-1 ring-black ring-offset-4' : 'hover:scale-110'
-                      )}
-                      style={{ backgroundColor: c.hex }} 
+                      aria-label={c.color}
+                      className={cn('h-9 w-9 border transition-all', color === c.color ? 'border-[#BB0006] ring-2 ring-[#BB0006] ring-offset-2' : 'border-[#0F0F0F]/20 hover:border-[#0F0F0F]')}
+                      style={{ backgroundColor: c.hex }}
                     />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Sizes */}
             {sizesForColor.length > 0 && (
-              <div className="mb-10">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[10px] tracking-[0.4em] uppercase font-ui font-bold">Silhouette / Size</span>
-                  <button className="text-[10px] tracking-[0.2em] uppercase font-ui font-bold border-b border-black pb-0.5">Guide</button>
-                </div>
-                <div className="grid grid-cols-5 gap-3">
+              <div className="mt-8">
+                <span className="font-sans uppercase text-[13px] text-[#0F0F0F]">Size</span>
+                <div className="grid grid-cols-4 gap-2 mt-3">
                   {sizesForColor.map((v) => (
-                    <button 
-                      key={v.id} 
-                      onClick={() => v.stock > 0 && setSize(v.size)} 
+                    <button
+                      key={v.id}
+                      onClick={() => v.stock > 0 && setSize(v.size)}
                       disabled={v.stock === 0}
                       className={cn(
-                        'py-4 text-[11px] font-ui font-bold tracking-[0.2em] border transition-all duration-500 uppercase', 
-                        size === v.size ? 'bg-black text-white border-black' : 'border-black/20 hover:border-black', 
-                        v.stock === 0 && 'opacity-20 line-through cursor-not-allowed'
+                        'h-11 font-sans text-[14px] border transition-colors uppercase',
+                        size === v.size ? 'bg-[#BB0006] text-white border-[#BB0006]' : 'border-[#0F0F0F] text-[#0F0F0F] hover:border-[#BB0006] hover:text-[#BB0006]',
+                        v.stock === 0 && 'opacity-25 line-through cursor-not-allowed',
                       )}
                     >
                       {v.size}
@@ -339,85 +341,140 @@ export default function ProductDetail() {
               </div>
             )}
 
-            {/* Actions */}
-            <div className="flex flex-col gap-3 md:gap-4 mb-10 md:mb-12">
-              <div className="flex gap-3 md:gap-4">
-                <button 
-                  onClick={addToCart} 
-                  className="flex-1 bg-black text-white py-4 md:py-5 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500"
-                >
-                  Secure Archive Piece
-                </button>
-                <button 
-                  onClick={() => toggle(product.id)}
-                  className="w-14 md:w-16 flex items-center justify-center border border-black/20 hover:border-black transition-colors duration-500"
-                >
-                  <Heart className={cn('h-4 w-4 md:h-5 md:w-5 transition-all', wished && 'fill-accent stroke-accent scale-110')} />
-                </button>
-              </div>
-              <button 
-                onClick={buyNow} 
-                className="w-full border border-black py-4 md:py-5 text-[10px] md:text-[11px] tracking-[0.3em] md:tracking-[0.4em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-all duration-500"
-              >
-                Buy Now
+            <div className="mt-auto pt-10 space-y-3">
+              <p className="flex items-center gap-2 font-sans text-[15px] text-[#0F0F0F]">
+                <Info className="h-4 w-4" strokeWidth={1.8} /> {inStock ? 'In stock' : 'Out of stock'}
+              </p>
+              <button onClick={addToCart} disabled={!inStock} className="w-full h-12 md:h-[52px] bg-[#BB0006] text-white font-sans text-[15px] md:text-[16px] hover:bg-[#AA0001] transition-colors disabled:opacity-50">
+                Add to bag
+              </button>
+              <button onClick={buyNow} disabled={!inStock} className="w-full h-12 md:h-[52px] bg-[#3A3A3A] text-white font-sans text-[15px] md:text-[16px] hover:bg-[#0F0F0F] transition-colors disabled:opacity-50">
+                Buy now
               </button>
             </div>
+          </div>
 
-            {/* Content Tabs */}
-            <div className="border-t border-black/10">
-              <div className="flex gap-8 border-b border-black/10">
-                {[
-                  { id: 'desc', label: 'THE STORY' },
-                  { id: 'mat', label: 'MATERIAL' },
-                  { id: 'ship', label: 'SHIPPING' }
-                ].map(t => (
-                  <button 
-                    key={t.id} 
-                    onClick={() => setTab(t.id as any)}
-                    className={cn(
-                      'py-5 text-[10px] tracking-[0.3em] font-ui font-bold transition-all duration-500 relative',
-                      tab === t.id ? 'text-black' : 'text-black/50 hover:text-black'
-                    )}
+          {/* Main image */}
+          <div className="relative order-1 lg:order-2 bg-[#F1F1F1] aspect-[4/5] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={activeImg}
+                src={product.images[activeImg]}
+                alt={product.name}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35 }}
+                className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
+              />
+            </AnimatePresence>
+            <div className="absolute top-3 right-3 flex gap-1">
+              <button onClick={() => toggle(product.id)} aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'} className="p-1.5 bg-white/80 hover:bg-white">
+                <Heart strokeWidth={1.7} className={cn('h-5 w-5', wished && 'fill-[#BB0006] stroke-[#BB0006]')} />
+              </button>
+              <button
+                onClick={() => { navigator.clipboard?.writeText(window.location.href); toast.success('Link copied'); }}
+                aria-label="Copy link"
+                className="p-1.5 bg-white/80 hover:bg-white"
+              >
+                <Share2 strokeWidth={1.7} className="h-5 w-5" />
+              </button>
+            </div>
+            {product.images.length > 1 && (
+              <>
+                <button onClick={() => setActiveImg((activeImg - 1 + product.images.length) % product.images.length)} aria-label="Previous image" className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#BB0006] text-white flex items-center justify-center">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button onClick={() => setActiveImg((activeImg + 1) % product.images.length)} aria-label="Next image" className="lg:hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#BB0006] text-white flex items-center justify-center">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Details accordion + thumbnails */}
+          <div className="order-3 flex flex-col">
+            <div className="border-t border-[#0F0F0F]/70">
+              {details.map((d) => {
+                const open = tab === d.id;
+                return (
+                  <div key={d.id} className="border-b border-[#0F0F0F]/70">
+                    <button onClick={() => setTab(open ? ('' as any) : (d.id as any))} aria-expanded={open} className="w-full h-12 md:h-[52px] flex items-center justify-between font-sans uppercase text-[14px] md:text-[16px] text-[#0F0F0F]">
+                      {d.label}
+                      <ChevronDown className={cn('h-5 w-5 transition-transform', open && 'rotate-180')} strokeWidth={1.8} />
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {open && (
+                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                          <p className="pb-5 font-sans text-[15px] leading-relaxed text-[#0F0F0F]">{d.body}</p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+            {product.images.length > 1 && (
+              <div className="hidden lg:flex gap-3 mt-3 overflow-x-auto scrollbar-hide">
+                {product.images.map((img: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImg(i)}
+                    className={cn('shrink-0 w-[46%] aspect-[4/5] bg-[#F1F1F1] overflow-hidden border-2 transition-colors', activeImg === i ? 'border-[#BB0006]' : 'border-transparent hover:border-[#0F0F0F]/30')}
                   >
-                    {t.label}
-                    {tab === t.id && <motion.div layoutId="tab-active" className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />}
+                    <img src={img} alt="" className="w-full h-full object-cover mix-blend-multiply" />
                   </button>
                 ))}
               </div>
-              <div className="py-8 min-h-[120px]">
-                <p className="text-sm font-ui font-light text-black/50 leading-relaxed uppercase tracking-[0.05em]">
-                  {tab === 'desc' && (product.description || 'A signature Vault 26 piece, made for the everyday wardrobe.')}
-                  {tab === 'mat' && (<>{product.material} // Care: {product.care}</>)}
-                  {tab === 'ship' && (<>Free shipping on orders above ₹999. Dispatched within 24 hours. 7-day easy returns.</>)}
-                </p>
-              </div>
-            </div>
-
-            {/* Confidence Bar */}
-            <div className="grid grid-cols-3 gap-8 pt-8 border-t border-black/10">
-              {[
-                { Icon: Truck, label: 'GLOBAL_SHIP' },
-                { Icon: RefreshCw, label: 'EASY_EXCHANGE' },
-                { Icon: Shield, label: 'SECURE_TRANS' }
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center gap-3">
-                  <item.Icon className="h-4 w-4 text-black/40" strokeWidth={1} />
-                  <span className="text-[9px] tracking-[0.3em] font-ui font-bold text-black/40 uppercase">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Related Products */}
-      {related.length > 0 && (
-        <section className="mt-16 md:mt-32 border-t border-black/10 pt-12 md:pt-24">
-          <div className="flex items-end justify-between mb-10 md:mb-16">
-            <h2 className="display-2 font-elegant font-light italic text-3xl md:text-5xl">Related <span className="text-accent">Pieces</span></h2>
-            <Link to="/search" className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold border-b border-black pb-0.5">Explore All</Link>
+      {/* Reviews — red torn block */}
+      <section className="relative mt-20 md:mt-28 bg-[#BB0006] text-white">
+        <TornEdge color="#BB0006" position="top" seed={83} className="!-translate-y-[98%] !rotate-0" />
+        <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px] py-12 md:py-16 grid md:grid-cols-[1fr_2fr] gap-8 md:gap-16">
+          <div>
+            <h2 className="font-display font-[800] uppercase text-[44px] md:text-[64px] leading-none">Reviews</h2>
+            <p className="font-sans text-[15px] leading-relaxed mt-3 max-w-[340px]">
+              What customers say about the pieces that made it into their rotation.
+            </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 gap-y-16">
+          <div>
+            <div className="border-y border-white/70 h-12 flex items-center font-sans uppercase text-[14px]">Newest first</div>
+            {reviews.length === 0 ? (
+              <p className="font-sans text-[15px] py-8">No reviews yet. Bought this piece? Tell us how it wears.</p>
+            ) : (
+              <div className="py-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-sans font-bold uppercase text-[15px]">{reviews[reviewIdx].name}</p>
+                    <p className="text-[18px] tracking-[2px]" aria-label={`${reviews[reviewIdx].rating} out of 5`}>
+                      {'★'.repeat(reviews[reviewIdx].rating)}
+                      <span className="opacity-40">{'★'.repeat(5 - reviews[reviewIdx].rating)}</span>
+                    </p>
+                  </div>
+                  {reviews.length > 1 && (
+                    <div className="flex gap-2">
+                      <button onClick={() => setReviewIdx((reviewIdx - 1 + reviews.length) % reviews.length)} aria-label="Previous review" className="w-8 h-8 bg-white text-[#BB0006] flex items-center justify-center"><ChevronLeft className="h-5 w-5" /></button>
+                      <button onClick={() => setReviewIdx((reviewIdx + 1) % reviews.length)} aria-label="Next review" className="w-8 h-8 bg-white text-[#BB0006] flex items-center justify-center"><ChevronRight className="h-5 w-5" /></button>
+                    </div>
+                  )}
+                </div>
+                <p className="font-sans text-[15px] md:text-[16px] leading-relaxed mt-4 max-w-[640px]">{reviews[reviewIdx].quote}</p>
+              </div>
+            )}
+          </div>
+        </div>
+        <TornEdge color="#FFFFFF" position="bottom" seed={89} />
+      </section>
+
+      {/* You may also like */}
+      {related.length > 0 && (
+        <section className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px] py-14 md:py-20">
+          <SectionHead title="You may also like" to={product.categories?.slug ? `/category/${product.categories.slug}` : '/shop'} linkLabel="View all" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 md:gap-x-4 gap-y-10">
             {related.map((p) => <ProductCard key={p.id} p={p} />)}
           </div>
         </section>

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
-import { SlidersHorizontal, X, ChevronDown, Check, ArrowLeft } from 'lucide-react';
+import { PromoTile } from '@/components/polka/Polka';
+import { X, ChevronDown, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -57,6 +58,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   // Reset filters when navigation context changes
   useEffect(() => {
@@ -67,6 +69,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
     setMaxPrice(20000);
     setOnSaleOnly(false);
     setInStockOnly(false);
+    setPage(1);
     const categoryParam = params.get('category');
     setActiveCategorySlug(mode === 'category' ? slug ?? null : categoryParam || null);
   }, [mode, slug, q, params]);
@@ -183,196 +186,247 @@ export default function ProductListing({ mode }: { mode: Mode }) {
 
   const showCategoryChips = mode === 'all' || mode === 'search';
 
+  const PAGE_SIZE = 16;
+  const pageCount = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const pageItems = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const floatImg = products[0]?.images?.[0];
+  const [lead, side, ...others] = pageItems;
+  const chipCls = (active: boolean) =>
+    cn(
+      'h-11 md:h-12 px-5 font-sans text-[14px] md:text-[15px] border transition-colors whitespace-nowrap',
+      active ? 'bg-[#BB0006] border-[#BB0006] text-white' : 'bg-white border-[#0F0F0F] text-[#0F0F0F] hover:border-[#BB0006] hover:text-[#BB0006]',
+    );
+  const pill = 'inline-flex items-center gap-2 h-9 px-3 border border-[#0F0F0F] font-sans text-[13px]';
+
   return (
-    <div className="container-px pt-24 pb-12 md:py-24 min-h-screen bg-white">
-      <div className="mb-8 md:mb-12">
-        {mode !== 'all' && (
-          <button
-            onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold text-black/50 hover:text-black transition-colors mb-6"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Back
-          </button>
-        )}
-        <motion.span
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0, ease: [0.22, 1, 0.36, 1] }}
-          className="eyebrow block mb-3 md:mb-4"
-        >
-          {eyebrow}
-        </motion.span>
-        
-        <div className="overflow-hidden py-1">
+    <div className="bg-white min-h-screen pt-[56px] md:pt-[62px]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px] pb-20">
+        {/* Breadcrumb */}
+        <nav className="pt-6 md:pt-8 font-sans text-[12px] md:text-[13px] uppercase text-[#0F0F0F]/60" aria-label="Breadcrumb">
+          <Link to="/" className="hover:text-[#0F0F0F]">Home</Link>
+          <span className="mx-2">/</span>
+          {mode !== 'all' && (
+            <>
+              <Link to="/shop" className="hover:text-[#0F0F0F]">Shop</Link>
+              <span className="mx-2">/</span>
+            </>
+          )}
+          <span className="text-[#0F0F0F] underline underline-offset-4">{mode === 'all' ? 'Shop' : title}</span>
+        </nav>
+
+        {/* Oversized title with floating product */}
+        <div className="relative mt-4 md:mt-6">
           <motion.h1
-            initial={{ opacity: 0, y: '100%' }}
-            animate={{ opacity: 1, y: '0%' }}
-            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            className="display-2 font-elegant font-light uppercase tracking-tight text-3xl md:text-5xl"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display font-[800] uppercase text-[#0F0F0F] leading-[0.82] text-center break-words text-[clamp(56px,14.5vw,210px)]"
           >
             {title}
           </motion.h1>
+          {floatImg && (
+            <motion.img
+              src={floatImg}
+              alt=""
+              aria-hidden="true"
+              initial={{ opacity: 0, rotate: -4 }}
+              animate={{ opacity: 1, y: [0, -8, 0], rotate: -4 }}
+              transition={{ opacity: { duration: 0.6, delay: 0.4 }, y: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
+              className="hidden md:block absolute right-[16%] -top-[8%] w-[7.5%] aspect-[3/4] object-cover shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
+            />
+          )}
+          <p className="text-center font-sans text-[13px] md:text-[14px] text-[#0F0F0F]/60 mt-3">
+            {products.length} {products.length === 1 ? 'piece' : 'pieces'}
+          </p>
         </div>
 
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[10px] md:text-[11px] tracking-[0.2em] font-ui text-black/40 mt-3 md:mt-4 uppercase"
-        >
-          {products.length} {products.length === 1 ? 'piece' : 'pieces'} found in archive
-        </motion.p>
-      </div>
-
-      {/* Category Chips (Shop All / Search) */}
-      {showCategoryChips && categories.length > 0 && (
-        <div className="mb-8 -mx-4 md:mx-0 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-2 px-4 md:px-0 min-w-max">
-            <button
-              onClick={() => setActiveCategorySlug(null)}
-              className={cn(
-                "px-5 py-2.5 text-[10px] tracking-[0.25em] uppercase font-ui font-bold border transition-all duration-300 whitespace-nowrap",
-                !activeCategorySlug
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-black/80 border-black/30 hover:border-black hover:text-black"
-              )}
+        {/* Category chips */}
+        {showCategoryChips && categories.length > 0 && (
+          <div className="mt-8 md:mt-10 -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto scrollbar-hide">
+            <div
+              className="flex md:grid gap-2 md:gap-3 min-w-max md:min-w-0"
+              style={{ gridTemplateColumns: `repeat(${Math.min(categories.length + 1, 7)}, minmax(0, 1fr))` }}
             >
-              All Pieces
-            </button>
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setActiveCategorySlug(c.slug)}
-                className={cn(
-                  "px-5 py-2.5 text-[10px] tracking-[0.25em] uppercase font-ui font-bold border transition-all duration-300 whitespace-nowrap",
-                  activeCategorySlug === c.slug
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-black/60 border-black/15 hover:border-black hover:text-black"
-                )}
-              >
-                {c.name}
+              <button onClick={() => { setActiveCategorySlug(null); setPage(1); }} className={chipCls(!activeCategorySlug)}>
+                All pieces
               </button>
-            ))}
+              {categories.map((c) => (
+                <button key={c.id} onClick={() => { setActiveCategorySlug(c.slug); setPage(1); }} className={chipCls(activeCategorySlug === c.slug)}>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Filter / sort bar */}
+        <div className="mt-6 flex items-center justify-between gap-3 border-y border-[#0F0F0F]/70 h-12 md:h-[52px] sticky top-[56px] md:top-[62px] bg-white z-20">
+          <button onClick={() => setFiltersOpen(true)} className="inline-flex items-center gap-2 font-sans uppercase text-[13px] md:text-[15px] text-[#0F0F0F] hover:text-[#BB0006]">
+            Filter <ChevronDown className="h-4 w-4" />
+            {activeFilterCount > 0 && (
+              <span className="bg-[#BB0006] text-white h-5 min-w-5 px-1 flex items-center justify-center text-[11px]">{activeFilterCount}</span>
+            )}
+          </button>
+          <div className="relative">
+            <button
+              onClick={() => setSortOpen((o) => !o)}
+              onBlur={() => setTimeout(() => setSortOpen(false), 150)}
+              className="flex items-center gap-2 font-sans uppercase text-[13px] md:text-[15px] text-[#0F0F0F] hover:text-[#BB0006]"
+            >
+              {SORT_OPTIONS.find((o) => o.value === sort)?.label}
+              <ChevronDown className={cn('h-4 w-4 transition-transform', sortOpen && 'rotate-180')} />
+            </button>
+            <AnimatePresence>
+              {sortOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 bg-white border border-[#0F0F0F] min-w-[230px] z-30"
+                >
+                  {SORT_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      onMouseDown={() => { setSort(o.value); setSortOpen(false); setPage(1); }}
+                      className={cn(
+                        'w-full text-left px-4 h-11 font-sans text-[14px] flex items-center justify-between gap-3',
+                        sort === o.value ? 'bg-[#BB0006] text-white' : 'text-[#0F0F0F] hover:bg-[#F1F1F1]',
+                      )}
+                    >
+                      {o.label}
+                      {sort === o.value && <Check className="h-4 w-4" />}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      )}
 
-      {/* Toolbar */}
-      <div className="flex items-center justify-between gap-3 border-y border-black/5 py-5 mb-12 sticky top-[72px] md:top-[80px] bg-white/95 backdrop-blur-xl z-20">
-        <button
-          onClick={() => setFiltersOpen(true)}
-          className="inline-flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-ui font-bold hover:text-accent transition-colors"
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5" /> Filters
-          {activeFilterCount > 0 && (
-            <span className="bg-accent text-white h-5 w-5 rounded-full flex items-center justify-center text-[9px]">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-
-        {/* Custom Sort Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setSortOpen((o) => !o)}
-            onBlur={() => setTimeout(() => setSortOpen(false), 150)}
-            className="flex items-center gap-2 text-[10px] tracking-[0.3em] font-ui font-bold uppercase hover:text-accent transition-colors"
-          >
-            <span className="hidden md:inline text-black/30 font-light">Sort:</span>
-            {SORT_OPTIONS.find((o) => o.value === sort)?.label}
-            <ChevronDown className={cn("h-3 w-3 transition-transform", sortOpen && "rotate-180")} />
-          </button>
-          <AnimatePresence>
-            {sortOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-3 bg-white border border-black/10 shadow-2xl min-w-[220px] z-30"
-              >
-                {SORT_OPTIONS.map((o) => (
-                  <button
-                    key={o.value}
-                    onMouseDown={() => { setSort(o.value); setSortOpen(false); }}
-                    className={cn(
-                      "w-full text-left px-5 py-3 text-[10px] tracking-[0.25em] uppercase font-ui font-bold transition-colors flex items-center justify-between gap-3",
-                      sort === o.value ? "bg-black text-white" : "text-black/70 hover:bg-black/5 hover:text-black"
-                    )}
-                  >
-                    {o.label}
-                    {sort === o.value && <Check className="h-3 w-3" />}
-                  </button>
-                ))}
-              </motion.div>
+        {/* Active filter pills */}
+        {activeFilterCount > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mt-5">
+            {selectedBrands.map((bid) => {
+              const b = brands.find((x) => x.id === bid);
+              if (!b) return null;
+              return (
+                <button key={bid} onClick={() => toggle(selectedBrands, bid, setSelectedBrands)} className={pill}>
+                  {b.name} <X className="h-3.5 w-3.5" />
+                </button>
+              );
+            })}
+            {selectedSizes.map((sz) => (
+              <button key={sz} onClick={() => toggle(selectedSizes, sz, setSelectedSizes)} className={pill}>
+                Size {sz} <X className="h-3.5 w-3.5" />
+              </button>
+            ))}
+            {selectedColors.map((c) => (
+              <button key={c} onClick={() => toggle(selectedColors, c, setSelectedColors)} className={pill}>
+                {c} <X className="h-3.5 w-3.5" />
+              </button>
+            ))}
+            {onSaleOnly && <button onClick={() => setOnSaleOnly(false)} className={pill}>On sale <X className="h-3.5 w-3.5" /></button>}
+            {inStockOnly && <button onClick={() => setInStockOnly(false)} className={pill}>In stock <X className="h-3.5 w-3.5" /></button>}
+            {(minPrice > 0 || maxPrice < 20000) && (
+              <button onClick={() => { setMinPrice(0); setMaxPrice(20000); }} className={pill}>
+                ₹{minPrice.toLocaleString('en-IN')} – ₹{maxPrice.toLocaleString('en-IN')} <X className="h-3.5 w-3.5" />
+              </button>
             )}
-          </AnimatePresence>
+            <button onClick={clearFilters} className="font-sans text-[13px] uppercase text-[#BB0006] underline underline-offset-4 ml-2">Clear all</button>
+          </div>
+        )}
+
+        <div className="mt-8 md:mt-10">
+          {loading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-3 md:gap-x-4 gap-y-10">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="space-y-3 animate-pulse">
+                  <div className="aspect-[252/292] bg-[#F1F1F1]" />
+                  <div className="h-4 bg-[#F1F1F1] w-3/4" />
+                  <div className="h-4 bg-[#F1F1F1] w-1/4" />
+                </div>
+              ))}
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-32">
+              <p className="font-display font-[800] uppercase text-[40px] md:text-[64px] leading-none text-[#0F0F0F]">Nothing here yet</p>
+              <p className="font-sans text-[15px] text-[#0F0F0F]/60 mt-3 mb-6">No pieces match these filters.</p>
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="h-12 px-8 bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001]">
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Mobile: 2-col grid */}
+              <div className="grid md:hidden grid-cols-2 gap-x-3 gap-y-8">
+                {pageItems.map((p) => <ProductCard key={p.id} p={p} />)}
+              </div>
+              {/* Desktop: Polka asymmetric catalogue */}
+              <div className="hidden md:grid grid-cols-4 gap-x-4 gap-y-12">
+                {lead && (
+                  <div className="col-span-2 row-span-2">
+                    <ProductCard p={lead} large />
+                  </div>
+                )}
+                <PromoTile className="col-start-3 row-start-1" word="The archive" kicker={`${products.length} pieces`} cta="Browse all" />
+                <div className="col-start-4 row-start-1">{side && <ProductCard p={side} />}</div>
+                <p className="col-start-3 col-span-2 self-end font-sans text-[15px] leading-relaxed text-[#0F0F0F] max-w-[520px] pb-14">
+                  Explore the archive: outerwear, knitwear, denim and essentials. Pick the pieces you will keep coming back to.
+                </p>
+                {others.map((p, i) => {
+                  // Every ninth piece becomes a feature tile, like the Polka catalogue.
+                  const feature = i % 9 === 5;
+                  return (
+                    <div key={p.id} className={feature ? 'col-span-2 row-span-2' : undefined}>
+                      <ProductCard p={p} large={feature} />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {pageCount > 1 && (
+                <div className="mt-14 flex flex-col items-center gap-5">
+                  {page < pageCount && (
+                    <button onClick={() => setPage(page + 1)} className="font-sans text-[14px] md:text-[15px] uppercase text-[#BB0006] underline underline-offset-4">
+                      View more
+                    </button>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setPage(Math.max(1, page - 1))}
+                      disabled={page === 1}
+                      aria-label="Previous page"
+                      className="w-9 h-9 bg-[#BB0006] text-white flex items-center justify-center disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
+                    {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
+                      <button
+                        key={n}
+                        onClick={() => setPage(n)}
+                        className={cn('font-sans text-[15px] w-6', n === page ? 'text-[#BB0006] font-bold underline underline-offset-4' : 'text-[#0F0F0F]')}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setPage(Math.min(pageCount, page + 1))}
+                      disabled={page === pageCount}
+                      aria-label="Next page"
+                      className="w-9 h-9 bg-[#BB0006] text-white flex items-center justify-center disabled:opacity-40"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
-
-      {/* Active Filter Pills */}
-      {activeFilterCount > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-8">
-          {selectedBrands.map((bid) => {
-            const b = brands.find((x) => x.id === bid);
-            if (!b) return null;
-            return (
-              <button key={bid} onClick={() => toggle(selectedBrands, bid, setSelectedBrands)}
-                className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/5 hover:bg-black/10 text-[10px] tracking-[0.2em] uppercase font-ui">
-                {b.name} <X className="h-3 w-3" />
-              </button>
-            );
-          })}
-          {selectedSizes.map((s) => (
-            <button key={s} onClick={() => toggle(selectedSizes, s, setSelectedSizes)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/5 hover:bg-black/10 text-[10px] tracking-[0.2em] uppercase font-ui">
-              Size {s} <X className="h-3 w-3" />
-            </button>
-          ))}
-          {selectedColors.map((c) => (
-            <button key={c} onClick={() => toggle(selectedColors, c, setSelectedColors)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/5 hover:bg-black/10 text-[10px] tracking-[0.2em] uppercase font-ui">
-              {c} <X className="h-3 w-3" />
-            </button>
-          ))}
-          {onSaleOnly && <button onClick={() => setOnSaleOnly(false)} className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/5 hover:bg-black/10 text-[10px] tracking-[0.2em] uppercase font-ui">On Sale <X className="h-3 w-3" /></button>}
-          {inStockOnly && <button onClick={() => setInStockOnly(false)} className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/5 hover:bg-black/10 text-[10px] tracking-[0.2em] uppercase font-ui">In Stock <X className="h-3 w-3" /></button>}
-          {(minPrice > 0 || maxPrice < 20000) && (
-            <button onClick={() => { setMinPrice(0); setMaxPrice(20000); }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-black/5 hover:bg-black/10 text-[10px] tracking-[0.2em] uppercase font-ui">
-              ₹{minPrice.toLocaleString('en-IN')} – ₹{maxPrice.toLocaleString('en-IN')} <X className="h-3 w-3" />
-            </button>
-          )}
-          <button onClick={clearFilters} className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold text-accent hover:underline ml-2">
-            Clear All
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="space-y-4 animate-pulse">
-              <div className="aspect-[3/4] bg-muted" />
-              <div className="h-4 bg-muted w-3/4" />
-              <div className="h-4 bg-muted w-1/4" />
-            </div>
-          ))}
-        </div>
-      ) : products.length === 0 ? (
-        <div className="text-center py-40">
-          <p className="text-sm font-ui font-light tracking-[0.2em] text-black/40 uppercase mb-6">No pieces match — try another filter.</p>
-          {activeFilterCount > 0 && (
-            <button onClick={clearFilters} className="text-[10px] tracking-[0.3em] uppercase font-ui font-bold border-b border-black pb-1 hover:text-accent hover:border-accent">
-              Clear All Filters
-            </button>
-          )}
-        </div>
-      ) : (
-        <motion.div layout className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-16">
-          {products.map((p) => <ProductCard key={p.id} p={p} />)}
-        </motion.div>
-      )}
 
       {/* Filters Drawer */}
       <AnimatePresence>
@@ -387,7 +441,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
               className="fixed right-0 top-0 h-full w-full sm:w-[460px] bg-white z-[70] flex flex-col shadow-2xl"
             >
               <div className="flex items-center justify-between px-10 pt-10 pb-6 border-b border-black/5">
-                <span className="text-[12px] tracking-[0.4em] uppercase font-ui font-bold">Filter Archive</span>
+                <span className="font-display font-[800] uppercase text-[32px] leading-none">Filter</span>
                 <button onClick={() => setFiltersOpen(false)} className="hover:rotate-90 transition-transform duration-500">
                   <X className="h-6 w-6" />
                 </button>
@@ -442,7 +496,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                           className={cn(
                             "min-w-[44px] h-11 px-3 border text-[11px] tracking-[0.15em] uppercase font-ui font-bold transition-all",
                             selectedSizes.includes(s)
-                              ? "bg-black text-white border-black"
+                              ? "bg-[#BB0006] text-white border-[#BB0006]"
                               : "border-black/30 text-black/75 hover:border-black hover:text-black"
                           )}>
                           {s}
@@ -463,7 +517,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
                           <button key={c.name} onClick={() => toggle(selectedColors, c.name, setSelectedColors)}
                             title={c.name}
                             className={cn(
-                              "h-9 w-9 rounded-full border-2 transition-all relative",
+                              "h-9 w-9 border-2 transition-all relative",
                               active ? "border-accent ring-2 ring-accent/30 ring-offset-2" : "border-black/10 hover:border-black/40"
                             )}
                             style={{ backgroundColor: c.hex }}>
@@ -505,11 +559,11 @@ export default function ProductListing({ mode }: { mode: Mode }) {
 
               <div className="flex gap-3 px-10 py-6 border-t border-black/5 bg-white">
                 <button onClick={clearFilters}
-                  className="flex-1 border border-black/30 py-4 text-[11px] tracking-[0.3em] uppercase font-ui font-bold hover:border-black transition-colors">
+                  className="flex-1 border border-[#0F0F0F] h-12 font-sans text-[15px] hover:border-[#BB0006] hover:text-[#BB0006] transition-colors">
                   Clear
                 </button>
                 <button onClick={() => setFiltersOpen(false)}
-                  className="flex-[2] bg-black text-white py-4 text-[11px] tracking-[0.3em] uppercase font-ui font-bold hover:bg-accent transition-colors duration-500">
+                  className="flex-[2] bg-[#BB0006] text-white h-12 font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
                   Show {products.length} Pieces
                 </button>
               </div>
