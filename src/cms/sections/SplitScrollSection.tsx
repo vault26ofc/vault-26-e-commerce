@@ -4,6 +4,8 @@ import type { CMSSection } from '../types';
 import ProductCard from '@/components/product/ProductCard';
 import { useShopProducts } from '@/components/polka/useShopProducts';
 import { RedTag, SeeAll, TextColumns } from '@/components/polka/Polka';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
 
 /*
  * Polka double scroll (video 5): the left half is pinned Editor's Red with a
@@ -11,9 +13,9 @@ import { RedTag, SeeAll, TextColumns } from '@/components/polka/Polka';
  * normal scrolling product column.
  */
 export default function SplitScrollSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as { phrase?: string; caption?: string; title?: string };
+  const cfg = (section?.config || {}) as ProductPickConfig & { phrase?: string; caption?: string; title?: string; see_all_label?: string; see_all_link?: LinkValue };
   const phrase = cfg.phrase || 'Wear what matters · New season · ';
-  const products = useShopProducts(8);
+  const products = useShopProducts(8, cfg);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const x = useTransform(scrollYProgress, [0, 1], ['0%', '-66%']);
@@ -40,7 +42,7 @@ export default function SplitScrollSection({ section }: { section?: CMSSection }
       <div className="px-4 sm:px-6 md:px-8 lg:px-[30px] py-12 md:py-[min(10vh,96px)]">
         <div className="flex items-end justify-between gap-4 mb-8">
           <RedTag>{cfg.title || 'The edit'}</RedTag>
-          <SeeAll to="/shop">View all</SeeAll>
+          <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label || 'View all'}</SeeAll>
         </div>
         <div className="grid grid-cols-2 gap-x-3 md:gap-x-4 gap-y-10">
           {products.slice(0, 8).map((p, i) => (

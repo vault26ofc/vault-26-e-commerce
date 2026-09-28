@@ -3,6 +3,8 @@ import { PromoTile, SectionHead, Wrap } from '@/components/polka/Polka';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import type { CMSSection, BestSellersConfig } from '../types';
+import { useSectionProducts, toProductCard, PRODUCT_CARD_SELECT, type ProductPickConfig } from '../lib/sectionProducts';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 const FALLBACK_BEST_SELLERS: ProductCardData[] = [
   {
@@ -58,30 +60,10 @@ const FALLBACK_BEST_SELLERS: ProductCardData[] = [
 ];
 
 export default function BestSellersSection({ section }: { section: CMSSection }) {
-  const cfg = section.config as BestSellersConfig;
-  const [products, setProducts] = useState<ProductCardData[]>([]);
-
-  useEffect(() => {
-    supabase
-      .from('products')
-      .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
-      .eq('is_active', true)
-      .limit(Math.max(cfg.product_count || 0, 6))
-      .then(({ data }) => {
-        const loaded = (data || []).map((p: any) => {
-          const variants = p.product_variants || [];
-          return {
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            images: Array.isArray(p.images) && p.images.length > 0 ? p.images : ['/camo_zip_up_hoodie.png', '/camo_zip_up_hoodie_back.png'],
-            price: Number(variants[0]?.price || 0),
-            comparePrice: variants[0]?.compare_price ? Number(variants[0].compare_price) : null,
-            brand: p.brands?.name || 'VAULT 26',
-          };
-        });
-        setProducts(loaded.length > 0 ? loaded : FALLBACK_BEST_SELLERS);
-      }, () => setProducts(FALLBACK_BEST_SELLERS));
+  const cfg = section.config as BestSellersConfig & ProductPickConfig & { cta_link?: LinkValue };
+  const { products } = useSectionProducts(cfg, async () => {
+    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).limit(Math.max(cfg.product_count || 0, 6));
+    return (data || []).map(toProductCard);
   }, [cfg.product_count]);
 
   const list = products.length > 0 ? products : FALLBACK_BEST_SELLERS;
@@ -91,7 +73,7 @@ export default function BestSellersSection({ section }: { section: CMSSection })
   return (
     <section className="bg-white py-14 md:py-20">
       <Wrap>
-        <SectionHead title={cfg.title || 'New arrivals'} to={cfg.cta_href || '/shop'} linkLabel={cfg.cta_label || 'View all'} />
+        <SectionHead title={cfg.title || 'New arrivals'} to={resolveHref(cfg.cta_link ?? cfg.cta_href, '/shop')} linkLabel={cfg.cta_label || 'View all'} />
 
         {/* Mobile: swipe row */}
         <div className="md:hidden -mx-4 px-4 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-hide">

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import type { CMSSection } from '../types';
+import { useSectionProducts, toProductCard, PRODUCT_CARD_SELECT, type ProductPickConfig } from '../lib/sectionProducts';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 const FALLBACK_LINEN_PRODUCTS: ProductCardData[] = [
   {
@@ -59,41 +61,12 @@ const FALLBACK_LINEN_PRODUCTS: ProductCardData[] = [
   }
 ];
 
-export default function LinenCollectionSection({ section: _section }: { section?: CMSSection }) {
-  const [products, setProducts] = useState<ProductCardData[]>([]);
-
-  useEffect(() => {
-    Promise.resolve(supabase
-      .from('products')
-      .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
-      .eq('is_active', true)
-      .ilike('name', '%linen%')
-      .limit(4))
-      .then(({ data }) => {
-        const loaded = (data || []).map((p: any) => {
-          const variants = p.product_variants || [];
-          return {
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            images: Array.isArray(p.images) && p.images.length > 0 ? p.images : [FALLBACK_LINEN_PRODUCTS[0].images[0]],
-            price: Number(variants[0]?.price || 0),
-            comparePrice: variants[0]?.compare_price ? Number(variants[0].compare_price) : null,
-            brand: p.brands?.name || 'VAULT 26',
-            isNew: true,
-          };
-        });
-
-        if (loaded.length > 0) {
-          setProducts(loaded);
-        } else {
-          setProducts(FALLBACK_LINEN_PRODUCTS);
-        }
-      })
-      .catch(() => {
-        setProducts(FALLBACK_LINEN_PRODUCTS);
-      });
-  }, []);
+export default function LinenCollectionSection({ section }: { section?: CMSSection }) {
+  const cfg = (section?.config || {}) as ProductPickConfig & { title?: string; subtitle?: string; cta_label?: string; cta_link?: LinkValue };
+  const { products } = useSectionProducts(cfg, async () => {
+    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).ilike('name', '%linen%').limit(4);
+    return (data || []).map((p) => ({ ...toProductCard(p), isNew: true }));
+  });
 
   const displayProducts = products.length > 0 ? products : FALLBACK_LINEN_PRODUCTS;
 
@@ -104,10 +77,10 @@ export default function LinenCollectionSection({ section: _section }: { section?
         {/* Section Header (Daily Paper Style) */}
         <div className="mb-5 md:mb-7 text-left px-1">
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
-            SPRING / SUMMER LINEN EDIT
+            {cfg.title || 'SPRING / SUMMER LINEN EDIT'}
           </h2>
           <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
-            NATURAL FIBERS & BREATHABLE SILHOUETTES
+            {cfg.subtitle || 'NATURAL FIBERS & BREATHABLE SILHOUETTES'}
           </p>
         </div>
 
@@ -121,10 +94,10 @@ export default function LinenCollectionSection({ section: _section }: { section?
         {/* Centered Outline SHOP NOW Button */}
         <div className="pt-10 md:pt-14 text-center">
           <Link
-            to="/category/men?type=shirts"
+            to={resolveHref(cfg.cta_link, '/category/men?type=shirts')}
             className="inline-block border border-black text-black hover:bg-black hover:text-white px-9 py-3.5 text-xs font-sans font-bold tracking-[0.2em] uppercase transition-all duration-300 rounded-none shadow-none cursor-pointer"
           >
-            EXPLORE LINEN CAPSULE
+            {cfg.cta_label || 'EXPLORE LINEN CAPSULE'}
           </Link>
         </div>
       </div>

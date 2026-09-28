@@ -71,6 +71,18 @@ export const SECTION_META: Record<string, { label: string; description: string }
   influencer_picks: { label: 'Influencer Picks', description: 'Grid of influencer/creator style picks with video or link' },
 };
 
+// ─── Field shortcuts ─────────────────────────────────────────────────────────
+/** "Automatic" (the section's built-in choice) or hand-picked products via search. */
+const PRODUCTS = (max?: number): FieldDef[] => [
+  { key: 'product_mode', label: 'Products shown', type: 'select', options: [{ value: 'auto', label: 'Automatic' }, { value: 'manual', label: 'Pick products' }] },
+  { key: 'product_slugs', label: 'Pick products', type: 'products', max, showIf: { key: 'product_mode', equals: 'manual' },
+    hint: max ? `Up to ${max}. Search, click to add, arrows to reorder.` : 'Search, click to add, arrows to reorder.' },
+];
+const LINK = (key: string, label: string): FieldDef => ({ key, label, type: 'link', hint: 'Pick a product, a category or a page.' });
+const MEDIA = (key: string, label: string, kind: FieldDef['kind'] = 'image'): FieldDef => ({ key, label, type: 'media', kind });
+const TEXT = (key: string, label: string, placeholder?: string): FieldDef => ({ key, label, type: 'text', placeholder });
+const AREA = (key: string, label: string, placeholder?: string): FieldDef => ({ key, label, type: 'textarea', placeholder });
+
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   hero: [
     { key: 'heading',           label: 'Main Heading',        type: 'text',     placeholder: 'BEYOND' },
@@ -91,8 +103,9 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { key: 'title',        label: 'Section Title',    type: 'text' },
     { key: 'subtitle',     label: 'Subtitle',         type: 'text' },
     { key: 'cta_label',    label: 'CTA Label',        type: 'text' },
-    { key: 'cta_href',     label: 'CTA Link',         type: 'text' },
-    { key: 'product_count',label: 'Products to Show', type: 'number' },
+    LINK('cta_link', 'CTA goes to'),
+    { key: 'product_count',label: 'Products to Show (automatic mode)', type: 'number' },
+    ...PRODUCTS(),
   ],
   text_reveal: [
     { key: 'words',           label: 'Words (JSON array)',  type: 'json', hint: '["ATTITUDE","CONFIDENCE"]' },
@@ -119,8 +132,9 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { key: 'title',        label: 'Section Title',    type: 'text' },
     { key: 'subtitle',     label: 'Subtitle',         type: 'text' },
     { key: 'cta_label',    label: 'CTA Label',        type: 'text' },
-    { key: 'cta_href',     label: 'CTA Link',         type: 'text' },
-    { key: 'product_count',label: 'Products to Show', type: 'number' },
+    LINK('cta_link', 'CTA goes to'),
+    { key: 'product_count',label: 'Products to Show (automatic mode)', type: 'number' },
+    ...PRODUCTS(),
   ],
   category_grid: [
     { key: 'categories', label: 'Categories (JSON)', type: 'json', hint: '[{slug, title, image, href, watermark, badge?}]' },
@@ -164,5 +178,63 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   influencer_picks: [
     { key: 'heading', label: 'Heading', type: 'text', placeholder: 'STYLED BY' },
     { key: 'subtitle', label: 'Subtitle', type: 'text', placeholder: 'INFLUENCER PICKS' },
+  ],
+  collections: [
+    TEXT('title', 'Heading', 'NEW COLLECTION'), TEXT('subtitle', 'Subheading', 'SEASONAL ARCHIVE 01'),
+    TEXT('cta_label', 'Button text', 'VIEW ALL COLLECTIONS'), LINK('cta_link', 'Button goes to'),
+    ...PRODUCTS(4),
+  ],
+  linen_collection: [
+    TEXT('title', 'Heading', 'SPRING / SUMMER LINEN EDIT'), TEXT('subtitle', 'Subheading', 'NATURAL FIBERS & BREATHABLE SILHOUETTES'),
+    TEXT('cta_label', 'Button text', 'EXPLORE LINEN CAPSULE'), LINK('cta_link', 'Button goes to'),
+    ...PRODUCTS(4),
+  ],
+  product_marquee: [
+    TEXT('title', 'Tag text', 'Picked for you'), MEDIA('image', 'Background photo'),
+    TEXT('see_all_label', 'Link text', 'Shop all'), LINK('see_all_link', 'Link goes to'),
+    ...PRODUCTS(),
+  ],
+  drop_countdown: [
+    TEXT('eyebrow', 'Small label', 'Look 07 · Archive 01'), TEXT('title', 'Heading', 'Shop the look'),
+    MEDIA('image', 'Look photo'),
+    TEXT('cta_label', 'Button text', 'Full look'), LINK('cta_link', 'Button goes to'),
+    TEXT('button_label', 'Product button text', 'Choose size'),
+    ...PRODUCTS(4),
+    { key: 'spots', label: 'Hotspots on the photo (one per product, in order)', type: 'list', itemLabel: 'Hotspot',
+      hint: 'Position in % from the left (x) and from the top (y).',
+      itemFields: [{ key: 'x', label: 'From left %', type: 'number' }, { key: 'y', label: 'From top %', type: 'number' }] },
+  ],
+  split_scroll: [
+    TEXT('phrase', 'Moving phrase', 'Wear what matters · New season · '), AREA('caption', 'Caption'),
+    TEXT('title', 'Tag text', 'The edit'), TEXT('see_all_label', 'Link text', 'View all'), LINK('see_all_link', 'Link goes to'),
+    ...PRODUCTS(8),
+  ],
+  standing_look: [
+    MEDIA('image', 'Model photo'), TEXT('title', 'Column heading', 'Complete the look'),
+    TEXT('see_all_label', 'Link text', 'All'), LINK('see_all_link', 'Link goes to'),
+    AREA('headline_lines', 'Big headline (one line per row)', 'Built / to be'),
+    TEXT('headline_highlight', 'Highlighted last line', 'lived in'),
+    TEXT('cta_label', 'Button text', 'Shop the full look'), LINK('cta_link', 'Button goes to'),
+    ...PRODUCTS(10),
+  ],
+  phone_showcase: [
+    MEDIA('image', 'Model photo'), TEXT('brand', 'Brand name on the phones', 'Vault 26'),
+    TEXT('screen_title', 'Phone screen title', 'Shop all'),
+    TEXT('chips', 'Filter chips (comma separated)', 'All pieces, New, Bestsellers, Only here, Pre-order, Sale'),
+    TEXT('email', 'Email shown', 'hello@vault26.co.in'), TEXT('phone', 'Phone shown', '+91 99999 99999'),
+    TEXT('hours', 'Hours line', 'Made in India · Mon–Sun 11–20'),
+    TEXT('cta_label', 'Button text', 'Shop on any screen'), LINK('cta_link', 'Button goes to'),
+    ...PRODUCTS(12),
+  ],
+  polka_bento: [
+    TEXT('title', 'Tag text', 'The season board'), TEXT('see_all_label', 'Link text', 'Shop everything'), LINK('see_all_link', 'Link goes to'),
+    MEDIA('campaign_image', 'Campaign tile photo'), TEXT('campaign_title', 'Campaign title', 'Autumn / Winter'),
+    TEXT('campaign_cta', 'Campaign link text', 'Shop the campaign'), LINK('campaign_link', 'Campaign tile goes to'),
+    TEXT('offer_eyebrow', 'Red tile label', 'Members'), TEXT('offer_text', 'Red tile text', '−15% on first order'), LINK('offer_link', 'Red tile goes to'),
+    TEXT('stat_eyebrow', 'Black tile label', 'Since 2026'), TEXT('stat_value', 'Black tile number', '650+'), TEXT('stat_text', 'Black tile text', 'pieces made to outlive the season'),
+    MEDIA('lookbook_image', 'Wide tile photo'), TEXT('lookbook_cta', 'Wide tile button', 'Open the lookbook'), LINK('lookbook_link', 'Wide tile goes to'),
+    MEDIA('tile_image', 'Small photo tile'), TEXT('tile_label', 'Small photo tile label', 'Outerwear'), LINK('tile_link', 'Small photo tile goes to'),
+    TEXT('service_title', 'Outline tile title', 'Delivered in 3–5 days'), TEXT('service_text', 'Outline tile text', 'Free shipping over ₹999 · 7-day returns · COD available'),
+    ...PRODUCTS(3),
   ],
 };

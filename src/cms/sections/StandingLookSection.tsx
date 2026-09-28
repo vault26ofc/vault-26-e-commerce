@@ -3,6 +3,8 @@ import type { CMSSection } from '../types';
 import ProductCard from '@/components/product/ProductCard';
 import { useShopProducts } from '@/components/polka/useShopProducts';
 import { SeeAll, TornEdge } from '@/components/polka/Polka';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
 
 const MODEL = 'https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&q=85&w=1400';
 
@@ -11,8 +13,12 @@ const MODEL = 'https://images.unsplash.com/photo-1516826957135-700dedea698c?auto
  * model stays pinned while a long white product column scrolls past.
  */
 export default function StandingLookSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as { image?: string; title?: string };
-  const products = useShopProducts(12);
+  const cfg = (section?.config || {}) as ProductPickConfig & {
+    image?: string; title?: string; see_all_label?: string; see_all_link?: LinkValue;
+    cta_label?: string; cta_link?: LinkValue; headline_lines?: string; headline_highlight?: string;
+  };
+  const products = useShopProducts(12, cfg);
+  const headline = (cfg.headline_lines || 'Built\nto be').split('\n');
 
   return (
     <section className="relative bg-[#BB0006] overflow-clip">
@@ -29,7 +35,7 @@ export default function StandingLookSection({ section }: { section?: CMSSection 
         <div className="bg-white p-3 md:p-4 shadow-[0_20px_60px_rgba(0,0,0,0.25)] order-2 md:order-1">
           <div className="flex items-center justify-between px-1 pb-3 mb-3 border-b border-[#0F0F0F]/15">
             <span className="font-display font-[800] uppercase text-[22px] leading-none text-[#0F0F0F]">{cfg.title || 'Complete the look'}</span>
-            <SeeAll to="/shop">All</SeeAll>
+            <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label || 'All'}</SeeAll>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-6">
             {products.slice(0, 10).map((p) => (
@@ -47,15 +53,12 @@ export default function StandingLookSection({ section }: { section?: CMSSection 
               loading="lazy"
               className="flex-1 min-h-0 w-auto max-w-full object-cover grayscale contrast-[1.15] mix-blend-multiply"
             />
-            <Link to="/shop" className="mt-4 w-full max-w-[420px] h-12 bg-white text-[#BB0006] font-sans text-[15px] flex items-center justify-center hover:bg-[#F1F1F1] transition-colors">
-              Shop the full look
+            <Link to={resolveHref(cfg.cta_link, '/shop')} className="mt-4 w-full max-w-[420px] h-12 bg-white text-[#BB0006] font-sans text-[15px] flex items-center justify-center hover:bg-[#F1F1F1] transition-colors">
+              {cfg.cta_label || 'Shop the full look'}
             </Link>
             <p className="absolute right-0 top-[10%] font-display font-[800] uppercase text-white text-right leading-[0.9] text-[clamp(40px,5.5vw,84px)]">
-              Built
-              <br />
-              to be
-              <br />
-              <span className="bg-white text-[#BB0006] px-[0.1em]">lived in</span>
+              {headline.map((l, i) => <span key={i}>{l}<br /></span>)}
+              <span className="bg-white text-[#BB0006] px-[0.1em]">{cfg.headline_highlight || 'lived in'}</span>
             </p>
           </div>
         </div>

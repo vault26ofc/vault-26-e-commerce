@@ -7,6 +7,8 @@ import { TornEdge, Wrap, TextColumns } from '@/components/polka/Polka';
 import { useShopProducts } from '@/components/polka/useShopProducts';
 import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
 
 const LOOK = 'https://images.unsplash.com/photo-1520975954732-35dd22299614?auto=format&fit=crop&q=85&w=1600';
 
@@ -24,9 +26,13 @@ const SPOTS = [
  * right; the full look can be added in one go.
  */
 export default function DropCountdownSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as { image?: string; title?: string };
-  const products = useShopProducts(8);
-  const pieces = products.slice(0, SPOTS.length);
+  const cfg = (section?.config || {}) as ProductPickConfig & {
+    image?: string; title?: string; eyebrow?: string; cta_label?: string; cta_link?: LinkValue;
+    button_label?: string; spots?: { x: number | string; y: number | string }[];
+  };
+  const spots = cfg.spots?.length ? cfg.spots.map((s) => ({ x: Number(s.x) || 50, y: Number(s.y) || 50 })) : SPOTS;
+  const products = useShopProducts(8, cfg);
+  const pieces = products.slice(0, spots.length);
   const [active, setActive] = useState(0);
   const current = pieces[active];
   const total = pieces.reduce((n, p) => n + p.price, 0);
@@ -38,7 +44,7 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
       <Wrap className="relative z-[3] py-[clamp(80px,9vw,140px)] grid lg:grid-cols-[1fr_1.1fr_1fr] gap-8 lg:gap-10 items-center">
         {/* Title + list */}
         <div>
-          <p className="font-sans uppercase text-[13px] text-white/60">Look 07 · Archive 01</p>
+          <p className="font-sans uppercase text-[13px] text-white/60">{cfg.eyebrow || 'Look 07 · Archive 01'}</p>
           <h2 className="font-display font-[800] uppercase text-[clamp(52px,6.5vw,104px)] leading-[0.85] mt-2">
             {cfg.title || 'Shop the look'}
           </h2>
@@ -59,15 +65,15 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
               </li>
             ))}
           </ol>
-          <Link to="/shop" className="mt-6 inline-flex h-12 px-7 items-center bg-white text-[#BB0006] font-sans text-[15px] hover:bg-[#F1F1F1] transition-colors">
-            Full look · {inr(total)}
+          <Link to={resolveHref(cfg.cta_link, '/shop')} className="mt-6 inline-flex h-12 px-7 items-center bg-white text-[#BB0006] font-sans text-[15px] hover:bg-[#F1F1F1] transition-colors">
+            {cfg.cta_label || 'Full look'} · {inr(total)}
           </Link>
         </div>
 
         {/* Photo with hotspots */}
         <div className="relative aspect-[3/4] bg-[#1A1A1A] overflow-hidden">
           <img src={cfg.image || LOOK} alt="Styled look" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
-          {SPOTS.slice(0, pieces.length).map((s, i) => (
+          {spots.slice(0, pieces.length).map((s, i) => (
             <button
               key={i}
               onClick={() => setActive(i)}
@@ -114,7 +120,7 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
                   to={`/products/${current.slug}`}
                   className="mt-4 h-12 w-full bg-[#BB0006] text-white font-sans text-[15px] flex items-center justify-center gap-2 hover:bg-[#AA0001] transition-colors"
                 >
-                  <ShoppingBasket className="w-4 h-4" /> Choose size
+                  <ShoppingBasket className="w-4 h-4" /> {cfg.button_label || 'Choose size'}
                 </Link>
               </motion.div>
             )}

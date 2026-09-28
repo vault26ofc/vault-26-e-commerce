@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import type { CMSSection, NewArrivalsConfig } from '../types';
+import { useSectionProducts, toProductCard, PRODUCT_CARD_SELECT, type ProductPickConfig } from '../lib/sectionProducts';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 const FALLBACK_NEW_ARRIVALS: ProductCardData[] = [
   {
@@ -61,43 +63,13 @@ const FALLBACK_NEW_ARRIVALS: ProductCardData[] = [
 ];
 
 export default function NewArrivalsSection({ section }: { section: CMSSection }) {
-  const cfg = section.config as NewArrivalsConfig;
-  const [products, setProducts] = useState<ProductCardData[]>([]);
-
-  useEffect(() => {
-    Promise.resolve(supabase
-      .from('products')
-      .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(cfg.product_count || 4))
-      .then(({ data }) => {
-        const loaded = (data || []).map((p: any) => {
-          const variants = p.product_variants || [];
-          const price = Number(variants[0]?.price || 0);
-          const comparePrice = variants[0]?.compare_price ? Number(variants[0].compare_price) : null;
-          return {
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            images: Array.isArray(p.images) && p.images.length > 0 ? p.images : ['/camo_zip_up_hoodie.png'],
-            price: price,
-            comparePrice: comparePrice,
-            brand: p.brands?.name || 'VAULT 26',
-            isNew: true,
-          };
-        });
-
-        if (loaded.length > 0) {
-          setProducts(loaded);
-        } else {
-          setProducts(FALLBACK_NEW_ARRIVALS);
-        }
-      })
-      .catch(() => {
-        setProducts(FALLBACK_NEW_ARRIVALS);
-      });
+  const cfg = section.config as NewArrivalsConfig & ProductPickConfig & { cta_link?: LinkValue };
+  const { products: loaded } = useSectionProducts(cfg, async () => {
+    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true)
+      .order('created_at', { ascending: false }).limit(cfg.product_count || 4);
+    return (data || []).map((p) => ({ ...toProductCard(p), isNew: true }));
   }, [cfg.product_count]);
+  const products = loaded;
 
   const displayProducts = products.length > 0 ? products : FALLBACK_NEW_ARRIVALS;
 
@@ -125,7 +97,7 @@ export default function NewArrivalsSection({ section }: { section: CMSSection })
         {/* Centered Outline SHOP NOW Button */}
         <div className="pt-10 md:pt-14 text-center">
           <Link
-            to={cfg.cta_href || "/shop"}
+            to={resolveHref(cfg.cta_link ?? cfg.cta_href, "/shop")}
             className="inline-block border border-black text-black hover:bg-black hover:text-white px-9 py-3.5 text-xs font-sans font-bold tracking-[0.2em] uppercase transition-all duration-300 rounded-none shadow-none cursor-pointer"
           >
             {cfg.cta_label || "SHOP NEW ARRIVALS"}

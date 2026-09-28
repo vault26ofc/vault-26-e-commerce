@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { ProductCardData } from '@/components/product/ProductCard';
+import { fetchPickedProducts, isManual, type ProductPickConfig } from '@/cms/lib/sectionProducts';
 
 export const FALLBACK_PRODUCTS: ProductCardData[] = [
   { id: 'fb-1', slug: 'aop-boxy-camo-zip-up-hoodie', name: 'AOP Boxy Camo Zip Up Hoodie', images: ['/camo_zip_up_hoodie.png', '/camo_zip_up_hoodie_back.png'], price: 7490, comparePrice: 12490 },
@@ -9,12 +10,19 @@ export const FALLBACK_PRODUCTS: ProductCardData[] = [
   { id: 'fb-4', slug: 'black-camo-t-shirt', name: 'Black Camo T-Shirt', images: ['/black_camo_tshirt.png', '/black_camo_tshirt_back.png'], price: 3490 },
 ];
 
-/** Active catalogue products mapped to card data, with a static fallback. */
-export function useShopProducts(limit = 8) {
+/**
+ * Active catalogue products mapped to card data, with a static fallback. When the section's admin
+ * config says "Pick products", exactly those products are shown, in the picked order.
+ */
+export function useShopProducts(limit = 8, pick: ProductPickConfig = {}) {
   const [products, setProducts] = useState<ProductCardData[]>(FALLBACK_PRODUCTS);
 
   useEffect(() => {
     let cancelled = false;
+    if (isManual(pick)) {
+      fetchPickedProducts(pick.product_slugs!).then((list) => { if (!cancelled && list.length) setProducts(list); });
+      return () => { cancelled = true; };
+    }
     supabase
       .from('products')
       .select('id, slug, name, images, product_variants(price, compare_price)')
@@ -39,7 +47,8 @@ export function useShopProducts(limit = 8) {
     return () => {
       cancelled = true;
     };
-  }, [limit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limit, pick.product_mode, (pick.product_slugs || []).join(',')]);
 
   return products;
 }

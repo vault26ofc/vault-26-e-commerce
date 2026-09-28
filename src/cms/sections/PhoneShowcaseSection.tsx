@@ -7,6 +7,8 @@ import type { ProductCardData } from '@/components/product/ProductCard';
 import { useShopProducts } from '@/components/polka/useShopProducts';
 import { TornEdge } from '@/components/polka/Polka';
 import { inr } from '@/lib/format';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
 
 const MODEL = 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&q=85&w=1400';
 const CHIPS = ['All pieces', 'New', 'Bestsellers', 'Only here', 'Pre-order', 'Sale'];
@@ -56,11 +58,11 @@ function MiniCard({ p }: { p: ProductCardData }) {
   );
 }
 
-function PhoneBar() {
+function PhoneBar({ brand }: { brand: string }) {
   return (
     <div className="bg-[#BB0006] text-white h-[58px] pt-6 px-3 flex items-center justify-between">
       <Menu className="w-4 h-4" />
-      <span className="font-display font-[800] uppercase text-[15px] leading-none">Vault 26</span>
+      <span className="font-display font-[800] uppercase text-[15px] leading-none">{brand}</span>
       <span className="flex gap-2"><Search className="w-4 h-4" /><ShoppingBasket className="w-4 h-4" /></span>
     </div>
   );
@@ -72,8 +74,13 @@ function PhoneBar() {
  * pinned; scrolling drives each phone's screen at a different speed.
  */
 export default function PhoneShowcaseSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as { image?: string };
-  const products = useShopProducts(12);
+  const cfg = (section?.config || {}) as ProductPickConfig & {
+    image?: string; brand?: string; screen_title?: string; chips?: string; cta_label?: string; cta_link?: LinkValue;
+    email?: string; phone?: string; hours?: string;
+  };
+  const brand = cfg.brand || 'Vault 26';
+  const chips = cfg.chips ? cfg.chips.split(',').map((c) => c.trim()).filter(Boolean) : CHIPS;
+  const products = useShopProducts(12, cfg);
   const list = [...products, ...products, ...products].slice(0, 14);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
@@ -99,12 +106,12 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
         <div className="relative mx-auto max-w-[1440px] h-full">
           {/* Phone 1 — catalogue */}
           <Phone progress={scrollYProgress} travel="-58%" className="left-[4%] md:left-[7%] top-[9%] w-[40%] sm:w-[30%] md:w-[19%] aspect-[9/19]">
-            <PhoneBar />
+            <PhoneBar brand={brand} />
             <div className="px-3 pt-2 font-sans">
               <p className="flex items-center gap-1 text-[10px] uppercase text-[#0F0F0F]/60"><ChevronLeft className="w-3 h-3" />Home</p>
-              <p className="font-display font-[800] uppercase text-[#0F0F0F] text-[34px] leading-[0.85] mt-1">Shop all</p>
+              <p className="font-display font-[800] uppercase text-[#0F0F0F] text-[34px] leading-[0.85] mt-1">{cfg.screen_title || 'Shop all'}</p>
               <div className="grid grid-cols-3 gap-1 mt-2">
-                {CHIPS.map((c, i) => (
+                {chips.map((c, i) => (
                   <span key={c} className={`h-6 flex items-center justify-center text-[9px] border ${i === 0 ? 'bg-[#BB0006] border-[#BB0006] text-white' : 'border-[#0F0F0F] text-[#0F0F0F]'}`}>{c}</span>
                 ))}
               </div>
@@ -121,7 +128,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
 
           {/* Phone 2 — product grid */}
           <Phone progress={scrollYProgress} travel="-48%" className="hidden sm:block right-[4%] md:right-[18%] top-[24%] w-[30%] md:w-[19%] aspect-[9/19]">
-            <PhoneBar />
+            <PhoneBar brand={brand} />
             <div className="px-3 pt-3">
               {list[3] && <MiniCard p={list[3]} />}
               <div className="grid grid-cols-2 gap-2 mt-3 pb-6">
@@ -148,19 +155,19 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
                   {h} <ChevronDown className="w-3 h-3" />
                 </p>
               ))}
-              <p className="text-[12px] underline mt-4">hello@vault26.co.in</p>
-              <p className="text-[10px] mt-1">+91 99999 99999</p>
-              <p className="text-[10px]">Made in India · Mon–Sun 11–20</p>
-              <p className="font-display font-[800] uppercase text-[46px] leading-[0.85] mt-4">Vault 26</p>
-              <p className="text-[8px] uppercase mt-3 leading-relaxed">© Vault 26<br />Privacy policy<br />Terms of service</p>
+              <p className="text-[12px] underline mt-4">{cfg.email || 'hello@vault26.co.in'}</p>
+              <p className="text-[10px] mt-1">{cfg.phone || '+91 99999 99999'}</p>
+              <p className="text-[10px]">{cfg.hours || 'Made in India · Mon–Sun 11–20'}</p>
+              <p className="font-display font-[800] uppercase text-[46px] leading-[0.85] mt-4">{brand}</p>
+              <p className="text-[8px] uppercase mt-3 leading-relaxed">© {brand}<br />Privacy policy<br />Terms of service</p>
             </div>
           </Phone>
 
           <Link
-            to="/shop"
+            to={resolveHref(cfg.cta_link, '/shop')}
             className="absolute left-[4%] md:left-auto md:right-[4%] bottom-[5%] z-10 h-12 px-8 bg-white text-[#BB0006] font-sans text-[15px] flex items-center hover:bg-[#F1F1F1] transition-colors"
           >
-            Shop on any screen
+            {cfg.cta_label || 'Shop on any screen'}
           </Link>
         </div>
       </div>
