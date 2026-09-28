@@ -6,6 +6,7 @@ import { useCart, useWishlist } from '@/lib/store';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
+import { productSearchFilter } from '@/lib/search';
 import { cn } from '@/lib/utils';
 
 type Suggestion = { id: string; name: string; slug: string; image: string; price: number; brand?: string };
@@ -179,11 +180,14 @@ export default function Navbar() {
     setSearching(true);
     let cancelled = false;
     debounceRef.current = window.setTimeout(async () => {
+      const filter = await productSearchFilter(trimmed);
+      if (cancelled) return;
+      if (!filter) { setSuggestions([]); setSearching(false); return; }
       const { data } = await supabase
         .from('products')
         .select('id, name, slug, images, brands(name), product_variants(price)')
         .eq('is_active', true)
-        .or(`name.ilike.%${trimmed}%,description.ilike.%${trimmed}%`)
+        .or(filter)
         .limit(6);
       if (cancelled) return;
       setSuggestions(

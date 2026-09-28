@@ -7,6 +7,7 @@ import { X, ChevronDown, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useSEO } from '@/lib/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { productSearchFilter } from '@/lib/search';
 
 type Mode = 'category' | 'brand' | 'search' | 'all';
 
@@ -75,6 +76,8 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   }, [mode, slug, q, params]);
 
   useEffect(() => {
+    // Ignore responses from an older search/category if the shopper has moved on.
+    let cancelled = false;
     (async () => {
       setLoading(true);
       try {
@@ -106,7 +109,8 @@ export default function ProductListing({ mode }: { mode: Mode }) {
           if (br) { query = query.eq('brand_id', br.id); setTitle(br.name); setEyebrow('Brand Archive'); }
         }
         if (mode === 'search') {
-          if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
+          const filter = await productSearchFilter(q);
+          if (filter) query = query.or(filter);
           setTitle(q ? `Results for "${q}"` : 'Search');
           setEyebrow('Search Results');
         }
@@ -115,14 +119,17 @@ export default function ProductListing({ mode }: { mode: Mode }) {
           setEyebrow('Shop All');
         }
 
-        const { data } = await query.limit(200);
+        const { data, error } = await query.limit(200);
+        if (cancelled) return;
+        if (error) console.warn('Product list error:', error);
         setAllProducts(data || []);
       } catch (e) {
         console.warn('Product list error:', e);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
+    return () => { cancelled = true; };
   }, [slug, mode, q]);
 
   // Derive available sizes/colors from current dataset
@@ -242,7 +249,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
             />
           )}
           <p className="text-center font-sans text-[13px] md:text-[14px] text-[#0F0F0F]/60 mt-3">
-            {products.length} {products.length === 1 ? 'piece' : 'pieces'}
+            {loading ? (mode === 'search' ? 'Searching…' : 'Loading…') : `${products.length} ${products.length === 1 ? 'piece' : 'pieces'}`}
           </p>
         </div>
 
