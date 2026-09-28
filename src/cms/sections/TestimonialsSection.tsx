@@ -41,7 +41,7 @@ const FALLBACK_TESTIMONIALS: Testimonial[] = [
 ];
 
 export default function TestimonialsSection({ section }: { section: CMSSection }) {
-  const cfg = section.config as TestimonialsConfig;
+  const cfg = section.config as TestimonialsConfig & { body?: string; sort_label?: string };
   const { items: dbItems } = useTestimonials();
   const testimonials: Testimonial[] = dbItems && dbItems.length > 0 ? dbItems : FALLBACK_TESTIMONIALS;
   const [i, setI] = useState(0);
@@ -67,12 +67,12 @@ export default function TestimonialsSection({ section }: { section: CMSSection }
         <div>
           <h2 className="font-display font-[800] uppercase text-[48px] md:text-[72px] leading-none">{cfg.heading || 'Reviews'}</h2>
           <p className="font-sans text-[15px] md:text-[16px] leading-relaxed mt-4 max-w-[360px]">
-            What our customers say about the pieces that made it into their wardrobe. Honest impressions, favourite fits and recommendations.
+            {cfg.body || 'What our customers say about the pieces that made it into their wardrobe. Honest impressions, favourite fits and recommendations.'}
           </p>
         </div>
         <div>
           <div className="border-y border-white/70 h-12 flex items-center justify-between font-sans uppercase text-[14px]">
-            <span>Newest first</span>
+            <span>{cfg.sort_label || 'Newest first'}</span>
             <span className="tabular-nums">{String((i % testimonials.length) + 1).padStart(2, '0')} / {String(testimonials.length).padStart(2, '0')}</span>
           </div>
           <div className="pt-8 min-h-[240px]">

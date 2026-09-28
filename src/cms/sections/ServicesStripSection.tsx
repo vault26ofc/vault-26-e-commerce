@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { CMSSection } from '../types';
 import { Num, Wrap } from '@/components/polka/Polka';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 const SERVICES = [
   { title: 'Free shipping', body: 'On every order above ₹999, delivered in 3–5 days across India.', to: '/faq' },
@@ -14,12 +15,16 @@ const SERVICES = [
  * Polka numbered-list board as the store promise: four numbered columns with
  * rule lines, a big display title per service, and an ink underline on hover.
  */
-export default function ServicesStripSection({ section: _section }: { section?: CMSSection }) {
+export default function ServicesStripSection({ section }: { section?: CMSSection }) {
+  const cfg = (section?.config || {}) as { items?: { title?: string; body?: string; link?: LinkValue }[] };
+  const services = cfg.items?.some((s) => s.title)
+    ? cfg.items.filter((s) => s.title).map((s) => ({ title: s.title!, body: s.body || '', to: resolveHref(s.link, '/shop') }))
+    : SERVICES;
   return (
     <section className="bg-white py-14 md:py-20">
       <Wrap>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-[#0F0F0F]">
-          {SERVICES.map((s, i) => (
+          {services.map((s, i) => (
             <motion.div
               key={s.title}
               initial={{ opacity: 0, y: 20 }}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { CMSSection } from '../types';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 const SWATCHES = [
   { name: 'Paper', hex: '#FFFFFF', q: 'white', ink: '#0F0F0F' },
@@ -18,7 +19,16 @@ const BAR_STEP = 0.09;
 const PANEL = [0.5, 0.68] as const;
 const TITLE = [0.62, 0.9] as const;
 
-function Bar({ s, i, progress, onOpen }: { s: (typeof SWATCHES)[number]; i: number; progress: MotionValue<number>; onOpen: () => void }) {
+type Swatch = { name: string; hex: string; q: string; ink: string };
+
+/** Readable text colour on a swatch. */
+const inkFor = (hex: string) => {
+  const h = hex.replace('#', '');
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) || 0);
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150 ? '#0F0F0F' : '#FFFFFF';
+};
+
+function Bar({ s, i, progress, onOpen }: { s: Swatch; i: number; progress: MotionValue<number>; onOpen: () => void }) {
   const a = BAR_START + i * BAR_STEP;
   // Each bar slides in from the right edge with a small overshoot, like the board video.
   const x = useTransform(progress, [a, a + 0.1, a + 0.13], ['105vw', '-1.5vw', '0vw']);
@@ -52,27 +62,33 @@ function Letter({ ch, i, n, progress }: { ch: string; i: number; n: number; prog
  * across, then sets the title letter by letter. Each bar opens a colour search.
  */
 export default function ColourStorySection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as { title?: string };
+  const cfg = (section?.config || {}) as {
+    title?: string; eyebrow?: string; meta?: string; cta_label?: string; cta_link?: LinkValue; swatch_text?: string;
+    swatches?: { name?: string; hex?: string; q?: string }[];
+  };
   const title = cfg.title || 'Colour stories';
+  const swatches: Swatch[] = cfg.swatches?.some((s) => s.name && s.hex)
+    ? cfg.swatches.filter((s) => s.name && s.hex).map((s) => ({ name: s.name!, hex: s.hex!, q: s.q || s.name!.toLowerCase(), ink: inkFor(s.hex!) }))
+    : SWATCHES;
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const panelX = useTransform(scrollYProgress, [PANEL[0], PANEL[1]], ['100%', '0%']);
   const metaOpacity = useTransform(scrollYProgress, [TITLE[0], TITLE[0] + 0.08], [0, 1]);
   const ctaY = useTransform(scrollYProgress, [TITLE[1] - 0.08, TITLE[1]], [30, 0]);
   const [open, setOpen] = useState<number | null>(null);
-  const sw = open !== null ? SWATCHES[open] : null;
+  const sw = open !== null ? swatches[open] : null;
 
   return (
     <section ref={ref} className="relative h-[300vh] bg-white" data-section="colour-story">
       <div className="sticky top-0 h-screen overflow-hidden flex bg-white border-y border-[#0F0F0F]/10">
-        {SWATCHES.map((s, i) => (
+        {swatches.map((s, i) => (
           <Bar key={s.hex} s={s} i={i} progress={scrollYProgress} onOpen={() => setOpen(i)} />
         ))}
         <div className="relative flex-1 overflow-hidden">
           <motion.div style={{ x: panelX }} className="absolute inset-0 bg-[#0F0F0F] text-white p-5 md:p-10 flex flex-col justify-between will-change-transform">
-            <motion.p style={{ opacity: metaOpacity }} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">Shop by colour</motion.p>
+            <motion.p style={{ opacity: metaOpacity }} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">{cfg.eyebrow || 'Shop by colour'}</motion.p>
             <div>
-              <motion.p style={{ opacity: metaOpacity }} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">Lato · body</motion.p>
+              <motion.p style={{ opacity: metaOpacity }} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">{cfg.meta || 'Lato · body'}</motion.p>
               <h2 className="font-display font-[800] uppercase leading-[0.85] text-[clamp(44px,9vw,140px)]" aria-label={title}>
                 {title.split(' ').map((word, w, arr) => {
                   const before = arr.slice(0, w).join(' ').length + (w ? 1 : 0);
@@ -86,8 +102,8 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
                 })}
               </h2>
               <motion.div style={{ opacity: metaOpacity, y: ctaY }}>
-                <Link to="/shop" className="inline-flex mt-6 h-11 md:h-12 px-7 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
-                  Explore the palette
+                <Link to={resolveHref(cfg.cta_link, '/shop')} className="inline-flex mt-6 h-11 md:h-12 px-7 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
+                  {cfg.cta_label || 'Explore the palette'}
                 </Link>
               </motion.div>
             </div>
@@ -121,7 +137,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
                     {sw.name}
                   </motion.h3>
                   <p className="font-sans text-[15px] md:text-[16px] mt-4 max-w-[440px] opacity-85">
-                    Every piece in the archive cut in {sw.name.toLowerCase()} tones — tees, knits, outerwear and accessories.
+                    {(cfg.swatch_text || 'Every piece in the archive cut in {colour} tones — tees, knits, outerwear and accessories.').replace('{colour}', sw.name.toLowerCase())}
                   </p>
                   <Link
                     to={`/search?q=${encodeURIComponent(sw.q)}`}

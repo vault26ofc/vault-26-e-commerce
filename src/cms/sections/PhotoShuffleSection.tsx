@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { CMSSection } from '../types';
 import { TornEdge } from '@/components/polka/Polka';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import { isVideoUrl } from '@/lib/media';
 
 const U = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=700`;
 
@@ -38,8 +40,17 @@ const cellKey = (c: Cell) => (c.kind === 'photo' ? c.src : c.kind === 'brand' ? 
  * places every couple of seconds, next to a large lookbook panel.
  */
 export default function PhotoShuffleSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as { image?: string; cta_href?: string };
-  const [cells, setCells] = useState<Cell[]>(INITIAL);
+  const cfg = (section?.config || {}) as {
+    image?: string; cta_href?: string; cta_link?: LinkValue; photos?: { image?: string }[];
+    brand?: string; brand_lines?: string; panel_title?: string; cta_label?: string;
+  };
+  const custom = (cfg.photos || []).map((p) => p.image).filter(Boolean) as string[];
+  const [cells, setCells] = useState<Cell[]>(() => {
+    if (!custom.length) return INITIAL;
+    // Same 3×4 pattern, filled with the admin's photos (repeated if fewer than 8).
+    let k = 0;
+    return INITIAL.map((c) => (c.kind === 'photo' ? { kind: 'photo' as const, src: `${custom[k % custom.length]}#${k++}` } : c));
+  });
 
   useEffect(() => {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -71,11 +82,9 @@ export default function PhotoShuffleSection({ section }: { section?: CMSSection 
         {/* Shuffling grid */}
         <div className="grid grid-cols-3 grid-rows-4 gap-[2px] p-[2px] pt-[clamp(28px,4vw,64px)] pb-[clamp(28px,4vw,64px)]">
           <div style={{ gridRow: 2, gridColumn: '1 / span 2' }} className="relative z-[1] bg-[#0F0F0F] p-4 md:p-7 flex flex-col justify-center text-white">
-            <span className="font-display font-[800] uppercase text-[clamp(36px,5vw,76px)] leading-[0.85]">Vault 26</span>
+            <span className="font-display font-[800] uppercase text-[clamp(36px,5vw,76px)] leading-[0.85]">{cfg.brand || 'Vault 26'}</span>
             <span className="font-sans uppercase text-[12px] md:text-[15px] leading-[1.5] mt-3 md:mt-4 text-white/85">
-              Collection · Archive 01 · 2026
-              <br />
-              E-commerce
+              {(cfg.brand_lines || 'Collection · Archive 01 · 2026\nE-commerce').split('\n').map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}
             </span>
           </div>
           {cells.map((c) => (
@@ -86,14 +95,16 @@ export default function PhotoShuffleSection({ section }: { section?: CMSSection 
               className="relative overflow-hidden bg-[#0F0F0F]"
             >
               {c.kind === 'photo' && (
-                <img src={c.src} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
+                isVideoUrl(c.src.split('#')[0])
+                  ? <video src={c.src.split('#')[0]} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
+                  : <img src={c.src.split('#')[0]} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
               )}
             </motion.div>
           ))}
         </div>
 
         {/* Lookbook panel */}
-        <Link to={cfg.cta_href || '/lookbook'} className="group relative block min-h-[380px] overflow-hidden">
+        <Link to={resolveHref(cfg.cta_link ?? cfg.cta_href, '/lookbook')} className="group relative block min-h-[380px] overflow-hidden">
           <img
             src={cfg.image || '/accessories_hero_1778236772681.png'}
             alt="Lookbook"
@@ -102,10 +113,10 @@ export default function PhotoShuffleSection({ section }: { section?: CMSSection 
           />
           <div className="absolute inset-x-0 bottom-0 p-5 md:p-8 pb-[clamp(56px,7vw,100px)] flex items-end justify-between gap-4">
             <span className="bg-[#BB0006] text-white font-display font-[800] uppercase text-[30px] md:text-[44px] leading-[0.95] px-[0.14em] pt-[0.1em]">
-              Lookbook
+              {cfg.panel_title || 'Lookbook'}
             </span>
             <span className="bg-white text-[#BB0006] font-sans text-[14px] md:text-[15px] h-11 px-6 flex items-center group-hover:bg-[#F1F1F1]">
-              Shop the look
+              {cfg.cta_label || 'Shop the look'}
             </span>
           </div>
         </Link>

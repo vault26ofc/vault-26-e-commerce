@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { CMSSection } from '../types';
 import { Wrap } from '@/components/polka/Polka';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 type Slide = {
   id: string;
@@ -31,6 +32,7 @@ export default function LookbookSection({ section, isPage = false }: { section?:
   const [slides, setSlides] = useState<Slide[]>([]);
   const heading = section?.config?.heading || 'VAULT 26 JOURNAL';
   const subtitle = section?.config?.subtitle || 'EDITORIAL & LOOKBOOK';
+  const cfg = (section?.config || {}) as { body?: string; cta_label?: string; cta_link?: LinkValue };
 
   useEffect(() => {
     supabase
@@ -55,11 +57,11 @@ export default function LookbookSection({ section, isPage = false }: { section?:
             {title}
           </h2>
           <p className="font-sans text-[15px] md:text-[16px] leading-relaxed text-[#0F0F0F] mt-6 max-w-[440px]">
-            Stories from the studio and the street. Every frame is styled from the current archive, and every piece in it is ready to shop.
+            {cfg.body || 'Stories from the studio and the street. Every frame is styled from the current archive, and every piece in it is ready to shop.'}
           </p>
           {!isPage && (
-            <Link to="/lookbook" className="inline-flex mt-8 h-12 px-8 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
-              Open the lookbook
+            <Link to={resolveHref(cfg.cta_link, '/lookbook')} className="inline-flex mt-8 h-12 px-8 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
+              {cfg.cta_label || 'Open the lookbook'}
             </Link>
           )}
         </div>

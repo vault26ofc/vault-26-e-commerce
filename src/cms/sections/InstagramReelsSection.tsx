@@ -93,7 +93,21 @@ const REELS_DATA: Reel[] = [
   }
 ];
 
-export default function InstagramReelsSection({ section: _section }: { section?: CMSSection }) {
+type ReelsConfig = {
+  handle?: string; tag?: string; follow_label?: string; instagram_url?: string; button_prefix?: string;
+  reels?: { video?: string; poster?: string; caption?: string; likes?: string; comments?: string; shares?: string; product?: string[]; product_label?: string }[];
+};
+
+export default function InstagramReelsSection({ section }: { section?: CMSSection }) {
+  const cfg = (section?.config || {}) as ReelsConfig;
+  const handle = cfg.handle || '@vault26.official';
+  const reels: Reel[] = cfg.reels?.some((r) => r.video)
+    ? cfg.reels.filter((r) => r.video).map((r, i) => ({
+        id: `cms-reel-${i}`, videoUrl: r.video!, posterUrl: r.poster || '', handle, caption: r.caption || '',
+        likes: r.likes || '', comments: r.comments || '', shares: r.shares || '',
+        productSlug: r.product?.[0], productName: r.product_label || '',
+      }))
+    : REELS_DATA;
   const [muted, setMuted] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -131,10 +145,10 @@ export default function InstagramReelsSection({ section: _section }: { section?:
             <div className="flex items-center gap-2.5">
               <Instagram className="w-4 h-4 text-white" />
               <span className="text-[13px] font-sans uppercase text-white/70">
-                @vault26.official
+                {handle}
               </span>
             </div>
-            <RedTag>As seen on Instagram</RedTag>
+            <RedTag>{cfg.tag || 'As seen on Instagram'}</RedTag>
           </div>
 
           <div className="flex items-center gap-4">
@@ -166,12 +180,12 @@ export default function InstagramReelsSection({ section: _section }: { section?:
             </div>
 
             <a
-              href="https://instagram.com"
+              href={cfg.instagram_url || 'https://instagram.com'}
               target="_blank"
               rel="noreferrer"
               className="bg-[#BB0006] text-white hover:bg-[#AA0001] h-10 px-5 text-[14px] font-sans transition-colors inline-flex items-center gap-2"
             >
-              <Instagram className="w-4 h-4" /> Follow us
+              <Instagram className="w-4 h-4" /> {cfg.follow_label || 'Follow us'}
             </a>
           </div>
         </div>
@@ -183,7 +197,7 @@ export default function InstagramReelsSection({ section: _section }: { section?:
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <motion.div style={{ x: beltX }} className="flex gap-2 md:gap-3 w-max will-change-transform">
-            {[...REELS_DATA, ...REELS_DATA.map((r) => ({ ...r, id: `${r.id}-b` }))].map((reel) => {
+            {[...reels, ...reels.map((r) => ({ ...r, id: `${r.id}-b` }))].map((reel) => {
               const isPlaying = playingId === reel.id;
 
               return (
@@ -262,7 +276,7 @@ export default function InstagramReelsSection({ section: _section }: { section?:
                           className="w-full h-9 px-3 bg-[#BB0006] hover:bg-[#AA0001] text-white text-[13px] font-sans flex items-center justify-center gap-1.5 transition-colors"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
-                          Shop {reel.productName}
+                          {cfg.button_prefix || 'Shop'} {reel.productName}
                         </Link>
                       </div>
                     )}

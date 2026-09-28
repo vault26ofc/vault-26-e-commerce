@@ -149,18 +149,18 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     TEXT('bottom_label', 'Bottom link text', 'Go to catalogue'), LINK('bottom_link', 'Bottom link goes to'),
   ],
   marquee: [
-    { key: 'heading',        label: 'Heading',            type: 'text' },
-    { key: 'heading_italic', label: 'Heading Italic Part',type: 'text' },
-    { key: 'subtext',        label: 'Subtext',            type: 'text' },
-    { key: 'watermark',      label: 'Watermark Character',type: 'text', placeholder: '26' },
+    { key: 'items', label: 'Scrolling messages', type: 'list', itemLabel: 'Message', itemFields: [{ key: 'text', label: 'Text', type: 'text', placeholder: 'FREE SHIPPING ON ORDERS OVER ₹2,500' }] },
+    { key: 'speed', label: 'Seconds per loop (higher = slower)', type: 'number', placeholder: '32' },
   ],
   testimonials: [
-    { key: 'heading',        label: 'Heading',            type: 'text' },
-    { key: 'heading_italic', label: 'Heading Italic',     type: 'text' },
+    { key: 'heading', label: 'Heading', type: 'text', placeholder: 'Reviews' },
+    AREA('body', 'Intro text'), TEXT('sort_label', 'Bar label', 'Newest first'),
   ],
   lookbook: [
     { key: 'heading', label: 'Heading', type: 'text', placeholder: 'VAULT 26 JOURNAL' },
-    { key: 'subtitle', label: 'Subtitle', type: 'text', placeholder: 'EDITORIAL & LOOKBOOK' },
+    { key: 'subtitle', label: 'Small label', type: 'text', placeholder: 'EDITORIAL & LOOKBOOK' },
+    AREA('body', 'Paragraph'),
+    TEXT('cta_label', 'Button text', 'Open the lookbook'), LINK('cta_link', 'Button goes to'),
   ],
   newsletter: [
     { key: 'heading_line1', label: 'Heading Line 1',  type: 'text' },
@@ -271,6 +271,45 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
       { key: 'link', label: 'Card goes to', type: 'link' },
       { key: 'button_label', label: 'Button text (empty = "Shop <title>")', type: 'text' },
       { key: 'tone', label: 'Colour', type: 'select', options: [{ value: 'red', label: 'Red' }, { value: 'ink', label: 'Black' }, { value: 'paper', label: 'Paper' }] },
+    ] },
+  ],
+  instagram_reels: [
+    TEXT('handle', 'Instagram handle', '@vault26.official'), TEXT('tag', 'Tag text', 'As seen on Instagram'),
+    TEXT('follow_label', 'Follow button text', 'Follow us'),
+    { key: 'instagram_url', label: 'Instagram profile link', type: 'url', placeholder: 'https://instagram.com/vault26.official' },
+    TEXT('button_prefix', 'Product button word', 'Shop'),
+    { key: 'reels', label: 'Reels', type: 'list', itemLabel: 'Reel', itemFields: [
+      { key: 'video', label: 'Video', type: 'media', kind: 'video' },
+      { key: 'poster', label: 'Cover image', type: 'media', kind: 'image' },
+      { key: 'caption', label: 'Caption', type: 'text' },
+      { key: 'likes', label: 'Likes', type: 'text', placeholder: '18.4K' },
+      { key: 'comments', label: 'Comments', type: 'text', placeholder: '412' },
+      { key: 'shares', label: 'Shares', type: 'text', placeholder: '2.1K' },
+      { key: 'product', label: 'Product in this reel', type: 'products', max: 1 },
+      { key: 'product_label', label: 'Product button name', type: 'text', placeholder: 'Raw Linen Blazer' },
+    ] },
+  ],
+  photo_shuffle: [
+    { key: 'photos', label: 'Grid photos (8 shown; fewer repeat)', type: 'list', itemLabel: 'Photo', itemFields: [{ key: 'image', label: 'Photo or video', type: 'media', kind: 'any' }] },
+    TEXT('brand', 'Brand tile title', 'Vault 26'), AREA('brand_lines', 'Brand tile lines (one per row)'),
+    MEDIA('image', 'Side panel photo', 'any'), TEXT('panel_title', 'Side panel title', 'Lookbook'),
+    TEXT('cta_label', 'Side panel button', 'Shop the look'), LINK('cta_link', 'Side panel goes to'),
+  ],
+  colour_story: [
+    TEXT('title', 'Title', 'Colour stories'), TEXT('eyebrow', 'Top label', 'Shop by colour'), TEXT('meta', 'Small label above title', 'Lato · body'),
+    TEXT('cta_label', 'Button text', 'Explore the palette'), LINK('cta_link', 'Button goes to'),
+    { key: 'swatches', label: 'Colours', type: 'list', itemLabel: 'Colour', itemFields: [
+      { key: 'name', label: 'Name', type: 'text', placeholder: "Editor's red" },
+      { key: 'hex', label: 'Colour', type: 'color' },
+      { key: 'q', label: 'Search word when clicked', type: 'text', placeholder: 'red' },
+    ] },
+    AREA('swatch_text', 'Text when a colour opens ({colour} = its name)'),
+  ],
+  services_strip: [
+    { key: 'items', label: 'Promises', type: 'list', itemLabel: 'Promise', itemFields: [
+      { key: 'title', label: 'Title', type: 'text', placeholder: 'Free shipping' },
+      { key: 'body', label: 'Text', type: 'textarea' },
+      { key: 'link', label: 'Goes to', type: 'link' },
     ] },
   ],
 };
