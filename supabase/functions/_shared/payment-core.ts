@@ -36,3 +36,30 @@ export function validateRefund(requestedRupees: number, refundablePaise: number)
   if (paise > refundablePaise) return { error: `Maximum refundable is ₹${(refundablePaise / 100).toFixed(2)}` };
   return { paise };
 }
+
+/**
+ * Money was captured but confirm_order_payment refused it. The caller always refunds;
+ * this says what to tell the customer and whether to record the refund on the order
+ * (not when the order is already paid by a different payment — that row isn't ours to touch).
+ */
+export function confirmFailure(dbError: string): { status: number; error: string; recordOnOrder: boolean } {
+  if (dbError.includes('OUT_OF_STOCK')) {
+    return { status: 409, recordOnOrder: true, error: 'An item sold out while you were paying. Your payment has been refunded.' };
+  }
+  if (dbError.includes('NOT_PENDING')) {
+    return { status: 409, recordOnOrder: true, error: 'This order was cancelled before your payment completed. Your payment has been refunded.' };
+  }
+  if (dbError.includes('ALREADY_CONFIRMED')) {
+    return { status: 409, recordOnOrder: false, error: 'This order was already paid. Your duplicate payment has been refunded.' };
+  }
+  return { status: 500, recordOnOrder: true, error: "We couldn't confirm your order, so your payment has been refunded. Please try again." };
+}
+
+/** Maps a Razorpay refund status onto our columns. Failed refunds go back to REQUESTED so admin can retry. */
+export function refundOutcome(rzpStatus: string, refundPaise: number, paymentPaise: number) {
+  if (rzpStatus === 'processed') {
+    return { refund_status: 'REFUNDED' as const, paymentRefunded: refundPaise >= paymentPaise, failed: false };
+  }
+  if (rzpStatus === 'failed') return { refund_status: 'REQUESTED' as const, paymentRefunded: false, failed: true };
+  return { refund_status: 'PROCESSING' as const, paymentRefunded: false, failed: false };
+}

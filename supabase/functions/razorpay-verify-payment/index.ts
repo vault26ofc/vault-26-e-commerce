@@ -1,6 +1,6 @@
 import { corsHeaders } from '../_shared/cors.ts';
 import { getUser, json, serviceClient } from '../_shared/http.ts';
-import { amountDuePaise, verifyRazorpaySignature } from '../_shared/payment-core.ts';
+import { amountDuePaise, confirmFailure, refundOutcome, verifyRazorpaySignature } from '../_shared/payment-core.ts';
 import { capturePayment, createRefund, getPayment, RazorpayError } from '../_shared/razorpay.ts';
 
 Deno.serve(async (req) => {
@@ -43,24 +43,24 @@ Deno.serve(async (req) => {
     });
     if (!error) return json({ success: true });
 
-    if (error.message.includes('OUT_OF_STOCK')) {
-      const refund = await createRefund(razorpay_payment_id, expected, { order_id: order.id, reason: 'out_of_stock' });
+    // Money was captured but the order could not be confirmed: never keep it.
+    const failure = confirmFailure(error.message);
+    console.error('confirm_order_payment failed; refunding', order.id, error.message);
+    const refund = await createRefund(razorpay_payment_id, expected, { order_id: order.id, reason: 'order_not_confirmed' });
+    if (failure.recordOnOrder) {
+      const outcome = refundOutcome(refund.status, expected, expected);
       await db.from('orders').update({
         status: 'CANCELLED',
-        payment_status: 'REFUNDED',
         razorpay_payment_id,
         payment_amount_paise: expected,
         razorpay_refund_id: refund.id,
         refund_amount: expected / 100,
-        refund_status: refund.status === 'processed' ? 'REFUNDED' : 'PROCESSING',
-        refunded_at: refund.status === 'processed' ? new Date().toISOString() : null,
-        refund_notes: 'An item sold out before your payment completed. Your payment has been refunded automatically.',
+        refund_status: outcome.refund_status,
+        ...(outcome.paymentRefunded ? { payment_status: 'REFUNDED', refunded_at: new Date().toISOString() } : {}),
+        refund_notes: failure.error,
       }).eq('id', order.id);
-      return json({ error: 'An item sold out while you were paying. Your payment has been refunded.' }, 409);
     }
-    if (error.message.includes('ALREADY_CONFIRMED')) return json({ error: 'Order is already paid with a different payment' }, 409);
-    if (error.message.includes('NOT_PENDING')) return json({ error: 'This order is not awaiting payment' }, 409);
-    throw error;
+    return json({ error: failure.error }, failure.status);
   } catch (e) {
     if (e instanceof RazorpayError) return json({ error: e.message }, 502);
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);

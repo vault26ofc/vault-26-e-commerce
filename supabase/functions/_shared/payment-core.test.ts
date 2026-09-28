@@ -21,3 +21,23 @@ describe('validateRefund', () => {
   it('rejects below ₹1', () => expect(validateRefund(0.5, 20000)).toHaveProperty('error'));
   it('rejects above refundable', () => expect(validateRefund(250, 20000)).toEqual({ error: 'Maximum refundable is ₹200.00' }));
 });
+
+import { confirmFailure, refundOutcome } from './payment-core.ts';
+
+describe('confirmFailure', () => {
+  it('out of stock → 409, record refund on order', () =>
+    expect(confirmFailure('OUT_OF_STOCK')).toEqual({ status: 409, recordOnOrder: true, error: 'An item sold out while you were paying. Your payment has been refunded.' }));
+  it('cancelled meanwhile → 409, record refund on order', () =>
+    expect(confirmFailure('NOT_PENDING')).toMatchObject({ status: 409, recordOnOrder: true }));
+  it('paid twice → 409, leave the order alone', () =>
+    expect(confirmFailure('ALREADY_CONFIRMED')).toMatchObject({ status: 409, recordOnOrder: false }));
+  it('unexpected DB error → 500, refunded', () =>
+    expect(confirmFailure('connection reset')).toEqual({ status: 500, recordOnOrder: true, error: "We couldn't confirm your order, so your payment has been refunded. Please try again." }));
+});
+
+describe('refundOutcome', () => {
+  it('processed full refund', () => expect(refundOutcome('processed', 1000, 1000)).toEqual({ refund_status: 'REFUNDED', paymentRefunded: true, failed: false }));
+  it('processed partial refund', () => expect(refundOutcome('processed', 500, 1000)).toEqual({ refund_status: 'REFUNDED', paymentRefunded: false, failed: false }));
+  it('pending', () => expect(refundOutcome('pending', 1000, 1000)).toEqual({ refund_status: 'PROCESSING', paymentRefunded: false, failed: false }));
+  it('failed goes back to REQUESTED', () => expect(refundOutcome('failed', 1000, 1000)).toEqual({ refund_status: 'REQUESTED', paymentRefunded: false, failed: true }));
+});

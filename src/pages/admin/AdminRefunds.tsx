@@ -51,7 +51,8 @@ export default function AdminRefunds() {
     });
     setBusy(false);
     if (error) return toast.error(await readFunctionError(error));
-    toast.success(data.refund_status === 'REFUNDED' ? 'Refunded' : 'Refund initiated — Razorpay is processing it');
+    if (data.refund_status === 'FAILED') toast.error('Razorpay could not process this refund. It is back to REQUESTED — try again.');
+    else toast.success(data.refund_status === 'REFUNDED' ? 'Refunded' : 'Refund initiated — Razorpay is processing it');
     setEditing(null);
     load();
   };
@@ -62,7 +63,8 @@ export default function AdminRefunds() {
     const { data, error } = await supabase.functions.invoke('razorpay-refund', { body: { action: 'sync', order_id: editing.id } });
     setBusy(false);
     if (error) return toast.error(await readFunctionError(error));
-    toast.success(`Razorpay refund status: ${data.refund_status}`);
+    if (data.refund_status === 'FAILED') toast.error('Razorpay refund failed. It is back to REQUESTED — try again.');
+    else toast.success(`Razorpay refund status: ${data.refund_status}`);
     setEditing(null);
     load();
   };
