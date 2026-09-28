@@ -59,11 +59,14 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
   );
   const [open, setOpen] = useState<number | null>(null);
 
-  // Prefer the live catalogue categories; imagery comes from the CMS list.
+  // Live catalogue categories in the admin's order. Each shows its own photo/video and description;
+  // the CMS list can override them, and the built-in images are the last fallback.
   useEffect(() => {
     supabase
       .from('categories')
-      .select('id, name, slug')
+      .select('id, name, slug, image, video, description')
+      .eq('is_active', true)
+      .order('position')
       .order('name')
       .then(({ data }) => {
         if (!data || data.length === 0) return;
@@ -72,7 +75,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
           const bySlug = new Map(data.map((c: any) => [c.slug, c]));
           setRows(picked.map((it, i) => {
             const c: any = bySlug.get(it.category!);
-            return c && { key: c.id, title: c.name, subtitle: it.subtitle, image: it.image || cfgCats[i % cfgCats.length]?.image, href: `/category/${c.slug}` };
+            return c && { key: c.id, title: c.name, subtitle: it.subtitle || c.description, image: it.image || c.video || c.image || cfgCats[i % cfgCats.length]?.image, href: `/category/${c.slug}` };
           }).filter(Boolean) as Row[]);
           return;
         }
@@ -80,8 +83,8 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
           data.slice(0, Number(cfg.limit) || 7).map((c: any, i: number) => ({
             key: c.id,
             title: c.name,
-            subtitle: cfgCats[i % cfgCats.length]?.subtitle,
-            image: cfgCats[i % cfgCats.length]?.image,
+            subtitle: c.description || cfgCats[i % cfgCats.length]?.subtitle,
+            image: c.video || c.image || cfgCats[i % cfgCats.length]?.image,
             href: `/category/${c.slug}`,
           })),
         );

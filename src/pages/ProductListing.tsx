@@ -79,7 +79,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
       setLoading(true);
       try {
         const [{ data: cats }, { data: brs }] = await Promise.all([
-          supabase.from('categories').select('id, name, slug').eq('is_active', true).order('name'),
+          supabase.from('categories').select('id, name, slug').eq('is_active', true).order('position').order('name'),
           supabase.from('brands').select('id, name, slug').eq('is_active', true).order('name'),
         ]);
         setCategories(cats || []);

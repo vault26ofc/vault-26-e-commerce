@@ -10,6 +10,8 @@ import { describeError } from '@/lib/errors';
 type Row = { id: string; name: string; slug: string; is_active: boolean; description?: string | null; logo?: string | null; image?: string | null; video?: string | null; position?: number };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+/** While typing: lowercase, anything that isn't a letter/number becomes one hyphen (trailing hyphen allowed). */
+const slugDraft = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-/, '');
 
 function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: string }) {
   const [rows, setRows] = useState<Row[]>([]);
@@ -47,7 +49,7 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
     setSaving(true);
     const payload: any = {
       name: editing.name,
-      slug: editing.slug || slugify(editing.name),
+      slug: slugify(editing.slug || editing.name),
       is_active: editing.is_active ?? true,
     };
     if (table === 'brands') payload.description = editing.description || null;
@@ -55,7 +57,8 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
       payload.description = editing.description || null;
       payload.image = editing.image || null;
       payload.video = editing.video || null;
-      payload.position = Number(editing.position) || 0;
+      // New categories go to the end; existing ones keep their dragged position.
+      if (!editing.id) payload.position = rows.length;
     }
     const { data: savedRow, error } = editing.id
       ? await supabase.from(table).update(payload).eq('id', editing.id).select('id').single()
@@ -73,6 +76,18 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
     toast.success('Saved'); setEditing(null); load();
   };
 
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const dropAt = async (to: number) => {
+    if (dragIdx === null || dragIdx === to) { setDragIdx(null); return; }
+    const next = rows.slice();
+    const [moved] = next.splice(dragIdx, 1);
+    next.splice(to, 0, moved);
+    setRows(next); setDragIdx(null);
+    const results = await Promise.all(next.map((r, i) => supabase.from('categories').update({ position: i }).eq('id', r.id)));
+    const failed = results.find((x) => x.error);
+    if (failed?.error) { toast.error(describeError(failed.error)); load(); } else toast.success('Order saved — the website uses this order');
+  };
+
   const remove = async (id: string) => {
     if (!confirm(`Delete this ${title.toLowerCase()}?`)) return;
     const { error } = await supabase.from(table).delete().eq('id', id);
@@ -87,10 +102,12 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
         <button onClick={() => openEditor({ name: '', slug: '', is_active: true })} className="text-xs uppercase tracking-widest flex items-center gap-1 hover:text-accent"><Plus className="h-3 w-3" /> New</button>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-secondary text-xs"><tr>{table === 'categories' && <th className="p-3 w-14"></th>}<th className="text-left p-3">Name</th><th className="text-left p-3">{table === 'brands' ? 'Categories' : 'Slug'}</th><th className="text-left p-3">Active</th><th></th></tr></thead>
+        <thead className="bg-secondary text-xs"><tr>{table === 'categories' && <th className="p-3 w-14 text-left font-normal" title="Drag rows to reorder">⇅</th>}<th className="text-left p-3">Name</th><th className="text-left p-3">{table === 'brands' ? 'Categories' : 'Slug'}</th><th className="text-left p-3">Active</th><th></th></tr></thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.id} className="border-t border-border">
+          {rows.map((r, i) => (
+            <tr key={r.id}
+              {...(table === 'categories' ? { draggable: true, onDragStart: () => setDragIdx(i), onDragOver: (e: React.DragEvent) => e.preventDefault(), onDrop: () => dropAt(i), onDragEnd: () => setDragIdx(null) } : {})}
+              className={`border-t border-border ${table === 'categories' ? 'cursor-grab' : ''} ${dragIdx === i ? 'opacity-40' : ''}`}>
               {table === 'categories' && <td className="p-2">{(r.image || r.video) ? <MediaPreview url={(r.image || r.video)!} className="w-10 h-12" /> : <div className="w-10 h-12 bg-secondary" />}</td>}
               <td className="p-3 font-medium">{r.name}</td>
               <td className="p-3 text-muted-foreground">
@@ -113,14 +130,14 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditing(null)}>
           <div className="bg-background w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center">
-              <h3 className="font-display text-xl">{editing.id ? 'Edit' : 'New'} {title.slice(0, -1)}</h3>
+              <h3 className="font-display text-xl">{editing.id ? 'Edit' : 'New'} {table === 'categories' ? 'category' : 'brand'}</h3>
               <button onClick={() => setEditing(null)}><X className="h-5 w-5" /></button>
             </div>
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">Name
-              <input value={editing.name || ''} onChange={(e) => setEditing({ ...editing, name: e.target.value, slug: editing.slug || slugify(e.target.value) })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" autoFocus />
+              <input value={editing.name || ''} onChange={(e) => setEditing({ ...editing, name: e.target.value, slug: editing.id ? editing.slug : slugify(e.target.value) })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" autoFocus />
             </label>
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">Slug
-              <input value={editing.slug || ''} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />
+              <input value={editing.slug || ''} onChange={(e) => setEditing({ ...editing, slug: slugDraft(e.target.value) })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />
             </label>
             {table === 'brands' && (
               <div>
@@ -138,9 +155,6 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
               <>
                 <MediaField label="Photo or video" kind="any" folder="vault26/categories" value={editing.video || editing.image}
                   onChange={(url) => setEditing({ ...editing, image: isVideoUrl(url) ? editing.image && !isVideoUrl(editing.image) ? editing.image : null : url || null, video: isVideoUrl(url) ? url : null })} />
-                <label className="block text-xs uppercase tracking-widest text-muted-foreground">Display order (lower first)
-                  <input type="number" value={editing.position ?? 0} onChange={(e) => setEditing({ ...editing, position: Number(e.target.value) })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />
-                </label>
               </>
             )}
             <label className="flex items-center gap-2 text-sm">
@@ -161,7 +175,7 @@ export default function AdminCatalog() {
   return (
     <div>
       <h1 className="font-display text-2xl md:text-3xl mb-6">Catalog</h1>
-      <p className="text-sm text-muted-foreground mb-6 max-w-2xl">Step 1 of the catalog flow: create categories here, then set each category's sizes in <a href="/admin/sizes" className="underline">Sizes</a>, then add products in <a href="/admin/products" className="underline">Products</a>.</p>
+      <p className="text-sm text-muted-foreground mb-6 max-w-2xl">Drag categories to set their order — the website menus, filters and category sections follow it. Step 1 of the catalog flow: create categories here, then set each category's sizes in <a href="/admin/sizes" className="underline">Sizes</a>, then add products in <a href="/admin/products" className="underline">Products</a>.</p>
       <div className="grid lg:grid-cols-2 gap-6">
         <CrudPanel table="brands" title="Brands" />
         <CrudPanel table="categories" title="Categories" />

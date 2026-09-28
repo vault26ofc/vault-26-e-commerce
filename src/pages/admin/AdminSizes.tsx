@@ -25,7 +25,7 @@ export default function AdminSizes() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    supabase.from('categories').select('id, name').order('name').then(({ data }) => {
+    supabase.from('categories').select('id, name').order('position').order('name').then(({ data }) => {
       setCategories(data || []);
       if (data && data.length && !activeCategoryId) setActiveCategoryId(data[0].id);
     });
