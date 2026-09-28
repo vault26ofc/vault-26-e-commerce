@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { LayoutDashboard, ShoppingBag, Package, Tag, Users, Settings as SettingsIcon, Ticket, FileText, Menu, X, RotateCcw, Layers, ExternalLink, ArrowLeft, MessageCircle, Globe, Ruler, PanelsTopLeft, Image, Users2, Star, Undo2, Boxes } from 'lucide-react';
@@ -127,7 +127,10 @@ export default function AdminLayout() {
           <AdminNotifications />
         </div>
         <div className="p-4 md:px-10 md:pb-10 md:pt-4">
-          <Outlet />
+          {/* Only the page area waits while a page loads; the sidebar stays put. */}
+          <Suspense fallback={<div className="py-20 text-center text-xs uppercase tracking-widest text-muted-foreground animate-pulse">Loading…</div>}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>

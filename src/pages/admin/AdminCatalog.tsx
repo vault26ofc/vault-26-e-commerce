@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { MediaField, MediaPreview } from '@/components/admin/MediaField';
+import { MultiSearchSelect } from '@/components/admin/SearchSelect';
 
 type Row = { id: string; name: string; slug: string; is_active: boolean; description?: string | null; logo?: string | null; image?: string | null; video?: string | null; position?: number };
 
@@ -122,18 +123,8 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
             {table === 'brands' && (
               <div>
                 <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Categories this brand sells in</div>
-                <div className="flex flex-wrap gap-2">
-                  {allCats.map((c) => {
-                    const on = pickedCats.includes(c.id);
-                    return (
-                      <button key={c.id} type="button" onClick={() => setPickedCats(on ? pickedCats.filter((x) => x !== c.id) : [...pickedCats, c.id])}
-                        className={`px-3 py-1.5 text-xs border ${on ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
-                        {on ? '✓ ' : '+ '}{c.name}
-                      </button>
-                    );
-                  })}
-                  {!allCats.length && <span className="text-sm text-muted-foreground">Create categories first.</span>}
-                </div>
+                <MultiSearchSelect values={pickedCats} onChange={setPickedCats} placeholder="Search categories to add…"
+                  options={allCats.map((c) => ({ value: c.id, label: c.name }))} />
               </div>
             )}
             {(table === 'brands' || table === 'categories') && (

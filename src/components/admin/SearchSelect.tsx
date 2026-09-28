@@ -79,3 +79,59 @@ export function SearchSelect({ value, onChange, options, placeholder = 'Choose�
     </div>
   );
 }
+
+/** Pick several: chosen items show as removable chips; a search box lists the rest to tick. */
+export function MultiSearchSelect({ values, onChange, options, placeholder = 'Search to add…' }: {
+  values: string[]; onChange: (v: string[]) => void; options: SearchOption[]; placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const box = useRef<HTMLDivElement>(null);
+  const list = useMemo(() => filterOptions(options, q), [options, q]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+  const toggle = (v: string) => onChange(values.includes(v) ? values.filter((x) => x !== v) : [...values, v]);
+  return (
+    <div ref={box} className="relative space-y-2">
+      {values.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {values.map((v) => (
+            <span key={v} className="inline-flex items-center gap-1.5 bg-foreground text-background px-2.5 py-1 text-xs">
+              {options.find((o) => o.value === v)?.label ?? v}
+              <button type="button" onClick={() => toggle(v)} aria-label="Remove" className="opacity-80 hover:opacity-100">×</button>
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-2 border border-border px-3" onClick={() => setOpen(true)}>
+        <Search className="h-4 w-4 text-muted-foreground shrink-0" />
+        <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)} placeholder={placeholder}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (list[0]) toggle(list[0].value); } else if (e.key === 'Escape') setOpen(false); }}
+          className="w-full bg-transparent py-2 text-sm outline-none normal-case tracking-normal text-foreground" />
+      </div>
+      {open && (
+        <ul className="absolute z-40 left-0 right-0 bg-background border border-border shadow-lg max-h-60 overflow-y-auto py-1">
+          {list.map((o) => {
+            const on = values.includes(o.value);
+            return (
+              <li key={o.value}>
+                <button type="button" onClick={() => toggle(o.value)}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left hover:bg-secondary normal-case tracking-normal text-foreground">
+                  <span className={cn('h-4 w-4 border flex items-center justify-center shrink-0', on ? 'bg-foreground border-foreground text-background' : 'border-border')}>
+                    {on && <Check className="h-3 w-3" />}
+                  </span>
+                  {o.label}
+                </button>
+              </li>
+            );
+          })}
+          {!list.length && <li className="px-3 py-2 text-sm text-muted-foreground">No matches</li>}
+        </ul>
+      )}
+    </div>
+  );
+}

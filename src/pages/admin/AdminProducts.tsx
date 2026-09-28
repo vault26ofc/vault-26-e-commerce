@@ -5,7 +5,7 @@ import { inr, slugify } from '@/lib/format';
 import { toast } from 'sonner';
 import { Copy, Eye, EyeOff, Pencil, Plus, Trash2, Wand2, X } from 'lucide-react';
 import { MediaListField } from '@/components/admin/MediaField';
-import { SearchSelect } from '@/components/admin/SearchSelect';
+import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
 import { buildVariantMatrix, duplicateVariantKeys, type Colour, type EditorVariant } from '@/lib/variants';
 
 type ProductForm = {
@@ -329,19 +329,9 @@ export default function AdminProducts() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Also show this product in</div>
-                  <div className="flex flex-wrap gap-2">
-                    {categories.filter((c) => c.id !== editing.category_id).map((c) => {
-                      const on = editing.extra_category_ids.includes(c.id);
-                      return (
-                        <button key={c.id} type="button"
-                          onClick={() => setEditing({ ...editing, extra_category_ids: on ? editing.extra_category_ids.filter((x) => x !== c.id) : [...editing.extra_category_ids, c.id] })}
-                          className={`px-3 py-1.5 text-xs border ${on ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
-                          {on ? '✓ ' : '+ '}{c.name}
-                        </button>
-                      );
-                    })}
-                    {categories.length <= 1 && <span className="text-sm text-muted-foreground">Add more categories to list this product in several places.</span>}
-                  </div>
+                  <MultiSearchSelect values={editing.extra_category_ids.filter((x) => x !== editing.category_id)}
+                    onChange={(extra_category_ids) => setEditing({ ...editing, extra_category_ids })} placeholder="Search categories to add…"
+                    options={categories.filter((c) => c.id !== editing.category_id).map((c) => ({ value: c.id, label: c.name }))} />
                 </div>
                 <Field label="Description"><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={4} className={inputCls} /></Field>
                 <div className="grid sm:grid-cols-2 gap-4">
