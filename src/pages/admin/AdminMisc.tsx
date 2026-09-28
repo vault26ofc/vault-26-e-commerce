@@ -95,6 +95,7 @@ export function AdminSettings() {
       {[
         { k: 'cod_min_order', l: 'COD minimum order (₹, 0 = no minimum)', t: 'number' },
         { k: 'return_window_days', l: 'Return window (days after delivery)', t: 'number' },
+        { k: 'low_stock_threshold', l: 'Low stock warning at (units or fewer)', t: 'number' },
         { k: 'cod_advance_percent', l: 'COD advance %', t: 'number' },
         { k: 'free_shipping_threshold', l: 'Free shipping threshold (₹)', t: 'number' },
         { k: 'shipping_fee', l: 'Shipping fee (₹)', t: 'number' },

@@ -8,6 +8,7 @@ import { inr } from '@/lib/format';
 import { toast } from 'sonner';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import { cn } from '@/lib/utils';
+import { isVideoUrl } from '@/lib/media';
 import { useSEO } from '@/lib/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -148,7 +149,8 @@ export default function ProductDetail() {
         };
       }
 
-      setProduct(p);
+      // Videos join the gallery after the photos (the cover photo stays first for carts and cards).
+      setProduct({ ...(p as any), images: [...((p as any).images || []), ...((p as any).videos || [])] });
       setVariants((p as any).product_variants || []);
       setActiveImg(0);
       const colors = Array.from(new Set(((p as any).product_variants || []).map((v: any) => v.color)));
@@ -357,16 +359,29 @@ export default function ProductDetail() {
           {/* Main image */}
           <div className="relative order-1 lg:order-2 bg-[#F1F1F1] aspect-[4/5] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
             <AnimatePresence mode="wait">
-              <motion.img
-                key={activeImg}
-                src={product.images[activeImg]}
-                alt={product.name}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35 }}
-                className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
-              />
+              {isVideoUrl(product.images[activeImg]) ? (
+                <motion.video
+                  key={activeImg}
+                  src={product.images[activeImg]}
+                  autoPlay muted loop playsInline controls
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <motion.img
+                  key={activeImg}
+                  src={product.images[activeImg]}
+                  alt={product.name}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
+                />
+              )}
             </AnimatePresence>
             <div className="absolute top-3 right-3 flex gap-1">
               <button onClick={() => toggle(product.id)} aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'} className="p-1.5 bg-white/80 hover:bg-white">
@@ -422,7 +437,9 @@ export default function ProductDetail() {
                     onClick={() => setActiveImg(i)}
                     className={cn('shrink-0 w-[46%] aspect-[4/5] bg-[#F1F1F1] overflow-hidden border-2 transition-colors', activeImg === i ? 'border-[#BB0006]' : 'border-transparent hover:border-[#0F0F0F]/30')}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover mix-blend-multiply" />
+                    {isVideoUrl(img)
+                      ? <video src={img} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+                      : <img src={img} alt="" className="w-full h-full object-cover mix-blend-multiply" />}
                   </button>
                 ))}
               </div>

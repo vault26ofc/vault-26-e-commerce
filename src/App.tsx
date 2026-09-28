@@ -31,6 +31,7 @@ const Dashboard = lazy(() => import("@/pages/admin/Dashboard"));
 const AdminOrders = lazy(() => import("@/pages/admin/AdminOrders"));
 const AdminRefunds = lazy(() => import("@/pages/admin/AdminRefunds"));
 const AdminReturns = lazy(() => import("@/pages/admin/AdminReturns"));
+const AdminInventory = lazy(() => import("@/pages/admin/AdminInventory"));
 const AdminProducts = lazy(() => import("@/pages/admin/AdminProducts"));
 const AdminCatalog = lazy(() => import("@/pages/admin/AdminCatalog"));
 const AdminSizes = lazy(() => import("@/pages/admin/AdminSizes"));
@@ -136,6 +137,7 @@ const App = () => {
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="refunds" element={<AdminRefunds />} />
                 <Route path="returns" element={<AdminReturns />} />
+                <Route path="inventory" element={<AdminInventory />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="catalog" element={<AdminCatalog />} />
                 <Route path="sizes" element={<AdminSizes />} />
