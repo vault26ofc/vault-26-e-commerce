@@ -7,7 +7,6 @@ import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import { isVideoUrl } from '@/lib/media';
 
 type Suggestion = { id: string; name: string; slug: string; image: string; price: number; brand?: string };
 
@@ -39,7 +38,8 @@ type MegaTab = {
   featured: MegaProduct[];
 };
 
-type OverlaySettings = { statement?: string; thumbnails?: { label?: string; media?: string; link?: string }[] };
+type OverlaySettings = { statement?: string; product_slugs?: string[] };
+type Thumb = { num: string; label: string; type: 'image' | 'video'; src: string; href?: string };
 
 export default function Navbar() {
   const cartCount = useCart((s) => s.items.reduce((n, i) => n + i.quantity, 0));
@@ -57,6 +57,7 @@ export default function Navbar() {
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [hoveredHeroImg, setHoveredHeroImg] = useState<string | null>(null);
   const [overlay, setOverlay] = useState<OverlaySettings>({});
+  const [overlayProducts, setOverlayProducts] = useState<Thumb[]>([]);
   const dropdownTimer = useRef<number | null>(null);
   
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -114,7 +115,14 @@ export default function Navbar() {
         supabase.from('categories').select('id, name, slug'),
         supabase.from('settings').select('value').eq('key', 'menu_overlay').maybeSingle(),
       ]);
-      setOverlay(((overlaySetting as any)?.value as OverlaySettings) || {});
+      const ov = ((overlaySetting as any)?.value as OverlaySettings) || {};
+      setOverlay(ov);
+      if (ov.product_slugs?.length) {
+        const { data: ps } = await supabase.from('products').select('slug, name, images').eq('is_active', true).in('slug', ov.product_slugs);
+        const bySlug = new Map((ps || []).map((p: any) => [p.slug, p]));
+        setOverlayProducts(ov.product_slugs.map((s) => bySlug.get(s)).filter((p: any) => p?.images?.[0]).slice(0, 4)
+          .map((p: any, i) => ({ num: String(i + 1).padStart(2, '0'), label: p.name, type: 'image' as const, src: p.images[0], href: `/products/${p.slug}` })));
+      }
       const catById = new Map((cats || []).map((c: any) => [c.id, c]));
       const linksByTab = new Map<string, MegaLink[]>();
       (links || []).forEach((l: any) => {
@@ -206,9 +214,7 @@ export default function Navbar() {
   const activeData = megaTabs.find((t) => t.id === activeSection) || megaTabs[0];
   const fallbackHero = activeData?.groups[0]?.links.find((l) => l.hoverImg)?.hoverImg || null;
   const currentHeroSrc = hoveredHeroImg || activeData?.heroImage || fallbackHero;
-  const thumbnails = overlay.thumbnails?.some((t) => t.media)
-    ? overlay.thumbnails.filter((t) => t.media).slice(0, 4).map((t, i) => ({ num: String(i + 1).padStart(2, '0'), label: t.label || '', type: (isVideoUrl(t.media) ? 'video' : 'image') as 'image' | 'video', src: t.media! }))
-    : DEFAULT_THUMBNAILS;
+  const thumbnails: Thumb[] = overlayProducts.length ? overlayProducts : DEFAULT_THUMBNAILS;
   const dropdownTab = megaTabs.find((t) => t.id === hoveredNav && (t.groups.length || t.featured.length));
   const openDropdown = (id: string) => { if (dropdownTimer.current) window.clearTimeout(dropdownTimer.current); setHoveredNav(id); };
   const closeDropdownSoon = () => { dropdownTimer.current = window.setTimeout(() => setHoveredNav(null), 160); };
@@ -560,6 +566,7 @@ export default function Navbar() {
                       onMouseEnter={() => {
                         if (t.type === 'image') setHoveredHeroImg(t.src);
                       }}
+                      onClick={() => { if (t.href) { setMenuOpen(false); navigate(t.href); } }}
                       className="relative h-full border-r border-white/10 last:border-r-0 group cursor-pointer overflow-hidden"
                     >
                       {t.type === 'video' ? (

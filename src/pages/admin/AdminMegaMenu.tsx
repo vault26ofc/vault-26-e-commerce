@@ -59,7 +59,7 @@ export default function AdminMegaMenu() {
   const [managing, setManaging] = useState<string | null>(null);
   const [addCat, setAddCat] = useState('');
   // Step 4: full-screen menu extras (settings.menu_overlay), autosaved.
-  const [overlay, setOverlay] = useState<{ statement?: string; thumbnails?: { label?: string; media?: string }[] }>({});
+  const [overlay, setOverlay] = useState<{ statement?: string; product_slugs?: string[] }>({});
   const overlayTimer = useRef<number | null>(null);
   const updateOverlay = (next: typeof overlay) => {
     setOverlay(next);
@@ -258,29 +258,15 @@ export default function AdminMegaMenu() {
             </>
           )}
 
-          <Step n={4} title="Full-screen menu extras" hint="Shown when a shopper opens the full-screen menu (logo or ☰). Saved automatically as you edit.">
+          <Step n={4} title="Full-screen menu extras" hint="Shown when a shopper opens the full-screen menu (logo or ☰). Search and add up to 4 products. Saved automatically.">
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">Footer statement (one line per row)
               <textarea rows={2} value={overlay.statement ?? ''} placeholder={'THE ARCHIVE\nIS ALWAYS OPEN'}
                 onChange={(e) => updateOverlay({ ...overlay, statement: e.target.value })}
                 className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm normal-case tracking-normal" />
             </label>
-            <div className="grid md:grid-cols-2 gap-4">
-              {[0, 1, 2, 3].map((i) => {
-                const t = overlay.thumbnails?.[i] ?? {};
-                const setT = (patch: { label?: string; media?: string }) => {
-                  const list = [0, 1, 2, 3].map((j) => overlay.thumbnails?.[j] ?? {});
-                  list[i] = { ...list[i], ...patch };
-                  updateOverlay({ ...overlay, thumbnails: list });
-                };
-                return (
-                  <div key={i} className="border border-border p-3 space-y-2 bg-background">
-                    <div className="text-[11px] uppercase tracking-widest">Thumbnail {String(i + 1).padStart(2, '0')}</div>
-                    <input value={t.label ?? ''} onChange={(e) => setT({ label: e.target.value })} placeholder={['CAMPAIGN', 'DETAILS', 'LOOKS', 'FILM'][i]}
-                      className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
-                    <MediaField kind="any" folder="vault26/menu" value={t.media} onChange={(media) => setT({ media })} />
-                  </div>
-                );
-              })}
+            <div>
+              <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">4 products shown along the bottom of the full-screen menu</div>
+              <ProductPicker max={4} value={overlay.product_slugs ?? []} onChange={(product_slugs) => updateOverlay({ ...overlay, product_slugs })} />
             </div>
           </Step>
         </div>
