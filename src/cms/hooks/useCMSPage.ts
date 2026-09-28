@@ -5,7 +5,7 @@ import type {
   BrandSettings, ThemeSettings, SEOSettings,
 } from '../types';
 
-export const DEFAULT_HOME_SECTIONS: CMSSection[] = [
+const BASE_HOME_SECTIONS: CMSSection[] = [
   {
     id: 'default-hero',
     page_slug: 'home',
@@ -124,6 +124,20 @@ export const DEFAULT_HOME_SECTIONS: CMSSection[] = [
     }
   }
 ];
+
+/** Homepage order used when the database is unreachable (and by "Reset home layout"). */
+const HOME_ORDER: [CMSSection['section_type'], string][] = [
+  ['hero', 'Hero'], ['marquee', 'Marquee'], ['category_bar', 'Category Bar'], ['best_sellers', 'Best Sellers'],
+  ['category_cards', 'Category Cards'], ['product_marquee', 'Product Belt'], ['polka_bento', 'Season Board'],
+  ['campaign_carousel', 'Campaign Carousel'], ['split_scroll', 'Split Scroll'], ['category_grid', 'Category Grid'],
+  ['photo_shuffle', 'Photo Shuffle'], ['colour_story', 'Colour Stories'], ['standing_look', 'Standing Look'],
+  ['lookbook', 'Lookbook'], ['instagram_reels', 'Instagram Reels'], ['phone_showcase', 'Phone Showcase'],
+  ['drop_countdown', 'Shop the Look'], ['testimonials', 'Testimonials'], ['services_strip', 'Store Promise'],
+];
+export const DEFAULT_HOME_SECTIONS: CMSSection[] = HOME_ORDER.map(([type, label], i) => {
+  const base = BASE_HOME_SECTIONS.find((s) => s.section_type === type);
+  return { ...(base ?? { id: `default-${type}`, page_slug: 'home', section_type: type, label, is_visible: true, is_locked: false, config: {} }), position: (i + 1) * 10 };
+});
 
 export function useCMSPage(slug: string) {
   const [sections, setSections] = useState<CMSSection[]>(slug === 'home' ? DEFAULT_HOME_SECTIONS : []);
