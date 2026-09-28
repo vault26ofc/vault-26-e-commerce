@@ -187,6 +187,21 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_categories: {
+        Row: {
+          brand_id: string
+          category_id: string
+        }
+        Insert: {
+          brand_id: string
+          category_id: string
+        }
+        Update: {
+          brand_id?: string
+          category_id?: string
+        }
+        Relationships: []
+      }
       brand_settings: {
         Row: {
           address: string | null
@@ -1387,22 +1402,7 @@ export type Database = {
           category_id?: string
           product_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "product_categories_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "product_categories_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       product_variants: {
         Row: {

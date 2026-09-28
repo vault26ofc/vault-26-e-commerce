@@ -12,8 +12,27 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
   const [rows, setRows] = useState<Row[]>([]);
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [saving, setSaving] = useState(false);
+  // Brands: which categories each brand belongs to.
+  const [allCats, setAllCats] = useState<{ id: string; name: string }[]>([]);
+  const [links, setLinks] = useState<Record<string, string[]>>({});
+  const [pickedCats, setPickedCats] = useState<string[]>([]);
+
+  const loadLinks = async () => {
+    if (table !== 'brands') return;
+    const [{ data: cats }, { data: bc }] = await Promise.all([
+      supabase.from('categories').select('id, name').order('position').order('name'),
+      supabase.from('brand_categories').select('brand_id, category_id'),
+    ]);
+    setAllCats(cats || []);
+    const m: Record<string, string[]> = {};
+    (bc || []).forEach((x) => { (m[x.brand_id] ||= []).push(x.category_id); });
+    setLinks(m);
+  };
+
+  const openEditor = (r: Partial<Row>) => { setEditing(r); setPickedCats(r.id ? links[r.id] || [] : []); };
 
   const load = async () => {
+    loadLinks();
     const q = supabase.from(table).select('*');
     const { data } = table === 'categories' ? await q.order('position').order('name') : await q.order('name');
     setRows((data as any) || []);
@@ -35,11 +54,19 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
       payload.video = editing.video || null;
       payload.position = Number(editing.position) || 0;
     }
-    const { error } = editing.id
-      ? await supabase.from(table).update(payload).eq('id', editing.id)
-      : await supabase.from(table).insert(payload);
+    const { data: savedRow, error } = editing.id
+      ? await supabase.from(table).update(payload).eq('id', editing.id).select('id').single()
+      : await supabase.from(table).insert(payload).select('id').single();
+    if (!error && table === 'brands' && savedRow) {
+      // Replace this brand's categories with the ticked ones.
+      await supabase.from('brand_categories').delete().eq('brand_id', savedRow.id);
+      if (pickedCats.length) {
+        const { error: e2 } = await supabase.from('brand_categories').insert(pickedCats.map((category_id) => ({ brand_id: savedRow.id, category_id })));
+        if (e2) { setSaving(false); return toast.error(e2.message); }
+      }
+    }
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(error.message.includes('duplicate') ? 'That name or slug is already used' : error.message);
     toast.success('Saved'); setEditing(null); load();
   };
 
@@ -54,19 +81,23 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
     <div className="border border-border">
       <div className="p-4 flex items-center justify-between border-b border-border">
         <div className="eyebrow">{title}</div>
-        <button onClick={() => setEditing({ name: '', slug: '', is_active: true })} className="text-xs uppercase tracking-widest flex items-center gap-1 hover:text-accent"><Plus className="h-3 w-3" /> New</button>
+        <button onClick={() => openEditor({ name: '', slug: '', is_active: true })} className="text-xs uppercase tracking-widest flex items-center gap-1 hover:text-accent"><Plus className="h-3 w-3" /> New</button>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-secondary text-xs"><tr>{table === 'categories' && <th className="p-3 w-14"></th>}<th className="text-left p-3">Name</th><th className="text-left p-3">Slug</th><th className="text-left p-3">Active</th><th></th></tr></thead>
+        <thead className="bg-secondary text-xs"><tr>{table === 'categories' && <th className="p-3 w-14"></th>}<th className="text-left p-3">Name</th><th className="text-left p-3">{table === 'brands' ? 'Categories' : 'Slug'}</th><th className="text-left p-3">Active</th><th></th></tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} className="border-t border-border">
               {table === 'categories' && <td className="p-2">{(r.image || r.video) ? <MediaPreview url={(r.image || r.video)!} className="w-10 h-12" /> : <div className="w-10 h-12 bg-secondary" />}</td>}
               <td className="p-3 font-medium">{r.name}</td>
-              <td className="p-3 text-muted-foreground">{r.slug}</td>
+              <td className="p-3 text-muted-foreground">
+                {table === 'brands'
+                  ? ((links[r.id] || []).map((id) => allCats.find((c) => c.id === id)?.name).filter(Boolean).join(', ') || <span className="text-amber-700">No categories</span>)
+                  : r.slug}
+              </td>
               <td className="p-3 text-xs">{r.is_active ? '✓' : '—'}</td>
               <td className="p-3 text-right whitespace-nowrap">
-                <button onClick={() => setEditing(r)} className="p-1.5 hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
+                <button onClick={() => openEditor(r)} className="p-1.5 hover:bg-secondary"><Pencil className="h-4 w-4" /></button>
                 <button onClick={() => remove(r.id)} className="p-1.5 hover:bg-secondary text-destructive"><Trash2 className="h-4 w-4" /></button>
               </td>
             </tr>
@@ -88,6 +119,23 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">Slug
               <input value={editing.slug || ''} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />
             </label>
+            {table === 'brands' && (
+              <div>
+                <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Categories this brand sells in</div>
+                <div className="flex flex-wrap gap-2">
+                  {allCats.map((c) => {
+                    const on = pickedCats.includes(c.id);
+                    return (
+                      <button key={c.id} type="button" onClick={() => setPickedCats(on ? pickedCats.filter((x) => x !== c.id) : [...pickedCats, c.id])}
+                        className={`px-3 py-1.5 text-xs border ${on ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
+                        {on ? '✓ ' : '+ '}{c.name}
+                      </button>
+                    );
+                  })}
+                  {!allCats.length && <span className="text-sm text-muted-foreground">Create categories first.</span>}
+                </div>
+              </div>
+            )}
             {(table === 'brands' || table === 'categories') && (
               <label className="block text-xs uppercase tracking-widest text-muted-foreground">Description
                 <textarea value={editing.description || ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />

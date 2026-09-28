@@ -52,6 +52,7 @@ export default function AdminProducts() {
   const [brands, setBrands] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [categorySizes, setCategorySizes] = useState<string[]>([]);
+  const [brandLinks, setBrandLinks] = useState<{ brand_id: string; category_id: string }[]>([]);
   const [lowStock, setLowStock] = useState(5);
   const [editing, setEditing] = useState<ProductForm | null>(null);
   const [sizesPicked, setSizesPicked] = useState<string[]>([]);
@@ -77,6 +78,7 @@ export default function AdminProducts() {
   useEffect(() => {
     load();
     supabase.from('brands').select('id, name').order('name').then(({ data }) => setBrands(data || []));
+    supabase.from('brand_categories').select('brand_id, category_id').then(({ data }) => setBrandLinks(data || []));
     supabase.from('categories').select('id, name').order('position').order('name').then(({ data }) => setCategories(data || []));
     supabase.from('settings').select('value').eq('key', 'low_stock_threshold').maybeSingle()
       .then(({ data }) => { if (data) setLowStock(Number(data.value) || 5); });
@@ -311,7 +313,17 @@ export default function AdminProducts() {
                   <Field label="Brand">
                     <select value={editing.brand_id || ''} onChange={(e) => setEditing({ ...editing, brand_id: e.target.value || null })} className={inputCls}>
                       <option value="">—</option>
-                      {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                      {(() => {
+                        const inCat = new Set(brandLinks.filter((l) => l.category_id === editing.category_id).map((l) => l.brand_id));
+                        const mine = brands.filter((b) => inCat.has(b.id));
+                        const rest = brands.filter((b) => !inCat.has(b.id));
+                        return mine.length ? (
+                          <>
+                            <optgroup label="In this category">{mine.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</optgroup>
+                            <optgroup label="Other brands">{rest.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</optgroup>
+                          </>
+                        ) : brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>);
+                      })()}
                     </select>
                   </Field>
                   <Field label="Name *">
