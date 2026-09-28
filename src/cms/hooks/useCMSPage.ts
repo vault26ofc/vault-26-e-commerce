@@ -132,7 +132,8 @@ const HOME_ORDER: [CMSSection['section_type'], string][] = [
   ['campaign_carousel', 'Campaign Carousel'], ['split_scroll', 'Split Scroll'], ['category_grid', 'Category Grid'],
   ['photo_shuffle', 'Photo Shuffle'], ['colour_story', 'Colour Stories'], ['standing_look', 'Standing Look'],
   ['lookbook', 'Lookbook'], ['instagram_reels', 'Instagram Reels'], ['phone_showcase', 'Phone Showcase'],
-  ['drop_countdown', 'Shop the Look'], ['testimonials', 'Testimonials'], ['services_strip', 'Store Promise'],
+  ['drop_countdown', 'Shop the Look'], ['testimonials', 'Testimonials'], ['community', 'Community'],
+  ['influencer_picks', 'Influencer Picks'], ['services_strip', 'Store Promise'],
 ];
 export const DEFAULT_HOME_SECTIONS: CMSSection[] = HOME_ORDER.map(([type, label], i) => {
   const base = BASE_HOME_SECTIONS.find((s) => s.section_type === type);
