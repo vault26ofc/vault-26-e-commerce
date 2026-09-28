@@ -10,7 +10,7 @@ import { buildVariantMatrix, duplicateVariantKeys, type Colour, type EditorVaria
 type ProductForm = {
   id?: string;
   name: string; slug: string; description: string;
-  brand_id: string | null; category_id: string | null;
+  brand_id: string | null; category_id: string | null; extra_category_ids: string[];
   material: string; care: string;
   is_active: boolean; is_featured: boolean;
   images: string[]; videos: string[];
@@ -18,7 +18,7 @@ type ProductForm = {
 };
 
 const empty: ProductForm = {
-  name: '', slug: '', description: '', brand_id: null, category_id: null,
+  name: '', slug: '', description: '', brand_id: null, category_id: null, extra_category_ids: [],
   material: '', care: '', is_active: true, is_featured: false, images: [], videos: [], variants: [],
 };
 
@@ -65,9 +65,13 @@ export default function AdminProducts() {
   const load = async () => {
     const { data } = await supabase
       .from('products')
-      .select('id, name, slug, is_active, is_featured, images, videos, category_id, brands(name), categories(name), product_variants(id, price, stock)')
+      .select('id, name, slug, is_active, is_featured, images, videos, category_id, brands(name), categories!products_category_id_fkey(name), product_variants(id, price, stock)')
       .order('created_at', { ascending: false });
-    setProducts(data || []);
+    // product_categories has no FK (keeps storefront embeds unambiguous), so join it here.
+    const { data: extras } = await supabase.from('product_categories').select('product_id, category_id');
+    const byProduct = new Map<string, { category_id: string }[]>();
+    (extras || []).forEach((e) => byProduct.set(e.product_id, [...(byProduct.get(e.product_id) || []), { category_id: e.category_id }]));
+    setProducts((data || []).map((p) => ({ ...p, product_categories: byProduct.get(p.id) || [] })));
   };
 
   useEffect(() => {
@@ -100,10 +104,13 @@ export default function AdminProducts() {
   const loadForm = async (id: string): Promise<ProductForm | null> => {
     const { data: p } = await supabase.from('products').select('*').eq('id', id).single();
     const { data: v } = await supabase.from('product_variants').select('*').eq('product_id', id).order('created_at');
+    const { data: extrasData } = await supabase.from('product_categories').select('category_id').eq('product_id', id);
+    const extras = extrasData || [];
     if (!p) return null;
     return {
       id: p.id, name: p.name, slug: p.slug, description: p.description || '',
-      brand_id: p.brand_id, category_id: p.category_id, material: p.material || '', care: p.care || '',
+      brand_id: p.brand_id, category_id: p.category_id, extra_category_ids: extras.map((e) => e.category_id),
+      material: p.material || '', care: p.care || '',
       is_active: p.is_active, is_featured: p.is_featured, images: p.images || [], videos: (p as any).videos || [],
       variants: (v || []).map((x) => ({
         id: x.id, size: x.size || '', color: x.color || '', color_hex: x.color_hex || '#000000',
@@ -182,6 +189,7 @@ export default function AdminProducts() {
       p_product: {
         id: editing.id ?? null, name: editing.name.trim(), slug: editing.slug.trim() || slugify(editing.name),
         description: editing.description, brand_id: editing.brand_id, category_id: editing.category_id,
+        extra_category_ids: editing.extra_category_ids.filter((c) => c !== editing.category_id),
         material: editing.material, care: editing.care, is_active: editing.is_active, is_featured: editing.is_featured,
         images: editing.images, videos: editing.videos,
       },
@@ -198,8 +206,9 @@ export default function AdminProducts() {
     load();
   };
 
+  const inCategory = (p: any, c: string) => p.category_id === c || (p.product_categories || []).some((x: any) => x.category_id === c);
   const filtered = products.filter((p) => {
-    if (activeCategory !== 'ALL' && p.category_id !== activeCategory) return false;
+    if (activeCategory !== 'ALL' && !inCategory(p, activeCategory)) return false;
     if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
@@ -219,7 +228,7 @@ export default function AdminProducts() {
       <div className="flex flex-wrap gap-2 mb-5">
         <button onClick={() => setActiveCategory('ALL')} className={`px-3 py-1.5 text-[11px] uppercase tracking-widest border ${activeCategory === 'ALL' ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>All ({products.length})</button>
         {categories.map((c) => {
-          const count = products.filter((p) => p.category_id === c.id).length;
+          const count = products.filter((p) => inCategory(p, c.id)).length;
           return (
             <button key={c.id} onClick={() => setActiveCategory(c.id)} className={`px-3 py-1.5 text-[11px] uppercase tracking-widest border ${activeCategory === c.id ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
               {c.name} ({count})
@@ -246,7 +255,10 @@ export default function AdminProducts() {
                     {p.is_featured && <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">Featured</span>}
                     {(p.videos?.length ?? 0) > 0 && <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">Video</span>}
                   </td>
-                  <td className="p-3 text-muted-foreground">{p.categories?.name || <span className="text-destructive">No category</span>}</td>
+                  <td className="p-3 text-muted-foreground">
+                    {p.categories?.name ? <>★ {p.categories.name}</> : <span className="text-destructive">No category</span>}
+                    {(p.product_categories?.length ?? 0) > 0 && <div className="text-[11px]">+ {p.product_categories.map((x: any) => categories.find((c) => c.id === x.category_id)?.name).filter(Boolean).join(', ')}</div>}
+                  </td>
                   <td className="p-3">{inr(minP)}</td>
                   <td className="p-3">
                     {stock}
@@ -290,7 +302,7 @@ export default function AdminProducts() {
             <div className="p-6 space-y-6">
               <Step n={1} title="Category & details">
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <Field label="Category *" hint="Sizes in step 3 come from this category.">
+                  <Field label="★ Primary category *" hint="Decides the sizes in step 3.">
                     <select value={editing.category_id || ''} onChange={(e) => setEditing({ ...editing, category_id: e.target.value || null })} className={inputCls}>
                       <option value="">Choose a category…</option>
                       {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -308,6 +320,22 @@ export default function AdminProducts() {
                   <Field label="URL slug" hint={editing.slug ? `/products/${editing.slug}` : undefined}>
                     <input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inputCls} />
                   </Field>
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Also show this product in</div>
+                  <div className="flex flex-wrap gap-2">
+                    {categories.filter((c) => c.id !== editing.category_id).map((c) => {
+                      const on = editing.extra_category_ids.includes(c.id);
+                      return (
+                        <button key={c.id} type="button"
+                          onClick={() => setEditing({ ...editing, extra_category_ids: on ? editing.extra_category_ids.filter((x) => x !== c.id) : [...editing.extra_category_ids, c.id] })}
+                          className={`px-3 py-1.5 text-xs border ${on ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
+                          {on ? '✓ ' : '+ '}{c.name}
+                        </button>
+                      );
+                    })}
+                    {categories.length <= 1 && <span className="text-sm text-muted-foreground">Add more categories to list this product in several places.</span>}
+                  </div>
                 </div>
                 <Field label="Description"><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={4} className={inputCls} /></Field>
                 <div className="grid sm:grid-cols-2 gap-4">

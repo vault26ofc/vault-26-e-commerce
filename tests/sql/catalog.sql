@@ -69,6 +69,38 @@ begin
   update public.orders set status = 'CANCELLED' where id = v_order;
   if not exists (select 1 from public.inventory_movements where variant_id = v_keep and reason = 'cancel' and delta = 1) then raise exception 'FAIL cancel movement'; end if;
 
+  -- extra categories: primary stays on products.category_id; extras replace on each save
+  declare v_c2 uuid; v_c3 uuid; begin
+    insert into public.categories(name, slug) values ('__tc2', '__tc2-' || gen_random_uuid()) returning id into v_c2;
+    insert into public.categories(name, slug) values ('__tc3', '__tc3-' || gen_random_uuid()) returning id into v_c3;
+    perform public.save_product(jsonb_build_object('id', v_pid, 'name', '__tp2', 'slug', (select slug from public.products where id = v_pid),
+      'category_id', v_cat, 'extra_category_ids', jsonb_build_array(v_c2, v_c3, v_cat)),
+      (select jsonb_agg(jsonb_build_object('id', id, 'size', size, 'color', color, 'price', price, 'stock', stock)) from public.product_variants where product_id = v_pid));
+    select count(*) into v_n from public.product_categories where product_id = v_pid;
+    if v_n <> 2 then raise exception 'FAIL extra categories (primary must not be duplicated): %', v_n; end if;
+    perform public.save_product(jsonb_build_object('id', v_pid, 'name', '__tp2', 'slug', (select slug from public.products where id = v_pid),
+      'category_id', v_cat, 'extra_category_ids', jsonb_build_array(v_c3)),
+      (select jsonb_agg(jsonb_build_object('id', id, 'size', size, 'color', color, 'price', price, 'stock', stock)) from public.product_variants where product_id = v_pid));
+    if (select array_agg(category_id) from public.product_categories where product_id = v_pid) <> array[v_c3] then raise exception 'FAIL extra categories not replaced'; end if;
+    -- saving without the key leaves extras untouched
+    perform public.save_product(jsonb_build_object('id', v_pid, 'name', '__tp2', 'slug', (select slug from public.products where id = v_pid)),
+      (select jsonb_agg(jsonb_build_object('id', id, 'size', size, 'color', color, 'price', price, 'stock', stock)) from public.product_variants where product_id = v_pid));
+    if not exists (select 1 from public.product_categories where product_id = v_pid and category_id = v_c3) then raise exception 'FAIL extras dropped when key absent'; end if;
+  end;
+
+  -- product_categories integrity without FKs: bad ids refused, deletes clean up
+  begin
+    insert into public.product_categories(product_id, category_id) values (gen_random_uuid(), v_cat);
+    raise exception 'FAIL orphan product_categories row allowed';
+  exception when others then if sqlerrm not like 'product_categories: product%' then raise; end if; end;
+  insert into public.product_categories(product_id, category_id) values (v_pid, v_cat) on conflict do nothing;
+  delete from public.categories where id = v_cat;
+  if exists (select 1 from public.product_categories where category_id = v_cat) then raise exception 'FAIL category delete left rows'; end if;
+  -- PostgREST must see exactly one products→categories relationship
+  if (select count(*) from pg_constraint where contype = 'f' and conrelid = 'public.product_categories'::regclass) <> 0 then
+    raise exception 'FAIL product_categories has foreign keys again (breaks categories(...) embeds)';
+  end if;
+
   -- customers cannot read stock history
   perform set_config('request.jwt.claims', json_build_object('sub', v_cust, 'role', 'authenticated')::text, true);
   set local role authenticated;

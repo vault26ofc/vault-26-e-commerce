@@ -120,7 +120,7 @@ export default function ProductDetail() {
       
       let p = null;
       try {
-        const { data, error } = await supabase.from('products').select('*, brands(name, slug), categories(name, slug, id), product_variants(*)').eq('slug', slug).maybeSingle();
+        const { data, error } = await supabase.from('products').select('*, brands(name, slug), categories!products_category_id_fkey(name, slug, id), product_variants(*)').eq('slug', slug).maybeSingle();
         if (!error && data) p = data;
       } catch (e) {
         console.warn('Supabase product query error:', e);

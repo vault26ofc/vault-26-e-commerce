@@ -87,12 +87,18 @@ export default function ProductListing({ mode }: { mode: Mode }) {
 
         let query = supabase
           .from('products')
-          .select('id, name, slug, images, created_at, brand_id, category_id, brands(name, slug, id), categories(name, slug, id), product_variants(price, compare_price, stock, size, color, color_hex)')
+          .select('id, name, slug, images, created_at, brand_id, category_id, brands(name, slug, id), categories!products_category_id_fkey(name, slug, id), product_variants(price, compare_price, stock, size, color, color_hex)')
           .eq('is_active', true);
 
         if (mode === 'category' && slug) {
           const cat = (cats || []).find((c) => c.slug === slug);
-          if (cat) { query = query.eq('category_id', cat.id); setTitle(cat.name); setEyebrow('Category Archive'); }
+          if (cat) {
+            // Primary category, or listed here as an extra category.
+            const { data: extra } = await supabase.from('product_categories').select('product_id').eq('category_id', cat.id);
+            const ids = (extra || []).map((e) => e.product_id);
+            query = ids.length ? query.or(`category_id.eq.${cat.id},id.in.(${ids.join(',')})`) : query.eq('category_id', cat.id);
+            setTitle(cat.name); setEyebrow('Category Archive');
+          }
           else { setTitle(slug); setEyebrow('Category Archive'); }
         }
         if (mode === 'brand' && slug) {

@@ -1374,6 +1374,36 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          category_id: string
+          product_id: string
+        }
+        Insert: {
+          category_id: string
+          product_id: string
+        }
+        Update: {
+          category_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_categories_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           color: string | null
@@ -1899,6 +1929,14 @@ export type Database = {
       save_product: {
         Args: { p_product: Json; p_variants: Json }
         Returns: string
+      }
+      save_product_core: {
+        Args: { p_product: Json; p_variants: Json }
+        Returns: string
+      }
+      save_product_extra_categories: {
+        Args: { p_product: Json; p_product_id: string }
+        Returns: undefined
       }
       set_stock_context: {
         Args: { p_order?: string; p_reason: string }

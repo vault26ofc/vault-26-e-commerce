@@ -6,12 +6,21 @@ import { Plus, Pencil, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
 type Category = { id: string; name: string };
 type Size = { id: string; category_id: string; label: string; position: number };
 
+const PRESETS: { name: string; labels: string[] }[] = [
+  { name: 'Clothing', labels: ['XS', 'S', 'M', 'L', 'XL', 'XXL'] },
+  { name: 'Waist', labels: ['28', '30', '32', '34', '36', '38', '40'] },
+  { name: 'Shoes (UK)', labels: ['6', '7', '8', '9', '10', '11'] },
+  { name: 'One size', labels: ['One Size'] },
+];
+
 export default function AdminSizes() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string>('');
   const [sizes, setSizes] = useState<Size[]>([]);
   const [editing, setEditing] = useState<Partial<Size> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [quick, setQuick] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     supabase.from('categories').select('id, name').order('name').then(({ data }) => {
@@ -23,7 +32,7 @@ export default function AdminSizes() {
 
   const loadSizes = async (categoryId: string) => {
     const { data } = await supabase
-      .from('sizes' as any)
+      .from('sizes')
       .select('*')
       .eq('category_id', categoryId)
       .order('position');
@@ -43,13 +52,13 @@ export default function AdminSizes() {
     if (dup) return toast.error('That size already exists in this category');
     setSaving(true);
     if (editing?.id) {
-      const { error } = await supabase.from('sizes' as any).update({ label }).eq('id', editing.id);
+      const { error } = await supabase.from('sizes').update({ label }).eq('id', editing.id);
       setSaving(false);
       if (error) return toast.error(error.message);
     } else {
       const maxPos = sizes.reduce((m, s) => Math.max(m, s.position), -1);
       const { error } = await supabase
-        .from('sizes' as any)
+        .from('sizes')
         .insert({ category_id: activeCategoryId, label, position: maxPos + 1 });
       setSaving(false);
       if (error) return toast.error(error.message);
@@ -59,9 +68,22 @@ export default function AdminSizes() {
     loadSizes(activeCategoryId);
   };
 
+  /** Adds several sizes at once, skipping ones the category already has. */
+  const addMany = async (labels: string[]) => {
+    const existing = new Set(sizes.map((s) => s.label.toLowerCase()));
+    const fresh = [...new Set(labels.map((l) => l.trim()).filter(Boolean))].filter((l) => !existing.has(l.toLowerCase()));
+    if (!fresh.length) return toast.info('Those sizes are already in this category');
+    const start = sizes.reduce((m, s) => Math.max(m, s.position), -1) + 1;
+    const { error } = await supabase.from('sizes').insert(fresh.map((label, i) => ({ category_id: activeCategoryId, label, position: start + i })));
+    if (error) return toast.error(error.message);
+    toast.success(`Added ${fresh.join(', ')}`);
+    setQuick('');
+    loadSizes(activeCategoryId);
+  };
+
   const remove = async (id: string) => {
     if (!confirm('Delete this size?')) return;
-    const { error } = await supabase.from('sizes' as any).delete().eq('id', id);
+    const { error } = await supabase.from('sizes').delete().eq('id', id);
     if (error) return toast.error(error.message);
     toast.success('Deleted');
     loadSizes(activeCategoryId);
@@ -73,8 +95,8 @@ export default function AdminSizes() {
     if (swapIdx < 0 || swapIdx >= sizes.length) return;
     const swap = sizes[swapIdx];
     await Promise.all([
-      supabase.from('sizes' as any).update({ position: swap.position }).eq('id', size.id),
-      supabase.from('sizes' as any).update({ position: size.position }).eq('id', swap.id),
+      supabase.from('sizes').update({ position: swap.position }).eq('id', size.id),
+      supabase.from('sizes').update({ position: size.position }).eq('id', swap.id),
     ]);
     loadSizes(activeCategoryId);
   };
@@ -83,24 +105,38 @@ export default function AdminSizes() {
     <div>
       <h1 className="font-display text-2xl md:text-3xl mb-2">Sizes</h1>
       <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
-        Ordered size lists per category, used by the product editor's size picker.
+        Step 2 of the catalog flow: each category gets its own size list (shirts use S–XL, trousers use waist sizes…). The product editor offers exactly these sizes.
       </p>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setActiveCategoryId(c.id)}
-            className={`text-xs uppercase tracking-widest px-3 py-1.5 border ${
-              activeCategoryId === c.id
-                ? 'bg-foreground text-background border-foreground'
-                : 'border-border hover:bg-secondary'
-            }`}
-          >
-            {c.name}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-3 mb-6 items-end">
+        <label className="block text-xs uppercase tracking-widest text-muted-foreground">Category
+          <select value={activeCategoryId} onChange={(e) => { setActiveCategoryId(e.target.value); setSearch(''); }}
+            className="mt-1.5 block w-64 border border-border bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-foreground">
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
+        <label className="block text-xs uppercase tracking-widest text-muted-foreground">Search sizes
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. XL"
+            className="mt-1.5 block w-48 border border-border bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-foreground" />
+        </label>
       </div>
+
+      {activeCategoryId && (
+        <div className="max-w-md mb-4 space-y-2">
+          <div className="flex gap-2">
+            <input value={quick} onChange={(e) => setQuick(e.target.value)} placeholder="Add several: S, M, L, XL"
+              onKeyDown={(e) => { if (e.key === 'Enter') addMany(quick.split(',')); }}
+              className="flex-1 border border-border bg-transparent px-3 py-2 text-sm" />
+            <button onClick={() => addMany(quick.split(','))} className="bg-foreground text-background px-4 text-xs uppercase tracking-widest">Add</button>
+          </div>
+          <div className="flex flex-wrap gap-2 items-center text-xs">
+            <span className="text-muted-foreground">Presets:</span>
+            {PRESETS.map((p) => (
+              <button key={p.name} onClick={() => addMany(p.labels)} title={p.labels.join(', ')} className="border border-border px-2 py-1 hover:bg-secondary">{p.name}</button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="border border-border max-w-md">
         <div className="p-4 flex items-center justify-between border-b border-border">
@@ -115,14 +151,14 @@ export default function AdminSizes() {
         </div>
         <table className="w-full text-sm">
           <tbody>
-            {sizes.map((s, i) => (
+            {sizes.filter((s) => !search.trim() || s.label.toLowerCase().includes(search.trim().toLowerCase())).map((s, i) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="p-3 font-medium">{s.label}</td>
                 <td className="p-3 text-right whitespace-nowrap">
-                  <button onClick={() => move(s, 'up')} disabled={i === 0} className="p-1.5 hover:bg-secondary disabled:opacity-30">
+                  <button onClick={() => move(s, 'up')} disabled={i === 0 || !!search} className="p-1.5 hover:bg-secondary disabled:opacity-30">
                     <ChevronUp className="h-4 w-4" />
                   </button>
-                  <button onClick={() => move(s, 'down')} disabled={i === sizes.length - 1} className="p-1.5 hover:bg-secondary disabled:opacity-30">
+                  <button onClick={() => move(s, 'down')} disabled={i === sizes.length - 1 || !!search} className="p-1.5 hover:bg-secondary disabled:opacity-30">
                     <ChevronDown className="h-4 w-4" />
                   </button>
                   <button onClick={() => setEditing(s)} className="p-1.5 hover:bg-secondary">
