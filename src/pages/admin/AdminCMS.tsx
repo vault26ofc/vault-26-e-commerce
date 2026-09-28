@@ -321,9 +321,7 @@ export default function AdminCMS() {
    * Never deletes a section and never touches a section's content — edits are kept.
    */
   const resetToDefaultLayout = async () => {
-    if (!confirm('Put the home page sections back in the default order and re-add any missing ones?
-
-Your section content is kept; nothing is deleted.')) return;
+    if (!confirm('Put the home page sections back in the default order and re-add any missing ones?\n\nYour section content is kept; nothing is deleted.')) return;
     setSectionsLoading(true);
     try {
       const { data: existing, error: loadErr } = await supabase.from('website_sections').select('id, section_type, position').eq('page_slug', 'home').order('position');
