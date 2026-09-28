@@ -1,76 +1,45 @@
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-
-const MAX_ORDER_AMOUNT = 500000; // ₹5,00,000 cap
+import { corsHeaders } from '../_shared/cors.ts';
+import { getUser, json, serviceClient } from '../_shared/http.ts';
+import { amountDuePaise } from '../_shared/payment-core.ts';
+import { createOrder, getOrder, keyId, RazorpayError } from '../_shared/razorpay.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    // Require authenticated user
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-    );
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader.slice(7));
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const user = await getUser(req);
+    if (!user) return json({ error: 'Unauthorized' }, 401);
+
+    const { order_id } = await req.json().catch(() => ({}));
+    if (!order_id) return json({ error: 'order_id is required' }, 400);
+
+    const db = serviceClient();
+    const { data: order } = await db.from('orders')
+      .select('id, user_id, order_number, status, payment_method, payment_status, total, cod_advance_amount, cod_advance_paid, razorpay_order_id')
+      .eq('id', order_id).maybeSingle();
+    if (!order || order.user_id !== user.id) return json({ error: 'Order not found' }, 403);
+    if (order.status === 'CANCELLED' || order.payment_status !== 'PENDING' || order.cod_advance_paid) {
+      return json({ error: 'This order is not awaiting payment' }, 400);
     }
 
-    const { amount, receipt } = await req.json();
+    const amount = amountDuePaise(order);
+    if (amount < 100) return json({ error: 'Amount must be at least ₹1' }, 400);
 
-    if (!amount || amount < 1) {
-      return new Response(JSON.stringify({ error: "Invalid amount" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    if (amount > MAX_ORDER_AMOUNT) {
-      return new Response(JSON.stringify({ error: "Amount exceeds maximum allowed" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Reuse the Razorpay order on retry / double-click
+    if (order.razorpay_order_id) {
+      try {
+        const existing = await getOrder(order.razorpay_order_id);
+        if (existing.amount === amount && existing.status !== 'paid') {
+          return json({ order: { id: existing.id, amount: existing.amount, currency: existing.currency }, key_id: keyId() });
+        }
+      } catch { /* fall through and create a fresh one */ }
     }
 
-    const keyId = Deno.env.get("RAZORPAY_KEY_ID")!;
-    const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
-    const auth = btoa(`${keyId}:${keySecret}`);
-
-    const res = await fetch("https://api.razorpay.com/v1/orders", {
-      method: "POST",
-      headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        amount: Math.round(amount * 100),
-        currency: "INR",
-        receipt: receipt || `rcpt_${Date.now()}`,
-      }),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      return new Response(JSON.stringify({ error: data }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(JSON.stringify({ order: data, key_id: keyId }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const rz = await createOrder(amount, order.order_number, { order_id: order.id });
+    const { error } = await db.from('orders').update({ razorpay_order_id: rz.id }).eq('id', order.id);
+    if (error) throw error;
+    return json({ order: { id: rz.id, amount: rz.amount, currency: rz.currency }, key_id: keyId() });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (e instanceof RazorpayError) return json({ error: e.message }, 502);
+    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
 });

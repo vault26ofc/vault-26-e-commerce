@@ -1,91 +1,68 @@
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { createHmac } from "node:crypto";
+import { corsHeaders } from '../_shared/cors.ts';
+import { getUser, json, serviceClient } from '../_shared/http.ts';
+import { amountDuePaise, verifyRazorpaySignature } from '../_shared/payment-core.ts';
+import { capturePayment, createRefund, getPayment, RazorpayError } from '../_shared/razorpay.ts';
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   try {
-    // Require authenticated user
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-    );
-    const { data: { user }, error: authErr } = await anonClient.auth.getUser(authHeader.slice(7));
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const user = await getUser(req);
+    if (!user) return json({ error: 'Unauthorized' }, 401);
+
+    const { order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json().catch(() => ({}));
+    if (!order_id || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return json({ error: 'Missing fields' }, 400);
     }
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, order_id } = await req.json();
+    const db = serviceClient();
+    const { data: order } = await db.from('orders')
+      .select('id, user_id, order_number, payment_method, total, cod_advance_amount, razorpay_order_id, razorpay_payment_id')
+      .eq('id', order_id).maybeSingle();
+    if (!order || order.user_id !== user.id) return json({ error: 'Order not found' }, 403);
 
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !order_id) {
-      return new Response(JSON.stringify({ error: "Missing fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (order.razorpay_payment_id) {
+      return order.razorpay_payment_id === razorpay_payment_id
+        ? json({ success: true })
+        : json({ error: 'Order is already paid with a different payment' }, 409);
     }
+    if (order.razorpay_order_id !== razorpay_order_id) return json({ error: 'Payment does not belong to this order' }, 400);
 
-    // Verify HMAC signature
-    const secret = Deno.env.get("RAZORPAY_KEY_SECRET")!;
-    const expected = createHmac("sha256", secret)
-      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
-      .digest("hex");
+    const valid = await verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature, Deno.env.get('RAZORPAY_KEY_SECRET') ?? '');
+    if (!valid) return json({ error: 'Invalid payment signature' }, 400);
 
-    if (expected !== razorpay_signature) {
-      return new Response(JSON.stringify({ error: "Invalid signature" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const expected = amountDuePaise(order);
+    let payment = await getPayment(razorpay_payment_id);
+    if (payment.order_id !== razorpay_order_id || payment.amount !== expected) {
+      return json({ error: 'Payment amount or order mismatch' }, 400);
     }
+    if (payment.status === 'authorized') payment = await capturePayment(razorpay_payment_id, expected);
+    if (payment.status !== 'captured') return json({ error: `Payment not captured (status: ${payment.status})` }, 400);
 
-    // Use service role to update order, but first verify the order belongs to this user
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-    );
+    const { error } = await db.rpc('confirm_order_payment', {
+      p_order_id: order.id, p_payment_id: razorpay_payment_id, p_amount_paise: expected,
+    });
+    if (!error) return json({ success: true });
 
-    const { data: order } = await supabase
-      .from("orders")
-      .select("id, user_id")
-      .eq("id", order_id)
-      .single();
-
-    if (!order || order.user_id !== user.id) {
-      return new Response(JSON.stringify({ error: "Order not found or access denied" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { error } = await supabase
-      .from("orders")
-      .update({
-        payment_status: "PAID",
-        razorpay_order_id,
+    if (error.message.includes('OUT_OF_STOCK')) {
+      const refund = await createRefund(razorpay_payment_id, expected, { order_id: order.id, reason: 'out_of_stock' });
+      await db.from('orders').update({
+        status: 'CANCELLED',
+        payment_status: 'REFUNDED',
         razorpay_payment_id,
-        cod_advance_paid: true,
-      })
-      .eq("id", order_id);
-
-    if (error) throw error;
-
-    return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+        payment_amount_paise: expected,
+        razorpay_refund_id: refund.id,
+        refund_amount: expected / 100,
+        refund_status: refund.status === 'processed' ? 'REFUNDED' : 'PROCESSING',
+        refunded_at: refund.status === 'processed' ? new Date().toISOString() : null,
+        refund_notes: 'An item sold out before your payment completed. Your payment has been refunded automatically.',
+      }).eq('id', order.id);
+      return json({ error: 'An item sold out while you were paying. Your payment has been refunded.' }, 409);
+    }
+    if (error.message.includes('ALREADY_CONFIRMED')) return json({ error: 'Order is already paid with a different payment' }, 409);
+    if (error.message.includes('NOT_PENDING')) return json({ error: 'This order is not awaiting payment' }, 409);
+    throw error;
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    if (e instanceof RazorpayError) return json({ error: e.message }, 502);
+    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
 });
