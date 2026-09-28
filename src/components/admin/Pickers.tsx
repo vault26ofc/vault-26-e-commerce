@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moveItem } from '@/lib/media';
 import { PAGES, type LinkTarget, type LinkValue } from '@/lib/links';
 import { cn } from '@/lib/utils';
+import { SearchSelect } from './SearchSelect';
 
 type ProductLite = { id: string; slug: string; name: string; images: string[] | null; is_active: boolean; category_id: string | null };
 type CategoryLite = { id: string; slug: string; name: string };
@@ -49,10 +50,8 @@ function ProductSearch({ exclude, onPick }: { exclude: string[]; onPick: (p: Pro
           <input value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); }} onFocus={() => setOpen(true)}
             placeholder="Search products to add…" className="w-full bg-transparent py-2.5 text-sm outline-none" />
         </div>
-        <select value={cat} onChange={(e) => { setCat(e.target.value); setOpen(true); }} className="border border-border bg-transparent px-2 text-sm max-w-[40%]">
-          <option value="">All categories</option>
-          {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <SearchSelect className="w-[40%] shrink-0" value={cat} onChange={(v) => { setCat(v); setOpen(true); }}
+          emptyLabel="All categories" placeholder="All categories" options={cats.map((c) => ({ value: c.id, label: c.name }))} />
       </div>
       {open && (
         <div className="absolute z-30 left-0 right-0 mt-1 bg-background border border-border max-h-72 overflow-y-auto shadow-lg">
@@ -115,10 +114,8 @@ export function ProductPicker({ value, onChange, max }: { value: string[]; onCha
 export function CategorySelect({ value, onChange, placeholder = 'Choose a category…' }: { value: string; onChange: (slug: string) => void; placeholder?: string }) {
   const cats = useCategories();
   return (
-    <select value={value || ''} onChange={(e) => onChange(e.target.value)} className="w-full border border-border bg-transparent px-3 py-2 text-sm">
-      <option value="">{placeholder}</option>
-      {cats.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
-    </select>
+    <SearchSelect value={value || ''} onChange={onChange} placeholder={placeholder} emptyLabel="— none —"
+      options={cats.map((c) => ({ value: c.slug, label: c.name }))} />
   );
 }
 
@@ -139,11 +136,8 @@ export function LinkPicker({ value, onChange }: { value: LinkValue; onChange: (v
       {type === 'product' && <ProductPicker max={1} value={current?.type === 'product' && current.value ? [current.value] : []} onChange={(s) => set(s[0] ?? '')} />}
       {type === 'category' && <CategorySelect value={current?.type === 'category' ? current.value : ''} onChange={(s) => set(s)} />}
       {type === 'page' && (
-        <select value={current?.type === 'page' ? current.value : ''} onChange={(e) => set(e.target.value, PAGES.find((p) => p.value === e.target.value)?.label)}
-          className="w-full border border-border bg-transparent px-3 py-2 text-sm">
-          <option value="">Choose a page…</option>
-          {PAGES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-        </select>
+        <SearchSelect value={current?.type === 'page' ? current.value : ''} onChange={(v) => set(v, PAGES.find((p) => p.value === v)?.label)}
+          placeholder="Choose a page…" options={PAGES.map((p) => ({ value: p.value, label: p.label, hint: p.value }))} />
       )}
       {legacy && !current && <div className="text-[11px] text-muted-foreground">Currently links to <code>{legacy}</code>. Pick above to replace it.</div>}
     </div>

@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X, ChevronUp, ChevronDown, Upload } from 'lucide-react';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
+import { MediaField } from '@/components/admin/MediaField';
+import { ProductPicker } from '@/components/admin/Pickers';
+import { isVideoUrl } from '@/lib/media';
 
 type Slide = {
   id: string;
@@ -131,32 +134,14 @@ export default function AdminLookbook() {
               <button onClick={() => setEditing(null)}><X className="h-5 w-5" /></button>
             </div>
 
-            <label className="border border-dashed border-border flex flex-col items-center justify-center gap-2 p-6 cursor-pointer text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
-              {editing.image_url ? (
-                editing.media_type === 'video' ? (
-                  <video src={editing.image_url} className="h-24 object-cover" />
-                ) : (
-                  <img src={editing.image_url} className="h-24 object-cover" alt="" />
-                )
-              ) : (
-                <Upload className="h-5 w-5" />
-              )}
-              {uploading ? 'Uploading…' : 'Upload image or video'}
-              <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-            </label>
+            <MediaField label="Image or video" kind="any" folder="vault26/lookbook" value={editing.image_url}
+              onChange={(url) => setEditing({ ...editing, image_url: url, media_type: isVideoUrl(url) ? 'video' : 'image' })} />
 
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">
               Linked product
-              <select
-                value={editing.product_slug || ''}
-                onChange={(e) => setEditing({ ...editing, product_slug: e.target.value })}
-                className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm"
-              >
-                <option value="">Select a product…</option>
-                {products.map((p) => (
-                  <option key={p.slug} value={p.slug}>{p.name}</option>
-                ))}
-              </select>
+              <div className="mt-1.5 normal-case tracking-normal text-foreground">
+                <ProductPicker max={1} value={editing.product_slug ? [editing.product_slug] : []} onChange={(s) => setEditing({ ...editing, product_slug: s[0] ?? '' })} />
+              </div>
             </label>
 
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">

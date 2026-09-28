@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
+import { MediaField } from '@/components/admin/MediaField';
 
 const FIELDS: { k: string; l: string; type?: string; full?: boolean }[] = [
   { k: 'company_name', l: 'Company name' },
   { k: 'tagline', l: 'Tagline' },
-  { k: 'logo_url', l: 'Logo URL', full: true },
   { k: 'address_line1', l: 'Address line 1', full: true },
   { k: 'address_line2', l: 'Address line 2', full: true },
   { k: 'city', l: 'City' },
@@ -71,6 +71,9 @@ export default function AdminInvoiceTemplate() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
+        <div className="md:col-span-2">
+          <MediaField label="Logo" kind="image" folder="vault26/invoice" value={tpl.logo_url} onChange={(v) => set('logo_url', v)} />
+        </div>
         {FIELDS.map((f) => (
           <div key={f.k} className={f.full ? 'md:col-span-2' : ''}>
             <label className="eyebrow">{f.l}</label>

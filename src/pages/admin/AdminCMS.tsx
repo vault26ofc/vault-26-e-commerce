@@ -23,6 +23,7 @@ import type {
   MediaAsset, FieldDef,
 } from '@/cms/types';
 import { DEFAULT_HOME_SECTIONS } from '@/cms/hooks/useCMSPage';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 
 // ─── Field Editor ────────────────────────────────────────────────────────────
 
@@ -488,10 +489,8 @@ export default function AdminCMS() {
               <div className="p-3 border-t border-border space-y-2">
                 {addingSection ? (
                   <div className="space-y-2">
-                    <select value={newType} onChange={(e) => setNewType(e.target.value as SectionType)} className="w-full h-9 border border-input bg-background px-2 text-sm">
-                      <option value="">Choose a section type…</option>
-                      {Object.entries(SECTION_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-                    </select>
+                    <SearchSelect value={newType} onChange={(v) => setNewType(v as SectionType)} placeholder="Search a section type…"
+                      options={Object.entries(SECTION_META).map(([k, v]) => ({ value: k, label: v.label, hint: v.description }))} />
                     {newType && <p className="text-[11px] text-muted-foreground">{SECTION_META[newType]?.description}</p>}
                     <div className="flex gap-2">
                       <Button size="sm" className="flex-1" onClick={addSection} disabled={!newType}>Add to page</Button>
@@ -642,11 +641,14 @@ export default function AdminCMS() {
         <TabsContent value="brand">
           <div className="max-w-2xl space-y-6">
             <h2 className="text-lg font-semibold">Brand Settings</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <MediaField label="Logo" kind="image" value={(brand as any).logo_url} onChange={(v) => setBrand((b) => ({ ...b, logo_url: v }))} />
+              <MediaField label="Favicon" kind="image" value={(brand as any).favicon_url} onChange={(v) => setBrand((b) => ({ ...b, favicon_url: v }))} />
+              <MediaField label="Default share image" kind="image" value={(brand as any).og_default_image} onChange={(v) => setBrand((b) => ({ ...b, og_default_image: v }))} />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {([
                 ['site_name', 'Site Name'], ['tagline', 'Tagline'],
-                ['logo_url', 'Logo URL'], ['favicon_url', 'Favicon URL'],
-                ['og_default_image', 'Default OG Image URL'],
                 ['social_instagram', 'Instagram URL'], ['social_twitter', 'Twitter URL'],
                 ['social_facebook', 'Facebook URL'],
                 ['contact_email', 'Contact Email'], ['contact_phone', 'Contact Phone'],
@@ -678,43 +680,27 @@ export default function AdminCMS() {
         <TabsContent value="preloader" className="space-y-6 max-w-2xl">
           <div>
             <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background type</label>
-            <select
-              value={preloader.bg_type || 'color'}
-              onChange={(e) => setPreloader({ ...preloader, bg_type: e.target.value })}
-              className="w-full border border-border bg-transparent px-3 py-2 text-sm"
-            >
-              <option value="color">Solid color</option>
-              <option value="image">Image</option>
-              <option value="video">Video</option>
-            </select>
+            <SearchSelect value={preloader.bg_type || 'color'} onChange={(v) => setPreloader({ ...preloader, bg_type: v })}
+              options={[{ value: 'color', label: 'Solid color' }, { value: 'image', label: 'Image' }, { value: 'video', label: 'Video' }]} />
           </div>
           {preloader.bg_type === 'image' && (
             <div>
-              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background image URL</label>
-              <input value={preloader.bg_image_url || ''} onChange={(e) => setPreloader({ ...preloader, bg_image_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+              <MediaField label="Background image" kind="image" value={preloader.bg_image_url} onChange={(v) => setPreloader({ ...preloader, bg_image_url: v })} />
             </div>
           )}
           {preloader.bg_type === 'video' && (
             <div>
-              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background video URL</label>
-              <input value={preloader.bg_video_url || ''} onChange={(e) => setPreloader({ ...preloader, bg_video_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+              <MediaField label="Background video" kind="video" value={preloader.bg_video_url} onChange={(v) => setPreloader({ ...preloader, bg_video_url: v })} />
             </div>
           )}
           <div>
             <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Foreground content</label>
-            <select
-              value={preloader.content_type || 'text'}
-              onChange={(e) => setPreloader({ ...preloader, content_type: e.target.value })}
-              className="w-full border border-border bg-transparent px-3 py-2 text-sm"
-            >
-              <option value="text">Default (logo, progress bar &amp; caption)</option>
-              <option value="image">Custom image (replaces logo, progress bar &amp; caption)</option>
-            </select>
+            <SearchSelect value={preloader.content_type || 'text'} onChange={(v) => setPreloader({ ...preloader, content_type: v })}
+              options={[{ value: 'text', label: 'Default (logo, progress bar & caption)' }, { value: 'image', label: 'Custom image (replaces logo, progress bar & caption)' }]} />
           </div>
           {preloader.content_type === 'image' && (
             <div>
-              <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Custom foreground image URL</label>
-              <input value={preloader.content_image_url || ''} onChange={(e) => setPreloader({ ...preloader, content_image_url: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm" />
+              <MediaField label="Custom foreground image" kind="image" value={preloader.content_image_url} onChange={(v) => setPreloader({ ...preloader, content_image_url: v })} />
             </div>
           )}
           <div>
@@ -748,10 +734,11 @@ export default function AdminCMS() {
                 />
               </div>
             </div>
+            <MediaField label="Share image (shown when this page is shared)" kind="image" value={(seo as any).og_image} onChange={(v) => setSeo((s) => ({ ...s, og_image: v }))} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {([
                 ['title', 'Page Title'], ['og_title', 'OG Title'],
-                ['canonical_url', 'Canonical URL'], ['og_image', 'OG Image URL'],
+                ['canonical_url', 'Canonical URL'],
               ] as [string, string][]).map(([k, lbl]) => (
                 <div key={k}>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5 block">{lbl}</Label>

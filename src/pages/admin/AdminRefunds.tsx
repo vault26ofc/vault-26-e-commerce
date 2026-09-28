@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 
 const REFUND_STATUSES = ['NONE', 'REQUESTED', 'PROCESSING', 'REFUNDED', 'REJECTED'] as const;
 
@@ -101,11 +102,8 @@ export default function AdminRefunds() {
           <h1 className="font-display text-3xl">Refunds</h1>
           <p className="text-sm text-muted-foreground mt-1">Process and track customer refunds.</p>
         </div>
-        <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="border border-border bg-transparent px-3 py-2 text-sm">
-          <option value="PENDING">Pending refunds</option>
-          <option value="REFUNDED">Completed</option>
-          <option value="ALL">All refunds</option>
-        </select>
+        <SearchSelect className="w-48" value={filter} onChange={(v) => setFilter(v as any)}
+          options={[{ value: 'PENDING', label: 'Pending refunds' }, { value: 'REFUNDED', label: 'Completed' }, { value: 'ALL', label: 'All refunds' }]} />
       </div>
 
       <div className="border border-border overflow-x-auto">
@@ -150,9 +148,8 @@ export default function AdminRefunds() {
               </div>
               <div>
                 <Label>Status</Label>
-                <select value={form.refund_status} onChange={(e) => setForm({ ...form, refund_status: e.target.value })} className="w-full border border-border bg-transparent px-3 py-2 text-sm mt-1">
-                  {REFUND_STATUSES.map((s) => <option key={s}>{s}</option>)}
-                </select>
+                <SearchSelect className="mt-1" value={form.refund_status} onChange={(v) => setForm({ ...form, refund_status: v })}
+                  options={REFUND_STATUSES.map((s) => ({ value: s, label: s }))} />
               </div>
               <div>
                 <Label>Refund amount (₹)</Label>

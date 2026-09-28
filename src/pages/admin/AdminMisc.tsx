@@ -4,6 +4,7 @@ import { inr } from '@/lib/format';
 import { toast } from 'sonner';
 import { downloadCsv, downloadJson } from '@/lib/exportCsv';
 import { Download, Database } from 'lucide-react';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 
 export function AdminCoupons() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -22,7 +23,7 @@ export function AdminCoupons() {
       <h1 className="font-display text-2xl md:text-3xl mb-6">Coupons</h1>
       <form onSubmit={create} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-6 border border-border p-4">
         <input required placeholder="CODE" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="border border-border bg-transparent px-3 py-2 text-sm uppercase" />
-        <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="border border-border bg-transparent px-3 py-2 text-sm"><option>PERCENT</option><option>FLAT</option></select>
+        <SearchSelect value={form.type} onChange={(v) => setForm({ ...form, type: v })} options={[{ value: 'PERCENT', label: 'Percent off' }, { value: 'FLAT', label: 'Flat ₹ off' }]} />
         <input type="number" placeholder="Value" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} className="border border-border bg-transparent px-3 py-2 text-sm" />
         <input type="number" placeholder="Min order" value={form.min_order} onChange={(e) => setForm({ ...form, min_order: Number(e.target.value) })} className="border border-border bg-transparent px-3 py-2 text-sm" />
         <button className="bg-foreground text-background py-2 text-xs uppercase tracking-widest hover:bg-accent transition-colors">Create</button>

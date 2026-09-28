@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X, Upload } from 'lucide-react';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
+import { MediaField } from '@/components/admin/MediaField';
+import { ProductPicker } from '@/components/admin/Pickers';
+import { isVideoUrl } from '@/lib/media';
 
 type Pick = {
   id: string;
@@ -171,10 +174,7 @@ export default function AdminInfluencerPicks() {
             </div>
 
             {editing.video_source === 'upload' ? (
-              <label className="border border-dashed border-border flex items-center justify-center h-32 cursor-pointer text-xs uppercase tracking-widest text-muted-foreground">
-                {editing.video_url ? 'Video uploaded ✓' : uploading ? 'Uploading…' : (<><Upload className="h-5 w-5 mr-2" /> Upload video</>)}
-                <input type="file" accept="video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleVideo(f); }} />
-              </label>
+              <MediaField label="Video" kind="video" folder="vault26/influencers" value={editing.video_url} onChange={(url) => setEditing({ ...editing, video_url: url })} />
             ) : (
               <label className="block text-xs uppercase tracking-widest text-muted-foreground">
                 Link URL
@@ -182,14 +182,8 @@ export default function AdminInfluencerPicks() {
               </label>
             )}
 
-            <label className="border border-dashed border-border flex items-center justify-center h-32 cursor-pointer relative overflow-hidden text-xs uppercase tracking-widest text-muted-foreground">
-              {editing.thumbnail_url ? (
-                <img src={editing.thumbnail_url} className="absolute inset-0 w-full h-full object-cover" alt="" />
-              ) : (
-                <><Upload className="h-5 w-5 mr-2" /> Thumbnail</>
-              )}
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleThumbnail(f); }} />
-            </label>
+            <MediaField label="Thumbnail (image or video)" kind="any" folder="vault26/influencers" value={editing.thumbnail_url}
+              onChange={(url) => setEditing({ ...editing, thumbnail_url: url, thumbnail_type: isVideoUrl(url) ? 'video' : 'image' })} />
 
             <label className="block text-xs uppercase tracking-widest text-muted-foreground">
               Quote
@@ -203,24 +197,14 @@ export default function AdminInfluencerPicks() {
             {editing.id && (
               <div className="border-t border-border pt-4">
                 <div className="eyebrow mb-2">Tagged products</div>
-                <ul className="space-y-1 mb-2">
-                  {taggedFor(editing.id).map((pp) => (
-                    <li key={pp.id} className="flex items-center justify-between text-sm border border-border px-3 py-1.5">
-                      {products.find((p) => p.slug === pp.product_slug)?.name || pp.product_slug}
-                      <button onClick={() => removeProductTag(pp.id)} className="p-1 hover:bg-secondary text-destructive"><X className="h-3 w-3" /></button>
-                    </li>
-                  ))}
-                </ul>
-                <select
-                  onChange={(e) => { if (e.target.value) addProductTag(editing!.id!, e.target.value); e.target.value = ''; }}
-                  className="w-full border border-border bg-transparent px-3 py-2 text-sm"
-                  defaultValue=""
-                >
-                  <option value="" disabled>+ Tag a product</option>
-                  {products.filter((p) => !taggedFor(editing!.id!).some((pp) => pp.product_slug === p.slug)).map((p) => (
-                    <option key={p.slug} value={p.slug}>{p.name}</option>
-                  ))}
-                </select>
+                <ProductPicker
+                  value={taggedFor(editing.id).map((pp) => pp.product_slug)}
+                  onChange={(next) => {
+                    const current = taggedFor(editing!.id!);
+                    next.filter((slug) => !current.some((pp) => pp.product_slug === slug)).forEach((slug) => addProductTag(editing!.id!, slug));
+                    current.filter((pp) => !next.includes(pp.product_slug)).forEach((pp) => removeProductTag(pp.id));
+                  }}
+                />
               </div>
             )}
 

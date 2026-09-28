@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { isVideoUrl } from '@/lib/media';
 
 type Suggestion = { id: string; name: string; slug: string; image: string; price: number; brand?: string };
 
@@ -15,7 +16,7 @@ const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/
 // Fixed creative element in the mega-menu right-bottom grid — intentionally NOT sourced
 // from mega_menu_tabs/groups/links (that schema has no thumbnails column by design; the
 // same 4 thumbnails show regardless of which tab is active, per an earlier product decision).
-const FIXED_THUMBNAILS = [
+const DEFAULT_THUMBNAILS: { num: string; label: string; type: 'image' | 'video'; src: string }[] = [
   { num: '01', label: 'CAMPAIGN', type: 'image' as const, src: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800' },
   { num: '02', label: 'DETAILS', type: 'image' as const, src: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800' },
   { num: '03', label: 'LOOKS', type: 'image' as const, src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800' },
@@ -25,16 +26,20 @@ const FIXED_THUMBNAILS = [
 // Admin-managed mega menu data shape — fetched at mount from mega_menu_tabs/groups/links
 // (joined to categories), replacing the old hardcoded VAULT_INDEX_DATA.
 type MegaLink = { id: string; label: string; href: string; hoverImg: string | null };
+type MegaProduct = { id: string; slug: string; name: string; image: string; price: number };
 type MegaGroup = { id: string; heading: string; links: MegaLink[] };
 type MegaTab = {
   id: string;
   label: string;
   isCustom: boolean;
-  href: string | null; // set only for custom tabs — clicking navigates here
+  href: string | null; // where clicking the tab goes (category page or fixed page)
   heroImage: string | null;
   subhead: string | null;
   groups: MegaGroup[];
+  featured: MegaProduct[];
 };
+
+type OverlaySettings = { statement?: string; thumbnails?: { label?: string; media?: string; link?: string }[] };
 
 export default function Navbar() {
   const cartCount = useCart((s) => s.items.reduce((n, i) => n + i.quantity, 0));
@@ -51,6 +56,8 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [hoveredHeroImg, setHoveredHeroImg] = useState<string | null>(null);
+  const [overlay, setOverlay] = useState<OverlaySettings>({});
+  const dropdownTimer = useRef<number | null>(null);
   
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
@@ -96,48 +103,51 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Fetch mega menu data (tabs, groups, links) from the admin-managed tables on mount.
+  // Mega menu (Admin → Mega Menu): tabs → links → up to 2 featured products, plus overlay extras.
   useEffect(() => {
     (async () => {
-      const [{ data: tabs }, { data: groups }, { data: links }, { data: cats }] = await Promise.all([
-        supabase.from('mega_menu_tabs' as any).select('*').eq('is_active', true).order('position'),
-        supabase.from('mega_menu_groups' as any).select('*').order('position'),
-        supabase.from('mega_menu_links' as any).select('*').order('position'),
+      const db = supabase as any;
+      const [{ data: tabs }, { data: links }, { data: featured }, { data: cats }, { data: overlaySetting }] = await Promise.all([
+        db.from('mega_menu_tabs').select('*').eq('is_active', true).order('position'),
+        db.from('mega_menu_links').select('*').eq('is_visible', true).order('position'),
+        db.from('mega_menu_featured').select('tab_id, position, products(id, slug, name, images, is_active, product_variants(price))').order('position'),
         supabase.from('categories').select('id, name, slug'),
+        supabase.from('settings').select('value').eq('key', 'menu_overlay').maybeSingle(),
       ]);
+      setOverlay(((overlaySetting as any)?.value as OverlaySettings) || {});
       const catById = new Map((cats || []).map((c: any) => [c.id, c]));
-      const groupsByTab = new Map<string, any[]>();
-      (groups || []).forEach((g: any) => {
-        if (!groupsByTab.has(g.tab_id)) groupsByTab.set(g.tab_id, []);
-        groupsByTab.get(g.tab_id)!.push(g);
-      });
-      const linksByGroup = new Map<string, any[]>();
+      const linksByTab = new Map<string, MegaLink[]>();
       (links || []).forEach((l: any) => {
-        if (!linksByGroup.has(l.group_id)) linksByGroup.set(l.group_id, []);
-        linksByGroup.get(l.group_id)!.push(l);
+        if (!l.tab_id) return;
+        const lc = l.category_id ? catById.get(l.category_id) : null;
+        const link: MegaLink = lc
+          ? { id: l.id, label: lc.name, href: `/category/${lc.slug}`, hoverImg: l.hover_image_url }
+          : { id: l.id, label: l.custom_label || '', href: l.custom_href || '/shop', hoverImg: l.hover_image_url };
+        if (!linksByTab.has(l.tab_id)) linksByTab.set(l.tab_id, []);
+        linksByTab.get(l.tab_id)!.push(link);
+      });
+      const featuredByTab = new Map<string, MegaProduct[]>();
+      (featured || []).forEach((row: any) => {
+        const p = row.products;
+        if (!p || !p.is_active) return;
+        const price = (p.product_variants || []).reduce((m: number, v: any) => Math.min(m, Number(v.price)), Infinity);
+        if (!featuredByTab.has(row.tab_id)) featuredByTab.set(row.tab_id, []);
+        featuredByTab.get(row.tab_id)!.push({ id: p.id, slug: p.slug, name: p.name, image: p.images?.[0] || '', price: Number.isFinite(price) ? price : 0 });
       });
 
       const built: MegaTab[] = (tabs || []).map((t: any) => {
         const cat = t.category_id ? catById.get(t.category_id) : null;
-        const tabGroups: MegaGroup[] = (groupsByTab.get(t.id) || []).map((g: any) => ({
-          id: g.id,
-          heading: g.heading,
-          links: (linksByGroup.get(g.id) || []).map((l: any) => {
-            if (l.link_type === 'category') {
-              const lc = l.category_id ? catById.get(l.category_id) : null;
-              return { id: l.id, label: lc?.name || '', href: `/category/${lc?.slug || ''}`, hoverImg: l.hover_image_url };
-            }
-            return { id: l.id, label: l.custom_label || '', href: l.custom_href || '#', hoverImg: l.hover_image_url };
-          }),
-        }));
+        const label = t.tab_type === 'category' ? (cat?.name?.toUpperCase() || '') : (t.custom_label || '');
+        const tabLinks = linksByTab.get(t.id) || [];
         return {
           id: t.id,
-          label: t.tab_type === 'category' ? (cat?.name?.toUpperCase() || '') : (t.custom_label || ''),
-          isCustom: t.tab_type === 'custom',
-          href: t.tab_type === 'custom' ? t.custom_href : null,
+          label,
+          isCustom: t.tab_type !== 'category',
+          href: t.tab_type === 'category' ? (cat ? `/category/${cat.slug}` : null) : t.custom_href,
           heroImage: t.hero_image_url,
           subhead: t.subhead,
-          groups: tabGroups,
+          groups: tabLinks.length ? [{ id: `${t.id}-links`, heading: label, links: tabLinks }] : [],
+          featured: (featuredByTab.get(t.id) || []).slice(0, 2),
         };
       });
       setMegaTabs(built);
@@ -196,6 +206,12 @@ export default function Navbar() {
   const activeData = megaTabs.find((t) => t.id === activeSection) || megaTabs[0];
   const fallbackHero = activeData?.groups[0]?.links.find((l) => l.hoverImg)?.hoverImg || null;
   const currentHeroSrc = hoveredHeroImg || activeData?.heroImage || fallbackHero;
+  const thumbnails = overlay.thumbnails?.some((t) => t.media)
+    ? overlay.thumbnails.filter((t) => t.media).slice(0, 4).map((t, i) => ({ num: String(i + 1).padStart(2, '0'), label: t.label || '', type: (isVideoUrl(t.media) ? 'video' : 'image') as 'image' | 'video', src: t.media! }))
+    : DEFAULT_THUMBNAILS;
+  const dropdownTab = megaTabs.find((t) => t.id === hoveredNav && (t.groups.length || t.featured.length));
+  const openDropdown = (id: string) => { if (dropdownTimer.current) window.clearTimeout(dropdownTimer.current); setHoveredNav(id); };
+  const closeDropdownSoon = () => { dropdownTimer.current = window.setTimeout(() => setHoveredNav(null), 160); };
 
   return (
     <>
@@ -238,8 +254,12 @@ export default function Navbar() {
               {megaTabs.slice(0, 6).map((tab) => (
                 <button
                   key={tab.id}
+                  onMouseEnter={() => openDropdown(tab.id)}
+                  onMouseLeave={closeDropdownSoon}
+                  onFocus={() => openDropdown(tab.id)}
                   onClick={() => {
-                    if (tab.isCustom && tab.href) { navigate(tab.href); return; }
+                    setHoveredNav(null);
+                    if (tab.href) { navigate(tab.href); return; }
                     setActiveSection(tab.id);
                     setHoveredHeroImg(null);
                     setMenuOpen(true);
@@ -298,6 +318,50 @@ export default function Navbar() {
             </div>
           </div>
         </div>
+
+        {/* Hover dropdown: the tab's links on the left, its 2 featured products on the right */}
+        <AnimatePresence>
+          {dropdownTab && !menuOpen && (
+            <motion.div
+              key={dropdownTab.id}
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              onMouseEnter={() => openDropdown(dropdownTab.id)}
+              onMouseLeave={closeDropdownSoon}
+              className="hidden lg:block absolute left-0 right-0 top-full bg-white text-[#0F0F0F] shadow-[0_20px_40px_rgba(0,0,0,0.15)]"
+            >
+              <div className="mx-auto w-full max-w-[1440px] px-[30px] py-8 grid grid-cols-[minmax(200px,1fr)_minmax(0,1.6fr)] gap-10">
+                <ul className="space-y-3">
+                  {dropdownTab.groups.flatMap((g) => g.links).map((l) => (
+                    <li key={l.id}>
+                      <Link to={l.href} onClick={() => setHoveredNav(null)} className="text-[15px] hover:underline underline-offset-4">{l.label}</Link>
+                    </li>
+                  ))}
+                  {dropdownTab.href && (
+                    <li className="pt-2">
+                      <Link to={dropdownTab.href} onClick={() => setHoveredNav(null)} className="text-[13px] uppercase text-[#BB0006] underline underline-offset-4">
+                        Shop all {dropdownTab.label.toLowerCase()}
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+                <div className="grid grid-cols-2 gap-4 max-w-[560px] justify-self-end w-full">
+                  {dropdownTab.featured.map((p) => (
+                    <Link key={p.id} to={`/products/${p.slug}`} onClick={() => setHoveredNav(null)} className="group block">
+                      <div className="aspect-[4/5] bg-[#F1F1F1] overflow-hidden">
+                        {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-[1.03] transition-transform duration-500" />}
+                      </div>
+                      <p className="text-[13px] mt-2 truncate">{p.name}</p>
+                      <p className="text-[14px] font-bold">{inr(p.price)}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       {/* 03 — FULL-SCREEN INDEX OVERLAY (EXACT REFERENCE SCREENSHOT LAYOUT MATCH) */}
@@ -448,7 +512,19 @@ export default function Navbar() {
 
                 {/* Top 72% Height: Taller Main Hero Photo Showcase */}
                 <div className="relative flex-1 w-full overflow-hidden bg-black">
-                  {currentHeroSrc ? (
+                  {activeData.featured.length > 0 && !hoveredHeroImg ? (
+                    <div className="absolute inset-0 grid grid-cols-2 gap-[2px]">
+                      {activeData.featured.map((p) => (
+                        <Link key={p.id} to={`/products/${p.slug}`} onClick={() => setMenuOpen(false)} className="relative group overflow-hidden bg-[#F1F1F1]">
+                          {p.image && <img src={p.image} alt={p.name} className="w-full h-full object-cover mix-blend-multiply group-hover:scale-[1.03] transition-transform duration-500" />}
+                          <div className="absolute left-0 right-0 bottom-0 p-4 bg-white/90 text-[#0F0F0F]">
+                            <p className="text-[13px] truncate">{p.name}</p>
+                            <p className="text-[14px] font-bold">{inr(p.price)}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : currentHeroSrc ? (
                     <AnimatePresence mode="wait">
                       <motion.img
                         key={currentHeroSrc}
@@ -478,7 +554,7 @@ export default function Navbar() {
 
                 {/* Bottom 28% Height: 4 Equal Grid Thumbnails Side-by-Side (01 CAMPAIGN, 02 DETAILS, 03 LOOKS, 04 FILM ▷) — fixed creative element, same regardless of active tab */}
                 <div className="h-44 md:h-48 grid grid-cols-4 border-t border-white/10 shrink-0 bg-black">
-                  {FIXED_THUMBNAILS.map((t) => (
+                  {thumbnails.map((t) => (
                     <div
                       key={t.num + t.label}
                       onMouseEnter={() => {
@@ -532,8 +608,7 @@ export default function Navbar() {
             <div className="px-8 md:px-12 py-4 flex items-center justify-between border-t border-white/40 shrink-0 bg-[#BB0006] text-[12px] font-sans uppercase text-white/85">
               {/* Left Statement */}
               <div className="leading-tight">
-                <div>THE ARCHIVE</div>
-                <div>IS ALWAYS OPEN</div>
+                {(overlay.statement || 'THE ARCHIVE\nIS ALWAYS OPEN').split('\n').map((l, i) => <div key={i}>{l}</div>)}
               </div>
 
               {/* Center / Right Links */}

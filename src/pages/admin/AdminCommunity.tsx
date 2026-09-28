@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
+import { MediaField } from '@/components/admin/MediaField';
+import { SearchSelect } from '@/components/admin/SearchSelect';
+import { isVideoUrl } from '@/lib/media';
 
 type Photo = {
   id: string;
@@ -75,31 +78,16 @@ export default function AdminCommunity() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {photos.map((p) => (
           <div key={p.id} className="border border-border p-4 space-y-3">
-            <label className="border border-dashed border-border flex items-center justify-center h-40 cursor-pointer relative overflow-hidden">
-              {p.image_url ? (
-                p.media_type === 'video' ? (
-                  <video src={p.image_url} className="w-full h-full object-cover" />
-                ) : (
-                  <img src={p.image_url} className="w-full h-full object-cover" alt="" />
-                )
-              ) : (
-                <Upload className="h-5 w-5 text-muted-foreground" />
-              )}
-              <input type="file" accept="image/*,video/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(p.id, f); }} />
-            </label>
+            <MediaField kind="any" folder="vault26/community" value={p.image_url}
+              onChange={(url) => patch(p.id, { image_url: url, media_type: isVideoUrl(url) ? 'video' : 'image' })} />
             <input
               placeholder="@handle"
               value={p.handle || ''}
               onChange={(e) => patch(p.id, { handle: e.target.value })}
               className="w-full border border-border bg-transparent px-3 py-2 text-sm"
             />
-            <select
-              value={p.bento_size}
-              onChange={(e) => patch(p.id, { bento_size: e.target.value as Photo['bento_size'] })}
-              className="w-full border border-border bg-transparent px-3 py-2 text-sm"
-            >
-              {SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <SearchSelect value={p.bento_size} onChange={(v) => patch(p.id, { bento_size: v as Photo['bento_size'] })}
+              options={SIZES.map((s) => ({ value: s, label: `Tile size: ${s}` }))} />
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={p.is_active} onChange={(e) => patch(p.id, { is_active: e.target.checked })} /> Active

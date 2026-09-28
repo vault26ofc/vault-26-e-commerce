@@ -6,6 +6,7 @@ import { paymentLabel, readFunctionError } from '@/lib/payment';
 import { toast } from 'sonner';
 import { downloadCsv } from '@/lib/exportCsv';
 import { Download } from 'lucide-react';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 
 const STATUSES = ['PENDING','PACKED','SHIPPED','DELIVERED','CANCELLED'] as const;
 
@@ -94,10 +95,8 @@ export default function AdminOrders() {
         <h1 className="font-display text-2xl md:text-3xl">Orders</h1>
         <div className="flex items-center gap-2">
           <button onClick={exportRows} className="border border-border px-3 py-2 text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-secondary"><Download className="h-3.5 w-3.5" /> CSV</button>
-          <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border border-border bg-transparent px-3 py-2 text-sm">
-            <option value="ALL">All statuses</option>
-            {STATUSES.map((s) => <option key={s}>{s}</option>)}
-          </select>
+          <SearchSelect className="w-44" value={filter} onChange={setFilter}
+            options={[{ value: 'ALL', label: 'All statuses' }, ...STATUSES.map((s) => ({ value: s, label: s }))]} />
         </div>
       </div>
       <div className="border border-border overflow-x-auto">
@@ -114,9 +113,8 @@ export default function AdminOrders() {
                 <td className="p-3">{inr(Number(o.total))}</td>
                 <td className="p-3 text-xs">{o.payment_method} · {paymentLabel(o)}</td>
                 <td className="p-3">
-                  <select value={o.status} onChange={(e) => update(o, e.target.value)} className="border border-border bg-transparent px-2 py-1 text-xs">
-                    {STATUSES.map((s) => <option key={s}>{s}</option>)}
-                  </select>
+                  <SearchSelect className="w-36 text-xs" value={o.status} onChange={(v) => update(o, v)}
+                    options={STATUSES.map((s) => ({ value: s, label: s }))} />
                   {o.return_status && o.return_status !== 'NONE' && (
                     <Link to="/admin/returns" className="block mt-1 text-[10px] uppercase tracking-widest underline">Return: {o.return_status}</Link>
                   )}

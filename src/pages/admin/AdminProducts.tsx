@@ -5,6 +5,7 @@ import { inr, slugify } from '@/lib/format';
 import { toast } from 'sonner';
 import { Copy, Eye, EyeOff, Pencil, Plus, Trash2, Wand2, X } from 'lucide-react';
 import { MediaListField } from '@/components/admin/MediaField';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 import { buildVariantMatrix, duplicateVariantKeys, type Colour, type EditorVariant } from '@/lib/variants';
 
 type ProductForm = {
@@ -305,26 +306,19 @@ export default function AdminProducts() {
               <Step n={1} title="Category & details">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <Field label="★ Primary category *" hint="Decides the sizes in step 3.">
-                    <select value={editing.category_id || ''} onChange={(e) => setEditing({ ...editing, category_id: e.target.value || null })} className={inputCls}>
-                      <option value="">Choose a category…</option>
-                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                    <SearchSelect value={editing.category_id || ''} onChange={(v) => setEditing({ ...editing, category_id: v || null })}
+                      placeholder="Search a category…" options={categories.map((c) => ({ value: c.id, label: c.name }))} />
                   </Field>
                   <Field label="Brand">
-                    <select value={editing.brand_id || ''} onChange={(e) => setEditing({ ...editing, brand_id: e.target.value || null })} className={inputCls}>
-                      <option value="">—</option>
-                      {(() => {
-                        const inCat = new Set(brandLinks.filter((l) => l.category_id === editing.category_id).map((l) => l.brand_id));
-                        const mine = brands.filter((b) => inCat.has(b.id));
-                        const rest = brands.filter((b) => !inCat.has(b.id));
-                        return mine.length ? (
-                          <>
-                            <optgroup label="In this category">{mine.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</optgroup>
-                            <optgroup label="Other brands">{rest.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</optgroup>
-                          </>
-                        ) : brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>);
-                      })()}
-                    </select>
+                    {(() => {
+                      const inCat = new Set(brandLinks.filter((l) => l.category_id === editing.category_id).map((l) => l.brand_id));
+                      return (
+                        <SearchSelect value={editing.brand_id || ''} onChange={(v) => setEditing({ ...editing, brand_id: v || null })}
+                          placeholder="Search a brand…" emptyLabel="— no brand —"
+                          options={[...brands].sort((x, y) => Number(inCat.has(y.id)) - Number(inCat.has(x.id)))
+                            .map((b) => ({ value: b.id, label: b.name, group: inCat.size ? (inCat.has(b.id) ? 'In this category' : 'Other brands') : undefined }))} />
+                      );
+                    })()}
                   </Field>
                   <Field label="Name *">
                     <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value, slug: editing.id ? editing.slug : slugify(e.target.value) })} className={inputCls} />

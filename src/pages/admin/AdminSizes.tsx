@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 
 type Category = { id: string; name: string };
 type Size = { id: string; category_id: string; label: string; position: number };
@@ -110,10 +111,9 @@ export default function AdminSizes() {
 
       <div className="flex flex-wrap gap-3 mb-6 items-end">
         <label className="block text-xs uppercase tracking-widest text-muted-foreground">Category
-          <select value={activeCategoryId} onChange={(e) => { setActiveCategoryId(e.target.value); setSearch(''); }}
-            className="mt-1.5 block w-64 border border-border bg-transparent px-3 py-2 text-sm normal-case tracking-normal text-foreground">
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+          <SearchSelect className="mt-1.5 w-64 normal-case tracking-normal text-foreground" value={activeCategoryId}
+            onChange={(v) => { setActiveCategoryId(v); setSearch(''); }} placeholder="Search a category…"
+            options={categories.map((c) => ({ value: c.id, label: c.name }))} />
         </label>
         <label className="block text-xs uppercase tracking-widest text-muted-foreground">Search sizes
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="e.g. XL"

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Download, History, Minus, Plus, X } from 'lucide-react';
 import { downloadCsv } from '@/lib/exportCsv';
+import { SearchSelect } from '@/components/admin/SearchSelect';
 
 type Row = {
   id: string; size: string | null; color: string | null; color_hex: string | null; sku: string | null; stock: number;
@@ -108,10 +109,8 @@ export default function AdminInventory() {
 
       <div className="flex flex-wrap gap-2 mb-4">
         <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search product, SKU, size, colour…" className="border border-border bg-transparent px-3 py-2 text-sm w-64" />
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="border border-border bg-transparent px-3 py-2 text-sm">
-          <option value="ALL">All categories</option>
-          {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <SearchSelect className="w-56" value={category} onChange={setCategory}
+          options={[{ value: 'ALL', label: 'All categories' }, ...categories.map((c) => ({ value: c.id, label: c.name }))]} />
       </div>
 
       <div className="border border-border overflow-x-auto">
