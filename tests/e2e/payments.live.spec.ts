@@ -139,6 +139,45 @@ test.describe.serial('live payments', () => {
     expect((await latestOrder()).payment_status).toBe('PAID');
   });
 
+  test('tab closed before verify: the Razorpay webhook confirms the order', async ({ page }) => {
+    const { createHmac } = await import('node:crypto');
+    const before = await stock();
+    await login(page);
+    // Simulate the customer closing the tab: the browser never reaches razorpay-verify-payment.
+    await page.route('**/functions/v1/razorpay-verify-payment', (r) => r.abort());
+    await checkoutWith(page, 'RAZORPAY');
+    await payInModal(page, 'Success');
+    await expect.poll(async () => (await latestOrder()).razorpay_order_id, { timeout: 30_000 }).toMatch(/^order_/);
+    const o = await latestOrder();
+    expect(o.payment_status).toBe('PENDING');
+
+    // Deliver the webhook Razorpay would send, built from the real captured payment.
+    const auth = 'Basic ' + Buffer.from(`${process.env.RAZORPAY_KEY_ID}:${process.env.RAZORPAY_KEY_SECRET}`).toString('base64');
+    let payment: any;
+    await expect.poll(async () => {
+      const list = await (await fetch(`https://api.razorpay.com/v1/orders/${o.razorpay_order_id}/payments`, { headers: { Authorization: auth } })).json();
+      payment = list.items?.find((p: any) => p.status === 'captured' || p.status === 'authorized');
+      return !!payment;
+    }, { timeout: 60_000 }).toBe(true);
+    const body = JSON.stringify({ event: 'payment.captured', payload: { payment: { entity: payment } } });
+    const sig = createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET!).update(body).digest('hex');
+    const res = await fetch(`${process.env.VITE_SUPABASE_URL}/functions/v1/razorpay-webhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-razorpay-signature': sig }, body,
+    });
+    expect(res.status).toBe(200);
+
+    await expect.poll(async () => (await latestOrder()).payment_status, { timeout: 20_000 }).toBe('PAID');
+    expect((await latestOrder()).razorpay_payment_id).toBe(payment.id);
+    expect(await stock()).toBe(before - 1);
+
+    // A duplicate delivery is a no-op.
+    const again = await fetch(`${process.env.VITE_SUPABASE_URL}/functions/v1/razorpay-webhook`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-razorpay-signature': sig }, body,
+    });
+    expect(await again.json()).toEqual({ already: true });
+    expect(await stock()).toBe(before - 1);
+  });
+
   test('failed payment: order stays unpaid and customer sees an error', async ({ page }) => {
     await login(page);
     await checkoutWith(page, 'RAZORPAY');
