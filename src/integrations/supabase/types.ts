@@ -338,32 +338,41 @@ export type Database = {
         Row: {
           brand_id: string | null
           created_at: string
+          description: string | null
           id: string
           image: string | null
           is_active: boolean
           name: string
           parent_id: string | null
+          position: number
           slug: string
+          video: string | null
         }
         Insert: {
           brand_id?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image?: string | null
           is_active?: boolean
           name: string
           parent_id?: string | null
+          position?: number
           slug: string
+          video?: string | null
         }
         Update: {
           brand_id?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           image?: string | null
           is_active?: boolean
           name?: string
           parent_id?: string | null
+          position?: number
           slug?: string
+          video?: string | null
         }
         Relationships: [
           {
@@ -636,6 +645,54 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: []
+      }
+      inventory_movements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delta: number
+          id: string
+          order_id: string | null
+          reason: string
+          stock_after: number
+          variant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delta: number
+          id?: string
+          order_id?: string | null
+          reason: string
+          stock_after: number
+          variant_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delta?: number
+          id?: string
+          order_id?: string | null
+          reason?: string
+          stock_after?: number
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "product_variants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lookbook_slides: {
         Row: {
@@ -1378,6 +1435,7 @@ export type Database = {
           material: string | null
           name: string
           slug: string
+          videos: string[]
         }
         Insert: {
           brand_id?: string | null
@@ -1392,6 +1450,7 @@ export type Database = {
           material?: string | null
           name: string
           slug: string
+          videos?: string[]
         }
         Update: {
           brand_id?: string | null
@@ -1406,6 +1465,7 @@ export type Database = {
           material?: string | null
           name?: string
           slug?: string
+          videos?: string[]
         }
         Relationships: [
           {
@@ -1789,6 +1849,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_stock: {
+        Args: { p_delta: number; p_reason: string; p_variant_id: string }
+        Returns: number
+      }
       call_shipping_function: {
         Args: { p_function: string; p_order_id: string }
         Returns: undefined
@@ -1831,6 +1895,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      save_product: {
+        Args: { p_product: Json; p_variants: Json }
+        Returns: string
+      }
+      set_stock_context: {
+        Args: { p_order?: string; p_reason: string }
+        Returns: undefined
       }
     }
     Enums: {
