@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { CMSSection, CategoryGridConfig, CategoryItem } from '../types';
 import { Num, Wrap } from '@/components/polka/Polka';
 import { cn } from '@/lib/utils';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 export interface NorseCategoryItem extends CategoryItem {
   seasonTag?: string;
@@ -44,7 +45,11 @@ type Row = { key: string; title: string; subtitle?: string; image: string; href:
  * tiles, then a numbered category list whose open row turns Editor's Red.
  */
 export default function CategoryGridSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as CategoryGridConfig;
+  const cfg = (section?.config || {}) as CategoryGridConfig & {
+    heading?: string; items?: { category?: string; subtitle?: string; image?: string }[];
+    button_label?: string; bottom_label?: string; bottom_link?: LinkValue; limit?: number;
+  };
+  const picked = (cfg.items || []).filter((it) => it.category);
   const cfgCats: NorseCategoryItem[] =
     Array.isArray(cfg.categories) && cfg.categories.length > 0 ? (cfg.categories as NorseCategoryItem[]) : DEFAULT_CATEGORIES;
 
@@ -59,11 +64,19 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
       .from('categories')
       .select('id, name, slug')
       .order('name')
-      .limit(7)
       .then(({ data }) => {
         if (!data || data.length === 0) return;
+        if (picked.length) {
+          // Admin-picked categories, in the admin's order.
+          const bySlug = new Map(data.map((c: any) => [c.slug, c]));
+          setRows(picked.map((it, i) => {
+            const c: any = bySlug.get(it.category!);
+            return c && { key: c.id, title: c.name, subtitle: it.subtitle, image: it.image || cfgCats[i % cfgCats.length]?.image, href: `/category/${c.slug}` };
+          }).filter(Boolean) as Row[]);
+          return;
+        }
         setRows(
-          data.map((c: any, i: number) => ({
+          data.slice(0, Number(cfg.limit) || 7).map((c: any, i: number) => ({
             key: c.id,
             title: c.name,
             subtitle: cfgCats[i % cfgCats.length]?.subtitle,
@@ -84,7 +97,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
         {/* Oversized title with floating tiles */}
         <div className="relative">
           <h2 className="font-display font-[800] uppercase text-[#0F0F0F] leading-[0.82] text-center text-[clamp(64px,15.4vw,222px)] tracking-[-0.01em]">
-            Categories
+            {cfg.heading || 'Categories'}
           </h2>
           {floatA && (
             <motion.img
@@ -150,7 +163,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
                             {row.subtitle || 'Pieces from the archive, cut to be worn for years.'}
                           </p>
                           <Link to={row.href} className="self-start h-12 px-8 bg-[#BB0006] text-white font-sans text-[15px] flex items-center hover:bg-[#AA0001] transition-colors">
-                            Shop {row.title.toLowerCase()}
+                            {cfg.button_label ? `${cfg.button_label} ${row.title.toLowerCase()}` : `Shop ${row.title.toLowerCase()}`}
                           </Link>
                         </div>
                       </div>
@@ -163,8 +176,8 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
         </ul>
 
         <div className="text-center mt-6">
-          <Link to="/shop" className="font-sans text-[13px] md:text-[14px] uppercase text-[#BB0006] underline underline-offset-4">
-            Go to catalogue
+          <Link to={resolveHref(cfg.bottom_link, '/shop')} className="font-sans text-[13px] md:text-[14px] uppercase text-[#BB0006] underline underline-offset-4">
+            {cfg.bottom_label || 'Go to catalogue'}
           </Link>
         </div>
       </Wrap>

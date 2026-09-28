@@ -1,5 +1,12 @@
 import type { CSSProperties } from 'react';
-import type { CMSSection, HeroConfig } from '../types';
+import type { CMSSection } from '../types';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import { isVideoUrl } from '@/lib/media';
+
+type HeroConfig = {
+  top_line?: string; title?: string; photo?: string; paper?: string;
+  labels?: { text?: string }[]; cta_label?: string; cta_link?: LinkValue; cta_href?: string;
+};
 
 /*
  * Editorial "torn paper" hero.
@@ -90,8 +97,11 @@ const DISPLAY_FONT: CSSProperties = {
 };
 
 export default function HeroSection({ section }: { section?: CMSSection }) {
-  const cfg = (section?.config || {}) as Partial<HeroConfig>;
-  const ctaHref = cfg.cta_href || '/shop';
+  const cfg = (section?.config || {}) as HeroConfig;
+  const ctaHref = resolveHref(cfg.cta_link ?? cfg.cta_href, '/shop');
+  const photo = cfg.photo || PHOTO_SRC;
+  // Labels keep their stepped positions; the admin only edits the words.
+  const labels = LABELS.map((l, i) => ({ ...l, text: cfg.labels?.[i]?.text?.trim() || (cfg.labels?.length ? '' : l.text) })).filter((l) => l.text);
 
   return (
     <section
@@ -100,7 +110,7 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
     >
       {/* Crumpled paper */}
       <img
-        src={PAPER_SRC}
+        src={cfg.paper || PAPER_SRC}
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
@@ -108,16 +118,22 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
 
       {/* Photo with stepped, torn right edge */}
       <div className="absolute inset-0" style={{ clipPath: PHOTO_CLIP }}>
-        <img
-          src={PHOTO_SRC}
-          alt="VAULT 26 editorial campaign"
-          className="absolute left-0 top-0 h-full object-cover object-[50%_30%] grayscale contrast-[1.08]"
-          style={{ width: pctX(600) }}
-        />
+        {isVideoUrl(photo) ? (
+          <video src={photo} autoPlay muted loop playsInline
+            className="absolute left-0 top-0 h-full object-cover object-[50%_30%] grayscale contrast-[1.08]"
+            style={{ width: pctX(600) }} />
+        ) : (
+          <img
+            src={photo}
+            alt="VAULT 26 editorial campaign"
+            className="absolute left-0 top-0 h-full object-cover object-[50%_30%] grayscale contrast-[1.08]"
+            style={{ width: pctX(600) }}
+          />
+        )}
       </div>
 
       {/* Stepped labels */}
-      {LABELS.map(({ band, text }) => (
+      {labels.map(({ band, text }) => (
         <span
           key={text}
           className="absolute flex items-center bg-[#FCFCFA] px-[0.42cqw] whitespace-nowrap uppercase leading-none text-[#141414] text-[max(8px,2.3cqw)] md:text-[min(1.45cqw,calc((100cqh-62px)*0.0245))]"
@@ -141,13 +157,13 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
           className="uppercase leading-none font-[800] tracking-[0.06em] text-[5.2cqw] md:text-[4.35cqw]"
           style={DISPLAY_FONT}
         >
-          Online Store
+          {cfg.top_line || 'Online Store'}
         </p>
         <h1
           className="uppercase leading-none font-[800] mt-[0.9cqw] text-[10.4cqw] md:text-[11.1cqw]"
           style={DISPLAY_FONT}
         >
-          Vault 26
+          {cfg.title || 'Vault 26'}
         </h1>
       </div>
 
@@ -157,7 +173,7 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
         className="absolute uppercase leading-none font-[800] text-[3.4cqw] md:text-[3.1cqw] bottom-[calc((100%-var(--nav))*0.078)] md:bottom-[max(calc((100%-var(--nav))*0.078),100px)] hover:opacity-80 transition-opacity"
         style={{ ...DISPLAY_FONT, right: pctX(POSTER_W - 912) }}
       >
-        Shop Collection 2026
+        {cfg.cta_label || 'Shop Collection 2026'}
       </a>
 
       {/* Torn black bottom edge */}

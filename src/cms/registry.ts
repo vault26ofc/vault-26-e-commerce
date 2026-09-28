@@ -85,18 +85,19 @@ const AREA = (key: string, label: string, placeholder?: string): FieldDef => ({ 
 
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   hero: [
-    { key: 'heading',           label: 'Main Heading',        type: 'text',     placeholder: 'BEYOND' },
-    { key: 'heading_italic',    label: 'Italic Part',         type: 'text',     placeholder: 'TRENDS.' },
-    { key: 'eyebrow',           label: 'Eyebrow Label',       type: 'text' },
-    { key: 'background_image',  label: 'Background Image URL',type: 'url' },
-    { key: 'search_placeholder',label: 'Search Placeholder',  type: 'text' },
-    { key: 'search_cta',        label: 'Search Button Text',  type: 'text' },
-    { key: 'cta_href',          label: 'Search CTA Link',     type: 'text' },
-    { key: 'social_proof_count',label: 'Social Proof Count',  type: 'text',     placeholder: '2K+' },
-    { key: 'social_proof_text', label: 'Social Proof Text',   type: 'text' },
+    TEXT('top_line', 'Small title', 'Online Store'), TEXT('title', 'Big title', 'Vault 26'),
+    MEDIA('photo', 'Photo or video', 'any'), MEDIA('paper', 'Paper background texture'),
+    { key: 'labels', label: 'Stepped labels (up to 5, top to bottom)', type: 'list', itemLabel: 'Label',
+      itemFields: [{ key: 'text', label: 'Text', type: 'text', placeholder: 'SEPTEMBER 2026' }] },
+    TEXT('cta_label', 'Bottom link text', 'Shop Collection 2026'), LINK('cta_link', 'Bottom link goes to'),
   ],
   category_bar: [
-    { key: 'categories', label: 'Categories (JSON)', type: 'json', hint: '[{slug, title, image, href}]' },
+    TEXT('all_label', 'First button text', 'Shop all'), LINK('all_link', 'First button goes to'),
+    { key: 'categories', label: 'Category chips', type: 'list', itemLabel: 'Chip', itemFields: [
+      { key: 'category', label: 'Category', type: 'category' },
+      { key: 'title', label: 'Text (empty = category name)', type: 'text' },
+      { key: 'image', label: 'Small image', type: 'media', kind: 'image' },
+    ] },
   ],
   best_sellers: [
     { key: 'eyebrow',      label: 'Eyebrow Label',    type: 'text' },
@@ -137,7 +138,15 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     ...PRODUCTS(),
   ],
   category_grid: [
-    { key: 'categories', label: 'Categories (JSON)', type: 'json', hint: '[{slug, title, image, href, watermark, badge?}]' },
+    TEXT('heading', 'Big heading', 'Categories'),
+    { key: 'items', label: 'Categories to list (empty = all categories automatically)', type: 'list', itemLabel: 'Category', itemFields: [
+      { key: 'category', label: 'Category', type: 'category' },
+      { key: 'subtitle', label: 'Description', type: 'text' },
+      { key: 'image', label: 'Image', type: 'media', kind: 'image' },
+    ] },
+    { key: 'limit', label: 'How many in automatic mode', type: 'number' },
+    TEXT('button_label', 'Button word', 'Shop'),
+    TEXT('bottom_label', 'Bottom link text', 'Go to catalogue'), LINK('bottom_link', 'Bottom link goes to'),
   ],
   marquee: [
     { key: 'heading',        label: 'Heading',            type: 'text' },
@@ -236,5 +245,32 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     MEDIA('tile_image', 'Small photo tile'), TEXT('tile_label', 'Small photo tile label', 'Outerwear'), LINK('tile_link', 'Small photo tile goes to'),
     TEXT('service_title', 'Outline tile title', 'Delivered in 3–5 days'), TEXT('service_text', 'Outline tile text', 'Free shipping over ₹999 · 7-day returns · COD available'),
     ...PRODUCTS(3),
+  ],
+  campaign_carousel: [
+    TEXT('brand', 'Brand text on the photo', 'Vault 26'),
+    { key: 'slides', label: 'Slides', type: 'list', itemLabel: 'Slide', itemFields: [
+      { key: 'image', label: 'Photo or video', type: 'media', kind: 'any' },
+      { key: 'title', label: 'Title', type: 'text', placeholder: 'VAULT 26 POLO CLUB' },
+      { key: 'cta_label', label: 'Link text', type: 'text', placeholder: 'SHOP NOW' },
+      { key: 'cta_link', label: 'Link goes to', type: 'link' },
+    ] },
+    TEXT('statement', 'Statement after the title', 'Some pieces are worn once. Others'),
+    TEXT('highlight', 'Highlighted ending', 'become part of you'),
+    AREA('body', 'Paragraph'),
+    { key: 'stats', label: 'Stats', type: 'list', itemLabel: 'Stat', itemFields: [
+      { key: 'n', label: 'Number', type: 'text', placeholder: '650+' },
+      { key: 'label', label: 'Label', type: 'text', placeholder: 'pieces in the archive' },
+      { key: 'sub', label: 'Small line', type: 'text', placeholder: 'built for years of wear' },
+    ] },
+  ],
+  category_cards: [
+    { key: 'cards', label: 'Cards', type: 'list', itemLabel: 'Card', itemFields: [
+      { key: 'title', label: 'Title', type: 'text', placeholder: 'Men' },
+      { key: 'kicker', label: 'Small line', type: 'text', placeholder: 'Outerwear · Knitwear · Denim' },
+      { key: 'image', label: 'Photo or video', type: 'media', kind: 'any' },
+      { key: 'link', label: 'Card goes to', type: 'link' },
+      { key: 'button_label', label: 'Button text (empty = "Shop <title>")', type: 'text' },
+      { key: 'tone', label: 'Colour', type: 'select', options: [{ value: 'red', label: 'Red' }, { value: 'ink', label: 'Black' }, { value: 'paper', label: 'Paper' }] },
+    ] },
   ],
 };

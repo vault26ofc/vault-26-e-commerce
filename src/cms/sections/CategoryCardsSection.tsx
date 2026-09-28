@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import type { CMSSection } from '../types';
 import { TextColumns } from '@/components/polka/Polka';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import { isVideoUrl } from '@/lib/media';
 
-type Card = { title: string; kicker: string; href: string; image: string; tone: 'red' | 'ink' | 'paper' };
+type Card = { title: string; kicker: string; href?: string; link?: LinkValue; image: string; tone: 'red' | 'ink' | 'paper'; button_label?: string };
 
 const U = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=85&w=2000`;
 
@@ -21,7 +23,7 @@ const TONES = {
 };
 
 function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number; progress: MotionValue<number> }) {
-  const t = TONES[card.tone];
+  const t = TONES[card.tone] ?? TONES.red;
   const start = i / n;
   // Earlier cards shrink back slightly as the next one covers them.
   const scale = useTransform(progress, [start, Math.min(1, start + 1 / n)], [1, i === n - 1 ? 1 : 0.95]);
@@ -44,7 +46,9 @@ function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number;
 
         {/* Photo panel */}
         <div className="absolute left-5 right-5 top-[26%] bottom-[20%] md:left-auto md:right-[4%] md:top-[8%] md:bottom-[8%] md:w-[38%] overflow-hidden">
-          <motion.img style={{ y: imgY }} src={card.image} alt={card.title} loading="lazy" className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />
+          {isVideoUrl(card.image)
+            ? <motion.video style={{ y: imgY }} src={card.image} autoPlay muted loop playsInline className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />
+            : <motion.img style={{ y: imgY }} src={card.image} alt={card.title} loading="lazy" className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />}
         </div>
 
         {/* Copy */}
@@ -55,11 +59,11 @@ function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number;
             {card.kicker}
           </div>
           <Link
-            to={card.href}
+            to={resolveHref(card.link ?? card.href, '/shop')}
             className="self-start mt-6 h-12 md:h-14 px-8 flex items-center font-sans text-[15px] md:text-[16px] transition-opacity hover:opacity-85"
             style={{ background: t.btnBg, color: t.btnInk }}
           >
-            Shop {card.title.toLowerCase()}
+            {card.button_label || `Shop ${card.title.toLowerCase()}`}
           </Link>
         </div>
       </motion.div>
@@ -81,7 +85,7 @@ export default function CategoryCardsSection({ section }: { section?: CMSSection
   return (
     <section ref={ref} className="relative bg-white">
       {cards.map((c, i) => (
-        <div key={c.title} className="contents">
+        <div key={`${c.title}-${i}`} className="contents">
           <StackCard card={c} i={i} n={cards.length} progress={scrollYProgress} />
           {/* Dwell: hold this card still for ~¾ screen so it can be read before the next arrives */}
           <div aria-hidden="true" className="h-[75vh]" />

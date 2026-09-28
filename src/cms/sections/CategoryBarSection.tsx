@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import type { CMSSection } from '../types';
+import { resolveHref, type LinkValue } from '@/lib/links';
+import { useCategoryNames } from '../lib/useCategoryNames';
 
 export interface CategoryBarItem {
-  slug: string;
-  title: string;
+  slug?: string;
+  /** picked in the admin (category slug) */
+  category?: string;
+  title?: string;
   image: string;
-  href: string;
+  href?: string;
 }
 
 const DEFAULT_CATEGORY_ITEMS: CategoryBarItem[] = [
@@ -61,8 +65,15 @@ const DEFAULT_CATEGORY_ITEMS: CategoryBarItem[] = [
 ];
 
 export default function CategoryBarSection({ section }: { section?: CMSSection }) {
-  const cfgItems = section?.config?.categories as CategoryBarItem[] | undefined;
-  const categories = Array.isArray(cfgItems) && cfgItems.length > 0 ? cfgItems : DEFAULT_CATEGORY_ITEMS;
+  const cfg = (section?.config || {}) as { categories?: CategoryBarItem[]; all_label?: string; all_link?: LinkValue };
+  const names = useCategoryNames();
+  const source = Array.isArray(cfg.categories) && cfg.categories.length > 0 ? cfg.categories : DEFAULT_CATEGORY_ITEMS;
+  const categories = source.map((c, i) => ({
+    key: c.category || c.slug || String(i),
+    title: c.title || (c.category ? names[c.category] : '') || c.slug || '',
+    image: c.image,
+    href: c.category ? `/category/${c.category}` : c.href || '/shop',
+  }));
 
   return (
     <section className="bg-white w-full pt-10 md:pt-14 relative">
@@ -70,14 +81,14 @@ export default function CategoryBarSection({ section }: { section?: CMSSection }
         <div className="flex gap-2 md:gap-3 overflow-x-auto scrollbar-hide md:grid md:overflow-visible"
           style={{ gridTemplateColumns: `repeat(${Math.min(categories.length + 1, 9)}, minmax(0, 1fr))` }}>
           <Link
-            to="/shop"
+            to={resolveHref(cfg.all_link, '/shop')}
             className="shrink-0 h-11 md:h-12 px-5 flex items-center justify-center bg-[#BB0006] border border-[#BB0006] text-white font-sans text-[14px] md:text-[15px] whitespace-nowrap"
           >
-            Shop all
+            {cfg.all_label || 'Shop all'}
           </Link>
           {categories.map((cat, i) => (
             <motion.div
-              key={cat.slug}
+              key={cat.key}
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: i * 0.03 }}
