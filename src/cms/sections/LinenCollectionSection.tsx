@@ -63,12 +63,12 @@ export default function LinenCollectionSection({ section: _section }: { section?
   const [products, setProducts] = useState<ProductCardData[]>([]);
 
   useEffect(() => {
-    supabase
+    Promise.resolve(supabase
       .from('products')
       .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
       .eq('is_active', true)
       .ilike('name', '%linen%')
-      .limit(4)
+      .limit(4))
       .then(({ data }) => {
         const loaded = (data || []).map((p: any) => {
           const variants = p.product_variants || [];

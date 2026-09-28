@@ -11,28 +11,32 @@ const FALLBACK_TESTIMONIALS: Testimonial[] = [
     name: 'Aarav Mehta',
     role: 'Fashion Editor',
     body: 'Vault 26 has achieved what few homegrown luxury brands do — impeccable tailoring, heavy fabric weight, and understated elegance.',
-    rating: 5
+    rating: 5,
+    avatar: null, position: 0, is_active: true, created_at: '',
   },
   {
     id: 't-2',
     name: 'Rohan Kapoor',
     role: 'Creative Director',
     body: 'The heavy box tee and selvedge utility jacket are staples in my wardrobe now. Pure quiet luxury.',
-    rating: 5
+    rating: 5,
+    avatar: null, position: 1, is_active: true, created_at: '',
   },
   {
     id: 't-3',
     name: 'Priya Sharma',
     role: 'Architect',
     body: 'Silhouettes that speak for themselves. The attention to detail and material texture is world class.',
-    rating: 5
+    rating: 5,
+    avatar: null, position: 2, is_active: true, created_at: '',
   },
   {
     id: 't-4',
     name: 'Vikramaditya Roy',
     role: 'Stylist & Designer',
     body: 'Exceptional craftsmanship. The fit of the merino knit polo and structured trousers is unmatched.',
-    rating: 5
+    rating: 5,
+    avatar: null, position: 3, is_active: true, created_at: '',
   }
 ];
 

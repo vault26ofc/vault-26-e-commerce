@@ -121,7 +121,7 @@ export default function CommunitySection({ section }: { section?: CMSSection }) 
               {narrow ? (
                 <>
                   <text x="450" y="560" textAnchor="middle" fontFamily="Imbue, 'Bodoni Moda', serif" fontWeight={800} fontSize="64" fill="black" letterSpacing="2">{subtitle}</text>
-                  {heading.split(' ').reduce<string[]>((acc, w, i, all) => {
+                  {String(heading).split(' ').reduce<string[]>((acc, w, i, all) => {
                     // Two words per line on phones.
                     if (i % 2 === 0) acc.push(all.slice(i, i + 2).join(' '));
                     return acc;

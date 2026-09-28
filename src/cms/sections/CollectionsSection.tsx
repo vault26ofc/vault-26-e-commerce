@@ -63,12 +63,12 @@ export default function CollectionsSection({ section: _section }: { section?: CM
   const [products, setProducts] = useState<ProductCardData[]>([]);
 
   useEffect(() => {
-    supabase
+    Promise.resolve(supabase
       .from('products')
       .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
-      .limit(4)
+      .limit(4))
       .then(({ data }) => {
         const loaded = (data || []).map((p: any) => {
           const variants = p.product_variants || [];

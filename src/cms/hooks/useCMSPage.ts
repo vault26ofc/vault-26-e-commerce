@@ -164,11 +164,11 @@ export function useTestimonials() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
+    Promise.resolve(supabase
       .from('testimonials')
       .select('*')
       .eq('is_active', true)
-      .order('position', { ascending: true })
+      .order('position', { ascending: true }))
       .then(({ data }) => {
         setItems((data as unknown as Testimonial[]) ?? []);
       })
@@ -190,7 +190,7 @@ export function useFAQs(category?: string) {
       .eq('is_active', true)
       .order('position', { ascending: true });
     if (category) q = q.eq('category', category);
-    q.then(({ data }) => {
+    Promise.resolve(q).then(({ data }) => {
       setItems((data as unknown as FAQItem[]) ?? []);
     })
     .catch((e) => console.warn('FAQs error:', e))
@@ -205,7 +205,7 @@ export function useActiveAnnouncementBar() {
 
   useEffect(() => {
     const now = new Date().toISOString();
-    supabase
+    Promise.resolve(supabase
       .from('announcement_bars')
       .select('*')
       .eq('is_active', true)
@@ -214,6 +214,7 @@ export function useActiveAnnouncementBar() {
       .order('position', { ascending: true })
       .limit(1)
       .maybeSingle()
+      )
       .then(({ data }) => setBar(data as unknown as AnnouncementBar | null))
       .catch((e) => console.warn('Announcement bar error:', e));
   }, []);
@@ -224,7 +225,7 @@ export function useActiveAnnouncementBar() {
 export function useBrandSettings() {
   const [brand, setBrand] = useState<BrandSettings | null>(null);
   useEffect(() => {
-    supabase.from('brand_settings').select('*').limit(1).maybeSingle()
+    Promise.resolve(supabase.from('brand_settings').select('*').limit(1).maybeSingle())
       .then(({ data }) => setBrand(data as unknown as BrandSettings | null))
       .catch((e) => console.warn('Brand settings error:', e));
   }, []);
@@ -234,7 +235,7 @@ export function useBrandSettings() {
 export function useThemeSettings() {
   const [theme, setTheme] = useState<ThemeSettings | null>(null);
   useEffect(() => {
-    supabase.from('theme_settings').select('*').limit(1).maybeSingle()
+    Promise.resolve(supabase.from('theme_settings').select('*').limit(1).maybeSingle())
       .then(({ data }) => setTheme(data as unknown as ThemeSettings | null))
       .catch((e) => console.warn('Theme settings error:', e));
   }, []);

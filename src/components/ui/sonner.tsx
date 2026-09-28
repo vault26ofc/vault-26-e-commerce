@@ -36,11 +36,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="light"
-      className="toaster group"
+      className="toaster group !font-ui"
       toastOptions={{
         duration: 4000,
         classNames: {
-          toaster: "!font-ui",
           toast:
             "group toast !rounded-none !border !shadow-[0_4px_40px_rgba(0,0,0,0.12)] !px-5 !py-4 !gap-3 !font-ui !bg-white !text-black !border-black/10",
           title:
