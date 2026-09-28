@@ -3,7 +3,10 @@ import type { CMSSection, TextRevealConfig } from '../types';
 
 export default function TextRevealSection({ section }: { section: CMSSection }) {
   const cfg = section.config as TextRevealConfig;
-  const words: string[] = Array.isArray(cfg.words) && cfg.words.length > 0
+  const typed = String((cfg as any).words_text || '').split('\n').map((w) => w.trim()).filter(Boolean);
+  const words: string[] = typed.length
+    ? typed
+    : Array.isArray(cfg.words) && cfg.words.length > 0
     ? cfg.words
     : ['ATTITUDE', 'CONFIDENCE'];
   const showLine = cfg.show_accent_line !== false;

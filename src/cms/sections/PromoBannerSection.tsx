@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import type { CMSSection, PromoBannerConfig } from '../types';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 export default function PromoBannerSection({ section }: { section: CMSSection }) {
   const cfg = section.config as PromoBannerConfig;
@@ -16,9 +17,9 @@ export default function PromoBannerSection({ section }: { section: CMSSection })
       <p className="text-[11px] tracking-[0.3em] uppercase font-ui font-bold">
         {cfg.message || 'LIMITED TIME OFFER — FREE SHIPPING ON ORDERS ABOVE ₹2000'}
       </p>
-      {cfg.cta_href && cfg.cta_label && (
+      {((cfg as any).cta_link || cfg.cta_href) && cfg.cta_label && (
         <Link
-          to={cfg.cta_href}
+          to={resolveHref((cfg as any).cta_link ?? cfg.cta_href, '/shop')}
           className="inline-flex items-center gap-1 text-[10px] tracking-[0.3em] uppercase font-ui font-bold underline underline-offset-2 hover:no-underline transition-all"
           style={{ color: cfg.text_color || '#ffffff' }}
         >

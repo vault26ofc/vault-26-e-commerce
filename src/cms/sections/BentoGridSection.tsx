@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import type { CMSSection, BentoGridConfig, BentoItem } from '../types';
+import { resolveHref, type LinkValue } from '@/lib/links';
 
 const DEFAULT_ITEMS: BentoItem[] = [
   {
@@ -63,14 +64,14 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3">
           {items.slice(0, 4).map((item, index) => (
             <motion.div
-              key={item.id}
+              key={item.id || `${item.title}-${index}`}
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className="group flex flex-col w-full"
             >
-              <Link to={item.href} className="block w-full">
+              <Link to={resolveHref((item as any).link ?? item.href, '/shop')} className="block w-full">
                 {/* Studio Light-Grey Image Container */}
                 <div className="relative aspect-[3/4.2] bg-[#EFEFEF] overflow-hidden rounded-none border border-black/5 flex items-center justify-center p-6 sm:p-8">
                   <img
@@ -108,7 +109,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
         {/* Centered Outline CTA Button */}
         <div className="pt-10 md:pt-14 text-center">
           <Link
-            to={cfg.cta_href || "/shop"}
+            to={resolveHref((cfg as any).cta_link ?? cfg.cta_href, '/shop')}
             className="inline-block border border-black text-black hover:bg-black hover:text-white px-9 py-3.5 text-xs font-sans font-bold tracking-[0.2em] uppercase transition-all duration-300 rounded-none shadow-none cursor-pointer"
           >
             {cfg.cta_label || "EXPLORE ALL EDITIONS"}
