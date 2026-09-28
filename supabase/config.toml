@@ -1,3 +1,14 @@
 project_id = "yevidhicrhyidrklflvn"
 [functions.razorpay-webhook]
 verify_jwt = false
+
+# Called by DB triggers (pg_net, x-internal-secret) or admins (JWT checked in code)
+[functions.shiprocket-sync]
+verify_jwt = false
+
+[functions.shiprocket-cancel]
+verify_jwt = false
+
+# Shiprocket tracking webhook (x-api-key checked in code)
+[functions.shipment-status-webhook]
+verify_jwt = false
