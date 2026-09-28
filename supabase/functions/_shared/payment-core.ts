@@ -63,3 +63,9 @@ export function refundOutcome(rzpStatus: string, refundPaise: number, paymentPai
   if (rzpStatus === 'failed') return { refund_status: 'REQUESTED' as const, paymentRefunded: false, failed: true };
   return { refund_status: 'PROCESSING' as const, paymentRefunded: false, failed: false };
 }
+
+/** Razorpay webhooks sign the raw request body with the webhook secret (X-Razorpay-Signature). */
+export async function verifyWebhookSignature(rawBody: string, signature: string | null, secret: string) {
+  if (!signature || !secret) return false;
+  return timingSafeEqual(await hmacSha256Hex(secret, rawBody), signature);
+}

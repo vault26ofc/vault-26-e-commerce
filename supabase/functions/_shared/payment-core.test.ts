@@ -41,3 +41,14 @@ describe('refundOutcome', () => {
   it('pending', () => expect(refundOutcome('pending', 1000, 1000)).toEqual({ refund_status: 'PROCESSING', paymentRefunded: false, failed: false }));
   it('failed goes back to REQUESTED', () => expect(refundOutcome('failed', 1000, 1000)).toEqual({ refund_status: 'REQUESTED', paymentRefunded: false, failed: true }));
 });
+
+import { verifyWebhookSignature } from './payment-core.ts';
+
+describe('verifyWebhookSignature', () => {
+  const secret = 'whsec';
+  const body = '{"event":"payment.captured"}';
+  const sig = createHmac('sha256', secret).update(body).digest('hex');
+  it('accepts the raw-body HMAC', async () => expect(await verifyWebhookSignature(body, sig, secret)).toBe(true));
+  it('rejects a modified body', async () => expect(await verifyWebhookSignature(body + ' ', sig, secret)).toBe(false));
+  it('rejects a missing header', async () => expect(await verifyWebhookSignature(body, null, secret)).toBe(false));
+});
