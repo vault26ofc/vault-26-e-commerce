@@ -84,7 +84,15 @@ One transaction, row-locks the order (`FOR UPDATE`):
 - New columns: `razorpay_refund_id text`, `payment_amount_paise integer`.
 - `create_order` replaced: COD advance always `round(total * cod_advance_percent / 100, 2)`;
   coupon increment removed (now in §3).
-- Removes the `cod_threshold` row from `settings`.
+- Removes the `cod_threshold` row from `settings`; adds `cod_min_order` (default 0 = no
+  minimum). `create_order` raises "COD is available on orders of ₹X or more" when a COD
+  order's total is below it. Admin edits `cod_advance_percent` and `cod_min_order` in Settings.
+- RLS hardening (holes found in the live policies):
+  - drop `orders insert own` — customers could insert orders with arbitrary totals and
+    `payment_status = PAID`. Orders are only created by `create_order` (SECURITY DEFINER).
+  - drop `oi insert` — anyone could add items to any order.
+  - trigger `orders_guard_customer_update`: for a signed-in non-admin the only allowed
+    change is `status` PENDING → CANCELLED; any other column change raises.
 - Trigger `trg_cod_paid_on_delivery` (BEFORE UPDATE on `orders`): when `status` changes
   to `DELIVERED` and `payment_method = 'COD'` and `payment_status = 'PENDING'`, set
   `payment_status = 'PAID'`. Delivery is when the courier collects the balance, so the
@@ -100,7 +108,7 @@ One transaction, row-locks the order (`FOR UPDATE`):
 | Delivered | true | PAID | "Paid in full" |
 
 Shown on the order list and detail in `Orders.tsx`, the admin orders table, and the invoice.
-A small pure helper `codPaymentLabel(order)` in `src/lib/format.ts` produces it (unit-tested).
+A small pure helper `paymentLabel(order)` in `src/lib/payment.ts` produces it for every order (unit-tested); prepaid orders read "Paid" / "Awaiting payment" / "Payment failed", refunded ones "Refunded".
 
 ### 5. Refunds — `razorpay-refund` (new edge function)
 
@@ -126,7 +134,10 @@ A small pure helper `codPaymentLabel(order)` in `src/lib/format.ts` produces it 
 - `AdminRefunds.tsx`: Manage dialog gets "Refund via Razorpay" (amount prefilled with
   amount paid, confirm step) and "Refresh status" when `PROCESSING`. Shows the
   Razorpay refund id. The manual status editor stays for REJECTED / notes.
-- `AdminMisc.tsx` (Settings): remove the "COD pre-payment threshold" field.
+- `AdminMisc.tsx` (Settings): replace "COD pre-payment threshold" with "COD minimum order
+  (₹, 0 = none)"; keep "COD advance %".
+- `Checkout.tsx`: COD option disabled, with "COD available on orders of ₹X or more", when
+  the total is below `cod_min_order`.
 
 ### 7. Shared module
 
