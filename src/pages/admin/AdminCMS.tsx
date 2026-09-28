@@ -316,25 +316,37 @@ export default function AdminCMS() {
     loadSections();
   };
 
+  /**
+   * Restores the default ORDER of the home page and re-adds any default section that is missing.
+   * Never deletes a section and never touches a section's content — edits are kept.
+   */
   const resetToDefaultLayout = async () => {
-    if (!confirm('Are you sure you want to reset the Home page layout to default clean order in the database?')) return;
+    if (!confirm('Put the home page sections back in the default order and re-add any missing ones?
+
+Your section content is kept; nothing is deleted.')) return;
     setSectionsLoading(true);
     try {
-      await supabase.from('website_sections').delete().eq('page_slug', 'home');
-      const rowsToInsert = DEFAULT_HOME_SECTIONS.map(({ id: _id, ...sec }) => ({
-        ...sec,
-        page_slug: 'home',
-        updated_at: new Date().toISOString()
-      }));
-      const { error } = await supabase.from('website_sections').insert(rowsToInsert);
-      if (error) {
-        toast.error('Failed to reset layout: ' + error.message);
-      } else {
-        toast.success('Successfully reset Home page layout in live database!');
-        await loadSections();
-      }
-    } catch (e) {
-      toast.error('Error resetting layout');
+      const { data: existing, error: loadErr } = await supabase.from('website_sections').select('id, section_type, position').eq('page_slug', 'home').order('position');
+      if (loadErr) throw loadErr;
+      const byType = new Map((existing || []).map((r) => [r.section_type, r]));
+      const writes = DEFAULT_HOME_SECTIONS.map((sec, i) => {
+        const row = byType.get(sec.section_type);
+        return row
+          ? supabase.from('website_sections').update({ position: (i + 1) * 10, is_visible: true }).eq('id', row.id)
+          : supabase.from('website_sections').insert({ page_slug: 'home', section_type: sec.section_type, label: sec.label, config: sec.config ?? {}, position: (i + 1) * 10, is_visible: true, is_locked: false });
+      });
+      // Sections that aren't part of the default layout stay, after the defaults, in their current order.
+      const defaults = new Set(DEFAULT_HOME_SECTIONS.map((d) => d.section_type));
+      (existing || []).filter((r) => !defaults.has(r.section_type)).forEach((r, i) => {
+        writes.push(supabase.from('website_sections').update({ position: (DEFAULT_HOME_SECTIONS.length + i + 1) * 10 }).eq('id', r.id));
+      });
+      const results = await Promise.all(writes);
+      const failed = results.find((r) => r.error);
+      if (failed?.error) toast.error('Failed to reset layout: ' + failed.error.message);
+      else toast.success('Home page order restored — your content was kept');
+      await loadSections();
+    } catch (e: any) {
+      toast.error('Error resetting layout: ' + (e?.message || e));
     } finally {
       setSectionsLoading(false);
     }
