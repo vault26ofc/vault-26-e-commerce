@@ -334,7 +334,7 @@ export default function AdminCMS() {
           : supabase.from('website_sections').insert({ page_slug: 'home', section_type: sec.section_type, label: sec.label, config: sec.config ?? {}, position: (i + 1) * 10, is_visible: true, is_locked: false });
       });
       // Sections that aren't part of the default layout stay, after the defaults, in their current order.
-      const defaults = new Set(DEFAULT_HOME_SECTIONS.map((d) => d.section_type));
+      const defaults = new Set<string>(DEFAULT_HOME_SECTIONS.map((d) => d.section_type));
       (existing || []).filter((r) => !defaults.has(r.section_type)).forEach((r, i) => {
         writes.push(supabase.from('website_sections').update({ position: (DEFAULT_HOME_SECTIONS.length + i + 1) * 10 }).eq('id', r.id));
       });
