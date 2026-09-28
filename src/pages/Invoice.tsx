@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
+import { paymentLabel } from '@/lib/payment';
 import { Printer, Download } from 'lucide-react';
 
 type InvoiceSettings = {
@@ -134,7 +135,7 @@ export default function Invoice() {
                   className="font-medium"
                   style={{ color: order.payment_status === 'PAID' ? '#15803d' : '#b45309' }}
                 >
-                  {order.payment_status}
+                  {paymentLabel(order)}
                 </span>
               </div>
             </div>
@@ -235,7 +236,7 @@ export default function Invoice() {
                 <span>Total</span>
                 <span>{inr(total)}</span>
               </div>
-              {order.payment_method === 'COD' && Number(order.cod_advance_amount) > 0 && (
+              {order.payment_method === 'COD' && order.cod_advance_paid && order.payment_status !== 'PAID' && Number(order.cod_advance_amount) > 0 && (
                 <div className="text-xs text-neutral-500 mt-2">
                   Advance paid: {inr(Number(order.cod_advance_amount))} · Due on delivery:{' '}
                   {inr(total - Number(order.cod_advance_amount))}

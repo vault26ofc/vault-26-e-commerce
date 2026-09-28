@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
+import { paymentLabel } from '@/lib/payment';
 import { toast } from 'sonner';
 import { downloadCsv } from '@/lib/exportCsv';
 import { Download } from 'lucide-react';
@@ -48,7 +49,7 @@ export default function AdminOrders() {
                 <td className="p-3">{o.order_number}</td>
                 <td className="p-3">{o.email}</td>
                 <td className="p-3">{inr(Number(o.total))}</td>
-                <td className="p-3 text-xs">{o.payment_method} · {o.payment_status}</td>
+                <td className="p-3 text-xs">{o.payment_method} · {paymentLabel(o)}</td>
                 <td className="p-3">
                   <select value={o.status} onChange={(e) => update(o.id, e.target.value)} className="border border-border bg-transparent px-2 py-1 text-xs">
                     {STATUSES.map((s) => <option key={s}>{s}</option>)}

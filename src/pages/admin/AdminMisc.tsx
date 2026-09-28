@@ -93,7 +93,7 @@ export function AdminSettings() {
       <DataExportPanel />
       <div className="max-w-xl">
       {[
-        { k: 'cod_threshold', l: 'COD pre-payment threshold (₹)', t: 'number' },
+        { k: 'cod_min_order', l: 'COD minimum order (₹, 0 = no minimum)', t: 'number' },
         { k: 'cod_advance_percent', l: 'COD advance %', t: 'number' },
         { k: 'free_shipping_threshold', l: 'Free shipping threshold (₹)', t: 'number' },
         { k: 'shipping_fee', l: 'Shipping fee (₹)', t: 'number' },

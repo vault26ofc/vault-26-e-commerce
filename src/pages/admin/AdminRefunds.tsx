@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
+import { readFunctionError } from '@/lib/payment';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ export default function AdminRefunds() {
   const [filter, setFilter] = useState<'PENDING' | 'ALL' | 'REFUNDED'>('PENDING');
   const [editing, setEditing] = useState<any | null>(null);
   const [form, setForm] = useState({ refund_status: 'REQUESTED', refund_amount: 0, refund_notes: '' });
+  const [busy, setBusy] = useState(false);
 
   const load = async () => {
     let q = supabase.from('orders').select('*').order('updated_at', { ascending: false });
@@ -32,9 +34,37 @@ export default function AdminRefunds() {
     setEditing(o);
     setForm({
       refund_status: o.refund_status === 'NONE' ? 'REQUESTED' : o.refund_status,
-      refund_amount: Number(o.refund_amount) || Number(o.total),
+      // Default to what was actually charged online (the advance, for COD).
+      refund_amount: o.razorpay_refund_id || !o.payment_amount_paise
+        ? Number(o.refund_amount) || Number(o.total)
+        : o.payment_amount_paise / 100,
       refund_notes: o.refund_notes || '',
     });
+  };
+
+  const refundViaRazorpay = async () => {
+    if (!editing) return;
+    if (!confirm(`Send ${inr(form.refund_amount)} back to the customer through Razorpay? This moves real money and cannot be undone.`)) return;
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke('razorpay-refund', {
+      body: { action: 'refund', order_id: editing.id, amount: form.refund_amount },
+    });
+    setBusy(false);
+    if (error) return toast.error(await readFunctionError(error));
+    toast.success(data.refund_status === 'REFUNDED' ? 'Refunded' : 'Refund initiated — Razorpay is processing it');
+    setEditing(null);
+    load();
+  };
+
+  const syncRefund = async () => {
+    if (!editing) return;
+    setBusy(true);
+    const { data, error } = await supabase.functions.invoke('razorpay-refund', { body: { action: 'sync', order_id: editing.id } });
+    setBusy(false);
+    if (error) return toast.error(await readFunctionError(error));
+    toast.success(`Razorpay refund status: ${data.refund_status}`);
+    setEditing(null);
+    load();
   };
 
   const save = async () => {
@@ -114,6 +144,7 @@ export default function AdminRefunds() {
               <div className="text-sm text-muted-foreground">
                 Customer: {editing.email} · Paid via {editing.payment_method} ({editing.payment_status})
                 {editing.razorpay_payment_id && <div className="text-xs mt-1">Payment ID: {editing.razorpay_payment_id}</div>}
+                {editing.razorpay_refund_id && <div className="text-xs mt-1">Razorpay refund: {editing.razorpay_refund_id}</div>}
               </div>
               <div>
                 <Label>Status</Label>
@@ -133,6 +164,12 @@ export default function AdminRefunds() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditing(null)}>Close</Button>
+            {editing?.razorpay_payment_id && !editing?.razorpay_refund_id && (
+              <Button variant="destructive" disabled={busy} onClick={refundViaRazorpay}>Refund via Razorpay</Button>
+            )}
+            {editing?.razorpay_refund_id && editing?.refund_status === 'PROCESSING' && (
+              <Button variant="outline" disabled={busy} onClick={syncRefund}>Refresh status</Button>
+            )}
             <Button onClick={save}>Save</Button>
           </DialogFooter>
         </DialogContent>

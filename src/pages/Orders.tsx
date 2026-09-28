@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
+import { paymentLabel } from '@/lib/payment';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Package, ArrowRight, Truck, CheckCircle2, Clock, XCircle } from 'lucide-react';
@@ -211,7 +212,7 @@ export function OrderDetail() {
                 </div>
               </div>
               <div className="text-[9px] text-black/50 tracking-[0.04em] uppercase font-ui mt-6 border-t border-black/10 pt-6">
-                Method: {o.payment_method} // {o.payment_status}
+                Method: {o.payment_method} // {paymentLabel(o)}
               </div>
               {o.refund_status && o.refund_status !== 'NONE' && (
                 <div className="mt-6 border border-accent/30 bg-accent/5 p-4 text-[10px] font-ui tracking-[0.04em] uppercase">

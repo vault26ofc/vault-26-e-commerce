@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronRight, ArrowLeft, ShieldCheck, Truck, CreditCard } from 'lucide-react';
 import { triggerOrderNotification } from '@/lib/whatsapp';
+import { codAdvanceAmount, isCodAllowed, readFunctionError } from '@/lib/payment';
 
 const addressSchema = z.object({
   full_name: z.string().trim().min(2).max(80),
@@ -32,7 +33,7 @@ export default function Checkout() {
   const [discount, setDiscount] = useState(0);
   const [shippingThreshold, setShippingThreshold] = useState(999);
   const [shippingFee, setShippingFee] = useState(79);
-  const [codThreshold, setCodThreshold] = useState(2000);
+  const [codMinOrder, setCodMinOrder] = useState(0);
   const [codAdvancePct, setCodAdvancePct] = useState(20);
   const [placing, setPlacing] = useState(false);
 
@@ -41,7 +42,7 @@ export default function Checkout() {
       data?.forEach((s: any) => {
         if (s.key === 'free_shipping_threshold') setShippingThreshold(Number(s.value));
         if (s.key === 'shipping_fee') setShippingFee(Number(s.value));
-        if (s.key === 'cod_threshold') setCodThreshold(Number(s.value));
+        if (s.key === 'cod_min_order') setCodMinOrder(Number(s.value));
         if (s.key === 'cod_advance_percent') setCodAdvancePct(Number(s.value));
       });
     });
@@ -83,7 +84,10 @@ export default function Checkout() {
   const sub = subtotal();
   const shipping = sub >= shippingThreshold ? 0 : shippingFee;
   const total = Math.max(0, sub - discount) + shipping;
-  const codAdvance = total > codThreshold ? Math.round(total * codAdvancePct / 100) : 0;
+  const codAdvance = codAdvanceAmount(total, codAdvancePct);
+  const codAllowed = isCodAllowed(total, codMinOrder);
+  // COD can become unavailable after it was chosen (e.g. a coupon lowers the total); fall back to online payment.
+  const method: 'RAZORPAY' | 'COD' = payment === 'COD' && !codAllowed ? 'RAZORPAY' : payment;
 
   const loadRazorpay = () => new Promise<boolean>((resolve) => {
     if ((window as any).Razorpay) return resolve(true);
@@ -94,13 +98,11 @@ export default function Checkout() {
     document.body.appendChild(s);
   });
 
-  const payWithRazorpay = (order: any, amount: number) => new Promise<void>(async (resolve, reject) => {
+  const payWithRazorpay = (order: { id: string; order_number: string }) => new Promise<void>(async (resolve, reject) => {
     const ok = await loadRazorpay();
     if (!ok) return reject(new Error('Razorpay failed to load'));
-    const { data, error } = await supabase.functions.invoke('razorpay-create-order', {
-      body: { amount, receipt: order.order_number },
-    });
-    if (error || !data?.order) return reject(new Error(data?.error || 'Could not create payment'));
+    const { data, error } = await supabase.functions.invoke('razorpay-create-order', { body: { order_id: order.id } });
+    if (error || !data?.order) return reject(new Error(error ? await readFunctionError(error) : 'Could not create payment'));
     const rzp = new (window as any).Razorpay({
       key: data.key_id,
       amount: data.order.amount,
@@ -114,11 +116,13 @@ export default function Checkout() {
         const { data: v, error: ve } = await supabase.functions.invoke('razorpay-verify-payment', {
           body: { ...resp, order_id: order.id },
         });
-        if (ve || !v?.success) return reject(new Error('Payment verification failed'));
+        if (ve || !v?.success) return reject(new Error(ve ? await readFunctionError(ve) : 'Payment verification failed'));
         resolve();
       },
       modal: { ondismiss: () => reject(new Error('Payment cancelled')) },
     });
+    // The modal stays open after a failed attempt so the customer can retry; just tell them why.
+    rzp.on('payment.failed', (r: any) => toast.error(r?.error?.description || 'Payment failed. Try again or use another method.'));
     rzp.open();
   });
 
@@ -132,16 +136,14 @@ export default function Checkout() {
         p_shipping_address: addr,
         p_items: items.map((i) => ({ variant_id: i.variantId, quantity: i.quantity })),
         p_coupon_code: couponCode ?? null,
-        p_payment_method: payment,
+        p_payment_method: method,
       });
 
       if (error) throw error;
       const order = orderData as { id: string; order_number: string; total: number; cod_advance_amount: number; payment_method: string };
 
-      if (payment === 'RAZORPAY') {
-        await payWithRazorpay(order, order.total);
-      } else if (payment === 'COD' && order.cod_advance_amount > 0) {
-        await payWithRazorpay(order, order.cod_advance_amount);
+      if (method === 'RAZORPAY' || Number(order.cod_advance_amount) > 0) {
+        await payWithRazorpay(order);
       }
 
       if (addr.phone) {
@@ -246,10 +248,12 @@ export default function Checkout() {
                 {(['RAZORPAY', 'COD'] as const).map((p) => (
                   <button 
                     key={p} 
-                    onClick={() => setPayment(p)} 
+                    onClick={() => setPayment(p)}
+                    disabled={p === 'COD' && !codAllowed} 
                     className={cn(
                       'w-full text-left p-8 border transition-all duration-500 group',
-                      payment === p ? 'border-black bg-[#BB0006] text-white' : 'border-black/10 hover:border-black'
+                      method === p ? 'border-black bg-[#BB0006] text-white' : 'border-black/10 hover:border-black',
+                      'disabled:opacity-40 disabled:cursor-not-allowed'
                     )}
                   >
                     <div className="flex justify-between items-center">
@@ -257,11 +261,15 @@ export default function Checkout() {
                         <div className="text-[11px] tracking-[0.04em] font-ui font-bold uppercase mb-2">
                           {p === 'RAZORPAY' ? 'Digital Asset Transfer' : 'Manual Settlement (COD)'}
                         </div>
-                        <div className={cn("text-[10px] tracking-[0.1em] font-ui uppercase", payment === p ? 'text-white/60' : 'text-black/60')}>
-                          {p === 'RAZORPAY' ? 'Secure encrypted transaction via cards/UPI.' : codAdvance > 0 ? `Requires ${inr(codAdvance)} security deposit.` : 'Direct physical exchange on arrival.'}
+                        <div className={cn("text-[10px] tracking-[0.1em] font-ui uppercase", method === p ? 'text-white/60' : 'text-black/60')}>
+                          {p === 'RAZORPAY'
+                            ? 'Secure encrypted transaction via cards/UPI.'
+                            : !codAllowed
+                              ? `COD available on orders of ${inr(codMinOrder)} or more.`
+                              : codAdvance > 0 ? `Requires ${inr(codAdvance)} advance · rest on delivery.` : 'Direct physical exchange on arrival.'}
                         </div>
                       </div>
-                      <div className={cn('h-5 w-5 rounded-full border-2 transition-all', payment === p ? 'border-white bg-accent' : 'border-black/20 group-hover:border-black')} />
+                      <div className={cn('h-5 w-5 rounded-full border-2 transition-all', method === p ? 'border-white bg-accent' : 'border-black/20 group-hover:border-black')} />
                     </div>
                   </button>
                 ))}
@@ -297,7 +305,7 @@ export default function Checkout() {
                   <div className="border border-black/10 p-8 bg-muted/20">
                     <div className="text-[9px] tracking-[0.04em] uppercase font-ui font-bold text-black/50 mb-6">Settlement Choice</div>
                     <div className="text-[11px] font-ui font-bold tracking-[0.04em] uppercase mb-4">
-                      {payment === 'RAZORPAY' ? 'Full Digital Payment' : `COD + ${inr(codAdvance)} Advance`}
+                      {method === 'RAZORPAY' ? 'Full Digital Payment' : `COD + ${inr(codAdvance)} Advance`}
                     </div>
                     <p className="text-[10px] text-black/60 font-ui uppercase tracking-[0.1em]">Verified via secure server processing.</p>
                     <button onClick={() => setStep(2)} className="text-[9px] tracking-[0.04em] font-ui font-bold uppercase mt-6 text-accent border-b border-accent pb-0.5">Modify Method</button>
