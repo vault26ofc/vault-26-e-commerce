@@ -225,7 +225,12 @@ export default function AdminCMS() {
 
   // ── Section operations ──────────────────────────────────────────────────────
 
+  const [baseline, setBaseline] = useState('');
+  const [labelDraft, setLabelDraft] = useState('');
+  const dirty = editingId !== null && JSON.stringify(editForm) !== baseline;
+
   const startEdit = (section: CMSSection) => {
+    if (dirty && !confirm('You have unsaved changes in this section. Discard them?')) return;
     const fields = SECTION_FIELDS[section.section_type] ?? [];
     const form: Record<string, any> = {};
     for (const f of fields) {
@@ -235,6 +240,8 @@ export default function AdminCMS() {
         : (v ?? emptyFor(f));
     }
     setEditForm(form);
+    setBaseline(JSON.stringify(form));
+    setLabelDraft(section.label || '');
     setEditingId(section.id);
   };
 
@@ -258,8 +265,11 @@ export default function AdminCMS() {
       .update({ config, updated_at: new Date().toISOString() })
       .eq('id', section.id);
     if (error) { toast.error('Save failed'); return; }
-    toast.success('Section saved');
-    setEditingId(null);
+    if (labelDraft.trim() && labelDraft.trim() !== section.label) {
+      await supabase.from('website_sections').update({ label: labelDraft.trim() }).eq('id', section.id);
+    }
+    toast.success('Section saved — live on the site');
+    setBaseline(JSON.stringify(editForm));
     loadSections();
   };
 
@@ -437,166 +447,122 @@ export default function AdminCMS() {
 
         {/* ── PAGES ────────────────────────────────────────────────────────── */}
         <TabsContent value="pages">
-          <div className="flex items-center gap-3 mb-6">
-            <Label className="text-sm font-medium whitespace-nowrap">Page slug</Label>
-            <Input
-              value={pageSlug}
-              onChange={(e) => setPageSlug(e.target.value)}
-              className="w-40 text-sm"
-              placeholder="home"
-              onBlur={loadSections}
-            />
-            <Button variant="ghost" size="sm" onClick={loadSections} title="Refresh sections">
-              <RefreshCw className="h-3.5 w-3.5" />
-            </Button>
-            {pageSlug === 'home' && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto text-xs gap-2 border-amber-500/30 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/20"
-                onClick={resetToDefaultLayout}
-              >
-                <RefreshCw className="h-3.5 w-3.5" /> Reset Home Layout to Default
-              </Button>
-            )}
-          </div>
-
-          {sectionsLoading ? (
-            <p className="text-muted-foreground text-sm py-4">Loading sections…</p>
-          ) : sections.length === 0 ? (
-            <p className="text-muted-foreground text-sm py-4">
-              No sections found for "{pageSlug}". Add one below.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {sections.map((s, idx) => (
-                <div key={s.id} className="border rounded-lg overflow-hidden">
-                  <div className="flex items-center gap-3 p-4 bg-card">
-                    <Badge
-                      variant={s.is_visible ? 'default' : 'secondary'}
-                      className="text-[10px] uppercase tracking-wider shrink-0"
-                    >
-                      {SECTION_META[s.section_type]?.label ?? s.section_type}
-                    </Badge>
-                    <span className="flex-1 text-sm font-medium truncate">
-                      {s.label || s.section_type}
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        title={s.is_visible ? 'Hide section' : 'Show section'}
-                        onClick={() => toggleVisible(s)}
-                        className="p-1.5 hover:bg-muted rounded transition-colors"
-                      >
-                        {s.is_visible
-                          ? <Eye className="h-3.5 w-3.5" />
-                          : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-                      </button>
-                      <button
-                        title="Move up"
-                        onClick={() => moveSection(s, 'up')}
-                        disabled={idx === 0}
-                        className="p-1.5 hover:bg-muted rounded transition-colors disabled:opacity-30"
-                      >
-                        <ChevronUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        title="Move down"
-                        onClick={() => moveSection(s, 'down')}
-                        disabled={idx === sections.length - 1}
-                        className="p-1.5 hover:bg-muted rounded transition-colors disabled:opacity-30"
-                      >
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      </button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 text-xs px-3"
-                        onClick={() => editingId === s.id ? setEditingId(null) : startEdit(s)}
-                      >
-                        {editingId === s.id ? 'Close' : 'Edit'}
-                      </Button>
-                      {!s.is_locked && (
-                        <button
-                          title="Delete section"
-                          onClick={() => deleteSection(s)}
-                          className="p-1.5 hover:bg-destructive/10 text-destructive rounded transition-colors"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+          <div className="grid lg:grid-cols-[320px_1fr] gap-6 items-start">
+            {/* ── Section list ───────────────────────────────────────────── */}
+            <aside className="border border-border bg-card lg:sticky lg:top-4">
+              <div className="p-3 border-b border-border flex items-center gap-2">
+                <Label className="text-[11px] uppercase tracking-widest text-muted-foreground whitespace-nowrap">Page</Label>
+                <Input value={pageSlug} onChange={(e) => setPageSlug(e.target.value)} onBlur={loadSections} className="h-8 text-sm" placeholder="home" />
+                <button onClick={loadSections} title="Reload" className="p-1.5 hover:bg-muted"><RefreshCw className="h-3.5 w-3.5" /></button>
+              </div>
+              {sectionsLoading ? (
+                <p className="text-muted-foreground text-sm p-4">Loading sections…</p>
+              ) : sections.length === 0 ? (
+                <p className="text-muted-foreground text-sm p-4">No sections on “{pageSlug}” yet.</p>
+              ) : (
+                <ol className="max-h-[60vh] overflow-y-auto divide-y divide-border">
+                  {sections.map((s, idx) => {
+                    const active = editingId === s.id;
+                    return (
+                      <li key={s.id} className={`flex items-center gap-2 pl-3 pr-1.5 py-2 cursor-pointer ${active ? 'bg-foreground text-background' : 'hover:bg-muted'}`}
+                        onClick={() => { if (!active) startEdit(s); }}>
+                        <span className={`text-[11px] w-5 tabular-nums ${active ? 'text-background/70' : 'text-muted-foreground'}`}>{idx + 1}</span>
+                        <span className={`flex-1 min-w-0 ${s.is_visible ? '' : 'opacity-50'}`}>
+                          <span className="block text-sm truncate">{s.label || SECTION_META[s.section_type]?.label || s.section_type}</span>
+                          <span className={`block text-[10px] uppercase tracking-widest truncate ${active ? 'text-background/60' : 'text-muted-foreground'}`}>
+                            {SECTION_META[s.section_type]?.label ?? s.section_type}{!s.is_visible && ' · hidden'}
+                          </span>
+                        </span>
+                        <span className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <button title={s.is_visible ? 'Hide on site' : 'Show on site'} onClick={() => toggleVisible(s)} className="p-1 hover:opacity-70">
+                            {s.is_visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                          </button>
+                          <button title="Move up" onClick={() => moveSection(s, 'up')} disabled={idx === 0} className="p-1 disabled:opacity-30"><ChevronUp className="h-3.5 w-3.5" /></button>
+                          <button title="Move down" onClick={() => moveSection(s, 'down')} disabled={idx === sections.length - 1} className="p-1 disabled:opacity-30"><ChevronDown className="h-3.5 w-3.5" /></button>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+              <div className="p-3 border-t border-border space-y-2">
+                {addingSection ? (
+                  <div className="space-y-2">
+                    <select value={newType} onChange={(e) => setNewType(e.target.value as SectionType)} className="w-full h-9 border border-input bg-background px-2 text-sm">
+                      <option value="">Choose a section type…</option>
+                      {Object.entries(SECTION_META).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </select>
+                    {newType && <p className="text-[11px] text-muted-foreground">{SECTION_META[newType]?.description}</p>}
+                    <div className="flex gap-2">
+                      <Button size="sm" className="flex-1" onClick={addSection} disabled={!newType}>Add to page</Button>
+                      <Button size="sm" variant="outline" onClick={() => { setAddingSection(false); setNewType(''); }}>Cancel</Button>
                     </div>
                   </div>
-
-                  {editingId === s.id && (
-                    <div className="border-t bg-muted/30 p-5">
-                      {(SECTION_FIELDS[s.section_type] ?? []).length === 0 ? (
-                        <p className="text-sm text-muted-foreground">No configurable fields for this section type.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                          {(SECTION_FIELDS[s.section_type] ?? [])
-                            .filter((f) => !f.showIf || (editForm[f.showIf.key] || (SECTION_FIELDS[s.section_type] ?? []).find((x) => x.key === f.showIf!.key)?.options?.[0]?.value) === f.showIf.equals)
-                            .map((f) => (
-                            <div
-                              key={f.key}
-                              className={isWide(f) ? 'md:col-span-2' : ''}
-                            >
-                              {f.type !== 'boolean' && (
-                                <Label className="text-xs font-medium mb-1.5 block text-muted-foreground uppercase tracking-wider">
-                                  {f.label}
-                                </Label>
-                              )}
-                              <FieldEditor
-                                field={f}
-                                value={editForm[f.key]}
-                                onChange={(v) => setEditForm((prev) => ({ ...prev, [f.key]: v }))}
-                              />
-                              {f.hint && f.type !== 'json' && <p className="text-[11px] text-muted-foreground mt-1">{f.hint}</p>}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => saveSection(s)}>
-                          <Save className="h-3.5 w-3.5 mr-2" /> Save
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="mt-6 border-t pt-6">
-            {addingSection ? (
-              <div className="flex items-center gap-3 flex-wrap">
-                <select
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value as SectionType)}
-                  className="flex-1 min-w-[200px] h-9 rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="">Select section type…</option>
-                  {Object.entries(SECTION_META).map(([k, v]) => (
-                    <option key={k} value={k}>{v.label} — {v.description}</option>
-                  ))}
-                </select>
-                <Button size="sm" onClick={addSection} disabled={!newType}>Add</Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => { setAddingSection(false); setNewType(''); }}
-                >
-                  Cancel
-                </Button>
+                ) : (
+                  <Button size="sm" variant="outline" className="w-full" onClick={() => setAddingSection(true)}><Plus className="h-3.5 w-3.5 mr-2" /> Add section</Button>
+                )}
+                {pageSlug === 'home' && (
+                  <button onClick={resetToDefaultLayout} className="w-full text-[11px] uppercase tracking-widest text-muted-foreground hover:text-destructive py-1">Reset home layout to default</button>
+                )}
               </div>
-            ) : (
-              <Button size="sm" variant="outline" onClick={() => setAddingSection(true)}>
-                <Plus className="h-3.5 w-3.5 mr-2" /> Add Section
-              </Button>
-            )}
+            </aside>
+
+            {/* ── Editor ─────────────────────────────────────────────────── */}
+            {(() => {
+              const s = sections.find((x) => x.id === editingId);
+              if (!s) return (
+                <div className="border border-dashed border-border p-10 text-center text-muted-foreground">
+                  <p className="text-sm">Pick a section on the left to edit its text, images, videos, products and buttons.</p>
+                  <p className="text-xs mt-2">Changes go live when you press Save.</p>
+                </div>
+              );
+              const fields = (SECTION_FIELDS[s.section_type] ?? []).filter((f) =>
+                !f.showIf || (editForm[f.showIf.key] || (SECTION_FIELDS[s.section_type] ?? []).find((x) => x.key === f.showIf!.key)?.options?.[0]?.value) === f.showIf.equals);
+              return (
+                <div className="border border-border bg-card min-w-0">
+                  <div className="p-4 border-b border-border flex flex-wrap items-center gap-3">
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{SECTION_META[s.section_type]?.label ?? s.section_type}</div>
+                      <input value={labelDraft} onChange={(e) => setLabelDraft(e.target.value)} placeholder="Section name (admin only)"
+                        className="w-full bg-transparent text-xl font-semibold outline-none border-b border-transparent focus:border-border" />
+                    </div>
+                    <label className="flex items-center gap-2 text-sm"><Switch checked={s.is_visible} onCheckedChange={() => toggleVisible(s)} /> Shown on site</label>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={pageSlug === 'home' ? '/' : `/${pageSlug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> View on site</a>
+                    </Button>
+                    {!s.is_locked && (
+                      <button title="Delete section" onClick={() => deleteSection(s)} className="p-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    {fields.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">This section has no settings — it is fully automatic.</p>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {fields.map((f) => (
+                          <div key={f.key} className={`${isWide(f) ? 'md:col-span-2' : ''} ${['list', 'products', 'media'].includes(f.type) ? 'border border-border p-4 bg-background' : ''}`}>
+                            {f.type !== 'boolean' && (
+                              <Label className="text-xs font-medium mb-1.5 block text-muted-foreground uppercase tracking-wider">{f.label}</Label>
+                            )}
+                            <FieldEditor field={f} value={editForm[f.key]} onChange={(v) => setEditForm((prev) => ({ ...prev, [f.key]: v }))} />
+                            {f.hint && f.type !== 'json' && <p className="text-[11px] text-muted-foreground mt-1">{f.hint}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="sticky bottom-0 z-10 border-t border-border bg-card/95 backdrop-blur px-5 py-3 flex items-center gap-3">
+                    <span className={`text-xs ${dirty || labelDraft !== (s.label || '') ? 'text-amber-600' : 'text-muted-foreground'}`}>
+                      {dirty || labelDraft !== (s.label || '') ? '● Unsaved changes' : 'All changes saved'}
+                    </span>
+                    <div className="ml-auto flex gap-2">
+                      <Button size="sm" variant="outline" disabled={!dirty} onClick={() => { setEditForm(JSON.parse(baseline)); setLabelDraft(s.label || ''); }}>Discard</Button>
+                      <Button size="sm" onClick={() => saveSection(s)}><Save className="h-3.5 w-3.5 mr-2" /> Save</Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </TabsContent>
 
