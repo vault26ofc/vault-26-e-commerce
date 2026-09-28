@@ -234,7 +234,14 @@ export interface MediaAsset {
   created_at: string;
 }
 
-export type FieldType = 'text' | 'textarea' | 'url' | 'color' | 'number' | 'boolean' | 'json';
+export type FieldType =
+  | 'text' | 'textarea' | 'url' | 'color' | 'number' | 'boolean' | 'json'
+  | 'media'     // image/video: upload or URL
+  | 'link'      // pick a product, category or page (never typed)
+  | 'products'  // search-and-pick products (ordered slugs)
+  | 'category'  // one category slug
+  | 'select'    // fixed options
+  | 'list';     // repeatable items made of itemFields
 
 export interface FieldDef {
   key: string;
@@ -242,4 +249,15 @@ export interface FieldDef {
   type: FieldType;
   placeholder?: string;
   hint?: string;
+  /** media: which kinds are allowed */
+  kind?: 'image' | 'video' | 'any';
+  /** products: maximum number that can be picked */
+  max?: number;
+  /** select */
+  options?: { value: string; label: string }[];
+  /** list */
+  itemFields?: FieldDef[];
+  itemLabel?: string;
+  /** Show this field only when another field has a given value (e.g. products only in manual mode). */
+  showIf?: { key: string; equals: string };
 }

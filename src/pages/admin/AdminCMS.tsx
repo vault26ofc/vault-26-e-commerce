@@ -14,6 +14,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SECTION_FIELDS, SECTION_META } from '@/cms/registry';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
+import { MediaField } from '@/components/admin/MediaField';
+import { CategorySelect, LinkPicker, ProductPicker } from '@/components/admin/Pickers';
+import { moveItem } from '@/lib/media';
 import type {
   CMSSection, SectionType, Testimonial, FAQItem,
   AnnouncementBar, BrandSettings, ThemeSettings, SEOSettings,
@@ -23,11 +26,64 @@ import { DEFAULT_HOME_SECTIONS } from '@/cms/hooks/useCMSPage';
 
 // ─── Field Editor ────────────────────────────────────────────────────────────
 
+/** Default value for a field when the section has none yet. */
+const emptyFor = (f: FieldDef) => (f.type === 'list' || f.type === 'products' ? [] : f.type === 'boolean' ? false : '');
+
+/** Wide fields take the full row in the editor grid. */
+const isWide = (f: FieldDef) => ['json', 'textarea', 'list', 'products', 'media', 'link'].includes(f.type);
+
+/** Repeatable items (slides, stores, reels…) with add / remove / reorder. */
+function ListEditor({ field, value, onChange }: { field: FieldDef; value: any; onChange: (v: any) => void }) {
+  const items: Record<string, any>[] = Array.isArray(value) ? value : [];
+  const sub = field.itemFields ?? [];
+  const update = (i: number, key: string, v: any) => onChange(items.map((it, j) => (j === i ? { ...it, [key]: v } : it)));
+  return (
+    <div className="space-y-3">
+      {items.map((it, i) => (
+        <div key={i} className="border border-border bg-background">
+          <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-secondary">
+            <span className="text-[11px] uppercase tracking-widest">{field.itemLabel ?? 'Item'} {i + 1}</span>
+            <span className="flex gap-1">
+              <button type="button" onClick={() => onChange(moveItem(items, i, -1))} disabled={i === 0} className="p-1 disabled:opacity-30" aria-label="Move up"><ChevronUp className="h-4 w-4" /></button>
+              <button type="button" onClick={() => onChange(moveItem(items, i, 1))} disabled={i === items.length - 1} className="p-1 disabled:opacity-30" aria-label="Move down"><ChevronDown className="h-4 w-4" /></button>
+              <button type="button" onClick={() => { if (confirm('Remove this item?')) onChange(items.filter((_, j) => j !== i)); }} className="p-1 text-destructive" aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
+            </span>
+          </div>
+          <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sub.map((sf) => (
+              <div key={sf.key} className={isWide(sf) ? 'md:col-span-2' : ''}>
+                {sf.type !== 'boolean' && <Label className="text-xs font-medium mb-1.5 block text-muted-foreground uppercase tracking-wider">{sf.label}</Label>}
+                <FieldEditor field={sf} value={it[sf.key] ?? emptyFor(sf)} onChange={(v) => update(i, sf.key, v)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <Button type="button" size="sm" variant="outline" onClick={() => onChange([...items, Object.fromEntries(sub.map((sf) => [sf.key, emptyFor(sf)]))])}>
+        <Plus className="h-4 w-4 mr-1" /> Add {(field.itemLabel ?? 'item').toLowerCase()}
+      </Button>
+    </div>
+  );
+}
+
 function FieldEditor({ field, value, onChange }: {
   field: FieldDef;
   value: any;
   onChange: (v: any) => void;
 }) {
+  if (field.type === 'media') return <MediaField kind={field.kind ?? 'any'} value={value} onChange={onChange} />;
+  if (field.type === 'link') return <LinkPicker value={value} onChange={onChange} />;
+  if (field.type === 'products') return <ProductPicker value={Array.isArray(value) ? value : []} onChange={onChange} max={field.max} />;
+  if (field.type === 'category') return <CategorySelect value={value} onChange={onChange} />;
+  if (field.type === 'list') return <ListEditor field={field} value={value} onChange={onChange} />;
+  if (field.type === 'select') return (
+    <div className="inline-flex border border-border flex-wrap">
+      {(field.options ?? []).map((o) => (
+        <button key={o.value} type="button" onClick={() => onChange(o.value)}
+          className={`px-3 py-1.5 text-[11px] uppercase tracking-widest ${(value || field.options?.[0]?.value) === o.value ? 'bg-foreground text-background' : 'hover:bg-secondary'}`}>{o.label}</button>
+      ))}
+    </div>
+  );
   if (field.type === 'boolean') return (
     <div className="flex items-center gap-3">
       <Switch
@@ -176,7 +232,7 @@ export default function AdminCMS() {
       const v = section.config[f.key];
       form[f.key] = f.type === 'json' && v !== undefined
         ? JSON.stringify(v, null, 2)
-        : (v ?? '');
+        : (v ?? emptyFor(f));
     }
     setEditForm(form);
     setEditingId(section.id);
@@ -194,7 +250,7 @@ export default function AdminCMS() {
       } else if (f.type === 'boolean') {
         config[f.key] = raw === true || raw === 'true';
       } else {
-        config[f.key] = raw ?? '';
+        config[f.key] = raw ?? emptyFor(f);
       }
     }
     const { error } = await supabase
@@ -477,10 +533,12 @@ export default function AdminCMS() {
                         <p className="text-sm text-muted-foreground">No configurable fields for this section type.</p>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                          {(SECTION_FIELDS[s.section_type] ?? []).map((f) => (
+                          {(SECTION_FIELDS[s.section_type] ?? [])
+                            .filter((f) => !f.showIf || (editForm[f.showIf.key] || (SECTION_FIELDS[s.section_type] ?? []).find((x) => x.key === f.showIf!.key)?.options?.[0]?.value) === f.showIf.equals)
+                            .map((f) => (
                             <div
                               key={f.key}
-                              className={f.type === 'json' || f.type === 'textarea' ? 'md:col-span-2' : ''}
+                              className={isWide(f) ? 'md:col-span-2' : ''}
                             >
                               {f.type !== 'boolean' && (
                                 <Label className="text-xs font-medium mb-1.5 block text-muted-foreground uppercase tracking-wider">
@@ -492,6 +550,7 @@ export default function AdminCMS() {
                                 value={editForm[f.key]}
                                 onChange={(v) => setEditForm((prev) => ({ ...prev, [f.key]: v }))}
                               />
+                              {f.hint && f.type !== 'json' && <p className="text-[11px] text-muted-foreground mt-1">{f.hint}</p>}
                             </div>
                           ))}
                         </div>
