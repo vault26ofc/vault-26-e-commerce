@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
-import { LayoutDashboard, ShoppingBag, Package, Tag, Users, Settings as SettingsIcon, Ticket, FileText, Menu, X, RotateCcw, Layers, ExternalLink, ArrowLeft, MessageCircle, Globe, Ruler, PanelsTopLeft, Image, Users2, Star } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Package, Tag, Users, Settings as SettingsIcon, Ticket, FileText, Menu, X, RotateCcw, Layers, ExternalLink, ArrowLeft, MessageCircle, Globe, Ruler, PanelsTopLeft, Image, Users2, Star, Undo2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ const NAV = [
   { to: '/admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/admin/orders', icon: ShoppingBag, label: 'Orders' },
   { to: '/admin/refunds', icon: RotateCcw, label: 'Refunds' },
+  { to: '/admin/returns', icon: Undo2, label: 'Returns' },
   { to: '/admin/products', icon: Package, label: 'Products' },
   { to: '/admin/catalog', icon: Layers, label: 'Catalog' },
   { to: '/admin/sizes', icon: Ruler, label: 'Sizes' },

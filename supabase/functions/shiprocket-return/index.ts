@@ -12,9 +12,8 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'Unauthorized' }, 401);
 
     const { order_id, reason } = await req.json().catch(() => ({}));
-    const why = String(reason ?? '').trim();
+    let why = String(reason ?? '').trim();
     if (!order_id) return json({ error: 'order_id is required' }, 400);
-    if (why.length < 3) return json({ error: 'Please tell us why you are returning this order' }, 400);
 
     const db = serviceClient();
     const { data: order } = await db.from('orders').select('*, order_items(*)').eq('id', order_id).maybeSingle();
@@ -24,6 +23,8 @@ Deno.serve(async (req) => {
     const windowDays = Number(setting?.value ?? 7) || 7;
     const eligible = returnEligibility(order, windowDays, new Date());
     if (!eligible.ok) return json({ error: eligible.error }, 400);
+    if (why.length < 3) why = order.return_reason ?? ''; // admin retry keeps the customer's reason
+    if (why.length < 3) return json({ error: 'Please tell us why you are returning this order' }, 400);
 
     // Record the request first, so it is never lost even if Shiprocket fails below.
     await db.from('orders').update({
@@ -32,10 +33,14 @@ Deno.serve(async (req) => {
 
     try {
       const wh = await pickupWarehouse(Deno.env.get('SHIPROCKET_PICKUP_LOCATION') ?? 'work');
-      const created = await createReturnOrder(buildReturnOrder(order, order.order_items, wh, new Date()));
-      if (!created.shipment_id) throw new Error(`Shiprocket did not create the return: ${created.message ?? JSON.stringify(created)}`);
-      const shipmentId = String(created.shipment_id);
-      await db.from('orders').update({ return_shiprocket_order_id: String(created.order_id), return_shipment_id: shipmentId }).eq('id', order.id);
+      // Resume: reuse the return shipment if a previous attempt created it.
+      let shipmentId: string | null = order.return_shipment_id;
+      if (!shipmentId) {
+        const created = await createReturnOrder(buildReturnOrder(order, order.order_items, wh, new Date()));
+        if (!created.shipment_id) throw new Error(`Shiprocket did not create the return: ${created.message ?? JSON.stringify(created)}`);
+        shipmentId = String(created.shipment_id);
+        await db.from('orders').update({ return_shiprocket_order_id: String(created.order_id), return_shipment_id: shipmentId }).eq('id', order.id);
+      }
 
       const awb = await assignAwb(shipmentId, true);
       const awbCode = awb.response?.data?.awb_code;

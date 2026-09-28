@@ -92,9 +92,10 @@ describe('mapShipmentEvent', () => {
 
 describe('returnEligibility', () => {
   const now = new Date('2026-10-05T00:00:00Z');
-  const delivered = { status: 'DELIVERED', delivered_at: '2026-09-30T00:00:00Z', return_status: 'NONE', replacement_of: null };
+  const delivered = { status: 'DELIVERED', delivered_at: '2026-09-30T00:00:00Z', return_status: 'NONE', return_awb: null as string | null, replacement_of: null };
   it('allows within the window', () => expect(returnEligibility(delivered, 7, now)).toEqual({ ok: true }));
   it('rejects outside the window', () => expect(returnEligibility({ ...delivered, delivered_at: '2026-09-20T00:00:00Z' }, 7, now)).toEqual({ ok: false, error: 'The 7-day return window has closed' }));
   it('rejects undelivered orders', () => expect(returnEligibility({ ...delivered, status: 'SHIPPED' }, 7, now)).toMatchObject({ ok: false }));
-  it('rejects a second return', () => expect(returnEligibility({ ...delivered, return_status: 'REQUESTED' }, 7, now)).toMatchObject({ ok: false }));
+  it('rejects a second return once pickup is booked', () => expect(returnEligibility({ ...delivered, return_status: 'PICKUP_SCHEDULED', return_awb: 'R1' }, 7, now)).toMatchObject({ ok: false }));
+  it('allows retrying a requested return whose pickup failed', () => expect(returnEligibility({ ...delivered, return_status: 'REQUESTED', return_awb: null }, 7, now)).toEqual({ ok: true }));
 });

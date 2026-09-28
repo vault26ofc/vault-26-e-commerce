@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { inr } from '@/lib/format';
-import { paymentLabel } from '@/lib/payment';
+import { paymentLabel, readFunctionError } from '@/lib/payment';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Package, ArrowRight, Truck, CheckCircle2, Clock, XCircle } from 'lucide-react';
@@ -98,6 +98,9 @@ export function OrderDetail() {
   const [o, setO] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
+  const [returnWindow, setReturnWindow] = useState(7);
+  const [returnReason, setReturnReason] = useState('');
+  const [requesting, setRequesting] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -108,6 +111,20 @@ export function OrderDetail() {
   };
 
   useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    supabase.from('settings').select('value').eq('key', 'return_window_days').maybeSingle()
+      .then(({ data }) => { if (data) setReturnWindow(Number(data.value) || 7); });
+  }, []);
+
+  const requestReturn = async () => {
+    if (!o || returnReason.trim().length < 3) return toast.error('Tell us briefly why you are returning it');
+    setRequesting(true);
+    const { data, error } = await supabase.functions.invoke('shiprocket-return', { body: { order_id: o.id, reason: returnReason } });
+    setRequesting(false);
+    if (error) return toast.error(await readFunctionError(error));
+    toast.success(data.return_status === 'PICKUP_SCHEDULED' ? 'Return booked — a courier will pick it up from your address.' : data.warning);
+    load();
+  };
 
   const cancel = async () => {
     if (!o || !confirm('Cancel this order? This cannot be undone.')) return;
@@ -124,6 +141,8 @@ export function OrderDetail() {
 
   const stage = STATUS_LABELS.indexOf(o.status);
   const canCancel = o.status === 'PENDING';
+  const returnOpen = o.status === 'DELIVERED' && o.delivered_at && o.return_status === 'NONE' && !o.replacement_of
+    && Date.now() - new Date(o.delivered_at).getTime() <= returnWindow * 86_400_000;
 
   return (
     <div className="container-px py-24 min-h-screen bg-white">
@@ -231,6 +250,29 @@ export function OrderDetail() {
               >
                 <XCircle className="h-4 w-4" /> {cancelling ? 'Cancelling…' : 'Cancel Order'}
               </button>
+            )}
+            {o.tracking_url && (
+              <a href={o.tracking_url} target="_blank" rel="noreferrer" className="w-full border border-black px-6 py-4 text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-black hover:text-white transition-colors flex items-center justify-center gap-3">
+                <Truck className="h-4 w-4" /> Track Shipment{o.courier_name ? ` · ${o.courier_name}` : ''}
+              </a>
+            )}
+            {returnOpen && (
+              <div className="border border-black/10 p-4 space-y-3">
+                <div className="text-[10px] tracking-[0.04em] uppercase font-ui font-bold">Return this order</div>
+                <textarea value={returnReason} onChange={(e) => setReturnReason(e.target.value)} rows={3} maxLength={500}
+                  placeholder="Why are you returning it?" className="w-full border border-black/20 p-3 text-sm font-ui outline-none focus:border-black" />
+                <button onClick={requestReturn} disabled={requesting}
+                  className="w-full bg-black text-white px-6 py-4 text-[10px] tracking-[0.04em] uppercase font-ui font-bold hover:bg-[#AA0001] transition-colors disabled:opacity-50">
+                  {requesting ? 'Booking pickup…' : 'Request Return'}
+                </button>
+                <div className="text-[9px] text-black/50 uppercase tracking-[0.04em]">Within {returnWindow} days of delivery · courier picks up from your address</div>
+              </div>
+            )}
+            {o.return_status && o.return_status !== 'NONE' && (
+              <div className="border border-black/10 p-4 text-[10px] tracking-[0.04em] uppercase font-ui space-y-1">
+                <div className="font-bold">Return: {o.return_status.replace('_', ' ')}</div>
+                {o.return_tracking_url && <a href={o.return_tracking_url} target="_blank" rel="noreferrer" className="underline">Track return pickup</a>}
+              </div>
             )}
           </aside>
         </div>

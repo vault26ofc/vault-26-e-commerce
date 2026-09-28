@@ -127,11 +127,13 @@ export function mapShipmentEvent(status: string, isReturn: boolean): ShipmentEve
 }
 
 export function returnEligibility(
-  o: { status: string; delivered_at: string | null; return_status: string; replacement_of: string | null },
+  o: { status: string; delivered_at: string | null; return_status: string; return_awb?: string | null; replacement_of: string | null },
   windowDays: number, now: Date,
 ): { ok: true } | { ok: false; error: string } {
   if (o.status !== 'DELIVERED' || !o.delivered_at) return { ok: false, error: 'Only delivered orders can be returned' };
-  if (o.return_status !== 'NONE') return { ok: false, error: 'A return has already been requested for this order' };
+  // A REQUESTED return with no AWB means booking the pickup failed — allow retrying it.
+  const retryable = o.return_status === 'REQUESTED' && !o.return_awb;
+  if (o.return_status !== 'NONE' && !retryable) return { ok: false, error: 'A return has already been requested for this order' };
   const ageDays = (now.getTime() - new Date(o.delivered_at).getTime()) / 86_400_000;
   if (ageDays > windowDays) return { ok: false, error: `The ${windowDays}-day return window has closed` };
   return { ok: true };
