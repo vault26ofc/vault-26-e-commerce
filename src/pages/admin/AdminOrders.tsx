@@ -25,12 +25,11 @@ function ShippingCell({ o, onRetry, retrying }: { o: any; onRetry: () => void; r
       <div className="text-xs space-y-1 max-w-[220px]">
         {o.shipping_error
           ? <div className="text-destructive">{o.shipping_error}</div>
-          : <div className="text-muted-foreground">Booking pickup…</div>}
-        {o.shipping_error && (
-          <button onClick={onRetry} disabled={retrying} className="border border-border px-2 py-1 uppercase tracking-widest hover:bg-secondary disabled:opacity-50">
-            {retrying ? 'Retrying…' : 'Retry shipment'}
-          </button>
-        )}
+          : <div className="text-muted-foreground">No shipment yet</div>}
+        {/* Also covers orders packed before automation existed, or while the hook was still running. */}
+        <button onClick={onRetry} disabled={retrying} className="border border-border px-2 py-1 uppercase tracking-widest hover:bg-secondary disabled:opacity-50">
+          {retrying ? 'Booking…' : o.shipping_error ? 'Retry shipment' : 'Book shipment'}
+        </button>
       </div>
     );
   }
