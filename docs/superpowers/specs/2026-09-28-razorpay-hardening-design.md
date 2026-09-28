@@ -85,6 +85,22 @@ One transaction, row-locks the order (`FOR UPDATE`):
 - `create_order` replaced: COD advance always `round(total * cod_advance_percent / 100, 2)`;
   coupon increment removed (now in §3).
 - Removes the `cod_threshold` row from `settings`.
+- Trigger `trg_cod_paid_on_delivery` (BEFORE UPDATE on `orders`): when `status` changes
+  to `DELIVERED` and `payment_method = 'COD'` and `payment_status = 'PENDING'`, set
+  `payment_status = 'PAID'`. Delivery is when the courier collects the balance, so the
+  order is fully paid at that point. Fires for every writer — the admin status dropdown
+  and the Shiprocket webhook (sub-project D) alike.
+
+### 4b. COD payment display (customer + admin)
+
+| State | `cod_advance_paid` | `payment_status` | Label shown |
+|---|---|---|---|
+| Order placed, advance not paid | false | PENDING | "Awaiting advance" |
+| Advance paid, not delivered | true | PENDING | "Advance ₹X paid · ₹Y due on delivery" |
+| Delivered | true | PAID | "Paid in full" |
+
+Shown on the order list and detail in `Orders.tsx`, the admin orders table, and the invoice.
+A small pure helper `codPaymentLabel(order)` in `src/lib/format.ts` produces it (unit-tested).
 
 ### 5. Refunds — `razorpay-refund` (new edge function)
 
