@@ -80,7 +80,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
 
   return (
     <section ref={ref} className="relative h-[300vh] bg-white" data-section="colour-story">
-      <div className="sticky top-0 h-screen overflow-hidden flex bg-white border-y border-[#0F0F0F]/10">
+      <div className="sticky top-14 md:top-[62px] h-[calc(100vh-56px)] md:h-[calc(100vh-62px)] overflow-hidden flex bg-white border-y border-[#0F0F0F]/10">
         {swatches.map((s, i) => (
           <Bar key={s.hex} s={s} i={i} progress={scrollYProgress} onOpen={() => setOpen(i)} />
         ))}
