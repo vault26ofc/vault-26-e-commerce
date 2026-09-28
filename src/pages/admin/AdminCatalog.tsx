@@ -3,7 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { MediaField, MediaPreview } from '@/components/admin/MediaField';
+import { isVideoUrl } from '@/lib/media';
 import { MultiSearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 type Row = { id: string; name: string; slug: string; is_active: boolean; description?: string | null; logo?: string | null; image?: string | null; video?: string | null; position?: number };
 
@@ -63,7 +65,7 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
       await supabase.from('brand_categories').delete().eq('brand_id', savedRow.id);
       if (pickedCats.length) {
         const { error: e2 } = await supabase.from('brand_categories').insert(pickedCats.map((category_id) => ({ brand_id: savedRow.id, category_id })));
-        if (e2) { setSaving(false); return toast.error(e2.message); }
+        if (e2) { setSaving(false); return toast.error(describeError(e2)); }
       }
     }
     setSaving(false);
@@ -74,7 +76,7 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
   const remove = async (id: string) => {
     if (!confirm(`Delete this ${title.toLowerCase()}?`)) return;
     const { error } = await supabase.from(table).delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Deleted'); load();
   };
 
@@ -134,8 +136,8 @@ function CrudPanel({ table, title }: { table: 'brands' | 'categories'; title: st
             )}
             {table === 'categories' && (
               <>
-                <MediaField label="Category image" kind="image" folder="vault26/categories" value={editing.image} onChange={(image) => setEditing({ ...editing, image })} />
-                <MediaField label="Category video (optional, plays instead of the image where supported)" kind="video" folder="vault26/categories" value={editing.video} onChange={(video) => setEditing({ ...editing, video })} />
+                <MediaField label="Photo or video" kind="any" folder="vault26/categories" value={editing.video || editing.image}
+                  onChange={(url) => setEditing({ ...editing, image: isVideoUrl(url) ? editing.image && !isVideoUrl(editing.image) ? editing.image : null : url || null, video: isVideoUrl(url) ? url : null })} />
                 <label className="block text-xs uppercase tracking-widest text-muted-foreground">Display order (lower first)
                   <input type="number" value={editing.position ?? 0} onChange={(e) => setEditing({ ...editing, position: Number(e.target.value) })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />
                 </label>

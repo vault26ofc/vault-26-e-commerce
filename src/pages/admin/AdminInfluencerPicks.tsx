@@ -6,6 +6,7 @@ import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import { MediaField } from '@/components/admin/MediaField';
 import { ProductPicker } from '@/components/admin/Pickers';
 import { isVideoUrl } from '@/lib/media';
+import { describeError } from '@/lib/errors';
 
 type Pick = {
   id: string;
@@ -64,13 +65,13 @@ export default function AdminInfluencerPicks() {
     if (editing.id) {
       const { error } = await supabase.from('influencer_picks' as any).update(payload).eq('id', editing.id);
       setSaving(false);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(describeError(error));
       toast.success('Saved');
       load();
     } else {
       const { data, error } = await supabase.from('influencer_picks' as any).insert({ ...payload, position: picks.length }).select().single();
       setSaving(false);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(describeError(error));
       toast.success('Saved — now tag products below');
       setEditing({ ...editing, id: (data as any).id }); // keep modal open for product tagging
       load();
@@ -80,7 +81,7 @@ export default function AdminInfluencerPicks() {
   const remove = async (id: string) => {
     if (!confirm('Delete this pick?')) return;
     const { error } = await supabase.from('influencer_picks' as any).delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Deleted');
     load();
   };
@@ -89,13 +90,13 @@ export default function AdminInfluencerPicks() {
 
   const addProductTag = async (pickId: string, slug: string) => {
     const { error } = await supabase.from('influencer_pick_products' as any).insert({ influencer_pick_id: pickId, product_slug: slug, position: taggedFor(pickId).length });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     load();
   };
 
   const removeProductTag = async (id: string) => {
     const { error } = await supabase.from('influencer_pick_products' as any).delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     load();
   };
 
@@ -105,7 +106,7 @@ export default function AdminInfluencerPicks() {
       const { secureUrl } = await upload(file, { resourceType: type, folder: 'vault26/influencer' });
       setEditing((prev) => ({ ...prev, thumbnail_url: secureUrl, thumbnail_type: type }));
     } catch (e: any) {
-      toast.error(e.message || 'Upload failed');
+      toast.error(describeError(e) || 'Upload failed');
     }
   };
 
@@ -114,7 +115,7 @@ export default function AdminInfluencerPicks() {
       const { secureUrl } = await upload(file, { resourceType: 'video', folder: 'vault26/influencer' });
       setEditing((prev) => ({ ...prev, video_url: secureUrl }));
     } catch (e: any) {
-      toast.error(e.message || 'Upload failed');
+      toast.error(describeError(e) || 'Upload failed');
     }
   };
 

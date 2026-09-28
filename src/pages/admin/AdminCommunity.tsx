@@ -6,6 +6,7 @@ import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import { MediaField } from '@/components/admin/MediaField';
 import { SearchSelect } from '@/components/admin/SearchSelect';
 import { isVideoUrl } from '@/lib/media';
+import { describeError } from '@/lib/errors';
 
 type Photo = {
   id: string;
@@ -34,20 +35,20 @@ export default function AdminCommunity() {
     const { error } = await supabase.from('community_photos' as any).insert({
       image_url: '', handle: '', bento_size: 'md', position: photos.length, is_active: false,
     });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     load();
   };
 
   const patch = async (id: string, fields: Partial<Photo>) => {
     setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, ...fields } : p)));
     const { error } = await supabase.from('community_photos' as any).update(fields).eq('id', id);
-    if (error) toast.error(error.message);
+    if (error) toast.error(describeError(error));
   };
 
   const remove = async (id: string) => {
     if (!confirm('Delete this photo?')) return;
     const { error } = await supabase.from('community_photos' as any).delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Deleted');
     load();
   };
@@ -58,7 +59,7 @@ export default function AdminCommunity() {
       const { secureUrl } = await upload(file, { resourceType: mediaType, folder: 'vault26/community' });
       patch(id, { image_url: secureUrl, media_type: mediaType });
     } catch (e: any) {
-      toast.error(e.message || 'Upload failed');
+      toast.error(describeError(e) || 'Upload failed');
     }
   };
 

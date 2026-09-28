@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Download, History, Minus, Plus, X } from 'lucide-react';
 import { downloadCsv } from '@/lib/exportCsv';
 import { SearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 type Row = {
   id: string; size: string | null; color: string | null; color_hex: string | null; sku: string | null; stock: number;
@@ -70,7 +71,7 @@ export default function AdminInventory() {
     setBusy(true);
     const { data, error } = await supabase.rpc('adjust_stock', { p_variant_id: row.id, p_delta: delta, p_reason: reason });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success(`Stock is now ${data}`);
     setAdjusting(null);
     load();

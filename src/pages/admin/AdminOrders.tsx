@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { downloadCsv } from '@/lib/exportCsv';
 import { Download } from 'lucide-react';
 import { SearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 const STATUSES = ['PENDING','PACKED','SHIPPED','DELIVERED','CANCELLED'] as const;
 
@@ -67,7 +68,7 @@ export default function AdminOrders() {
     }
     if (status === 'CANCELLED' && o.awb_number && !confirm('This order has a shipment. Cancelling will cancel it on Shiprocket (return-to-origin if already picked up). Continue?')) return;
     const { error } = await supabase.from('orders').update({ status: status as typeof STATUSES[number] }).eq('id', o.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success(status === 'PACKED' ? 'Packed — booking Shiprocket pickup' : 'Status updated');
     load();
   };

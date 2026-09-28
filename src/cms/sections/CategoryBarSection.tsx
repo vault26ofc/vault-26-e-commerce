@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { CMSSection } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import { useCategoryNames } from '../lib/useCategoryNames';
+import { Media } from '@/components/shared/Media';
 
 export interface CategoryBarItem {
   slug?: string;
@@ -98,7 +99,7 @@ export default function CategoryBarSection({ section }: { section?: CMSSection }
                 to={cat.href}
                 className="group h-11 md:h-12 px-4 flex items-center justify-center gap-2 border border-[#0F0F0F] bg-white text-[#0F0F0F] hover:border-[#BB0006] hover:text-[#BB0006] transition-colors font-sans text-[14px] md:text-[15px] whitespace-nowrap"
               >
-                <img src={cat.image} alt="" loading="lazy" className="w-6 h-6 object-cover mix-blend-multiply shrink-0" />
+                <Media src={cat.image} alt="" loading="lazy" className="w-6 h-6 object-cover mix-blend-multiply shrink-0" />
                 <span className="lowercase first-letter:uppercase">{cat.title}</span>
               </Link>
             </motion.div>

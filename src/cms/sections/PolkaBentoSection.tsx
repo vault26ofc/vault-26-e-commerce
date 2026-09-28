@@ -8,6 +8,7 @@ import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
+import { Media } from '@/components/shared/Media';
 
 type BentoConfig = ProductPickConfig & {
   title?: string; see_all_label?: string; see_all_link?: LinkValue;
@@ -72,7 +73,7 @@ export default function PolkaBentoSection({ section }: { section?: CMSSection })
           {/* Big campaign */}
           <Link to={resolveHref(cfg.campaign_link, '/shop')} className="group col-span-2 row-span-2 relative">
             <Drift progress={scrollYProgress} speed={8} className="absolute inset-0">
-              <img src={cfg.campaign_image || U('photo-1509631179647-0177331693ae', 1600)} alt={cfg.campaign_title || 'Autumn / Winter'} loading="lazy" className="w-full h-full object-cover grayscale" />
+              <Media src={cfg.campaign_image || U('photo-1509631179647-0177331693ae', 1600)} alt={cfg.campaign_title || 'Autumn / Winter'} loading="lazy" className="w-full h-full object-cover grayscale" />
             </Drift>
             <div className="absolute left-4 bottom-4 md:left-6 md:bottom-6">
               <span className="bg-[#BB0006] text-white font-display uppercase text-[34px] md:text-[56px] leading-[0.95] px-[0.14em] pt-[0.08em] inline-block">{cfg.campaign_title || 'Autumn / Winter'}</span>
@@ -101,7 +102,7 @@ export default function PolkaBentoSection({ section }: { section?: CMSSection })
           {/* Wide lookbook */}
           <Link to={resolveHref(cfg.lookbook_link, '/lookbook')} className="group col-span-2 relative">
             <Drift progress={scrollYProgress} speed={14} className="absolute inset-0">
-              <img src={cfg.lookbook_image || U('photo-1490481651871-ab68de25d43d', 1600)} alt="Lookbook" loading="lazy" className="w-full h-full object-cover grayscale" />
+              <Media src={cfg.lookbook_image || U('photo-1490481651871-ab68de25d43d', 1600)} alt="Lookbook" loading="lazy" className="w-full h-full object-cover grayscale" />
             </Drift>
             <span className="absolute right-4 bottom-4 bg-white text-[#BB0006] font-sans text-[14px] h-10 px-5 flex items-center">{cfg.lookbook_cta || 'Open the lookbook'}</span>
           </Link>
@@ -112,7 +113,7 @@ export default function PolkaBentoSection({ section }: { section?: CMSSection })
           {/* Portrait */}
           <Link to={resolveHref(cfg.tile_link, '/category/outerwear')} className="group relative row-span-1 md:row-span-1 col-span-2 md:col-span-1">
             <Drift progress={scrollYProgress} speed={10} className="absolute inset-0">
-              <img src={cfg.tile_image || U('photo-1520975954732-35dd22299614', 900)} alt={cfg.tile_label || 'Outerwear'} loading="lazy" className="w-full h-full object-cover grayscale" />
+              <Media src={cfg.tile_image || U('photo-1520975954732-35dd22299614', 900)} alt={cfg.tile_label || 'Outerwear'} loading="lazy" className="w-full h-full object-cover grayscale" />
             </Drift>
             <span className="absolute left-3 top-3 bg-[#BB0006] text-white font-display uppercase text-[26px] leading-none px-2 pt-1">{cfg.tile_label || 'Outerwear'}</span>
           </Link>

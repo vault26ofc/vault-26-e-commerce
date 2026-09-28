@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { downloadCsv, downloadJson } from '@/lib/exportCsv';
 import { Download, Database } from 'lucide-react';
 import { SearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 export function AdminCoupons() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -14,7 +15,7 @@ export function AdminCoupons() {
   const create = async (e: React.FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.from('coupons').insert({ ...form, code: form.code.toUpperCase(), type: form.type as any });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Coupon created'); setForm({ code: '', type: 'PERCENT', value: 10, min_order: 0 }); load();
   };
   const toggle = async (c: any) => { await supabase.from('coupons').update({ is_active: !c.is_active }).eq('id', c.id); load(); };
@@ -85,7 +86,7 @@ export function AdminSettings() {
   const save = async (key: string, value: any) => {
     setS((p) => ({ ...p, [key]: value }));
     const { error } = await supabase.from('settings').upsert({ key, value }, { onConflict: 'key' });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Saved');
   };
   return (
@@ -153,7 +154,7 @@ function DataExportPanel() {
     setBusy(true);
     const { data, error } = await supabase.from(table as any).select('*');
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     if (!data?.length) return toast.error(`${table} is empty`);
     downloadCsv(`${table}-${new Date().toISOString().slice(0,10)}.csv`, data as any);
   };

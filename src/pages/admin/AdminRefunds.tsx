@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 const REFUND_STATUSES = ['NONE', 'REQUESTED', 'PROCESSING', 'REFUNDED', 'REJECTED'] as const;
 
@@ -79,7 +80,7 @@ export default function AdminRefunds() {
     };
     if (form.refund_status === 'REFUNDED') patch.refunded_at = new Date().toISOString();
     const { error } = await supabase.from('orders').update(patch).eq('id', editing.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Refund updated');
     setEditing(null);
     load();
@@ -90,7 +91,7 @@ export default function AdminRefunds() {
       refund_status: 'REQUESTED' as any,
       refund_amount: Number(o.total),
     }).eq('id', o.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Refund requested');
     load();
   };

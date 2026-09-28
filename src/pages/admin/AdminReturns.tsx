@@ -5,6 +5,7 @@ import { inr } from '@/lib/format';
 import { readFunctionError } from '@/lib/payment';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { describeError } from '@/lib/errors';
 
 // Generated DB types predate the return columns; query orders untyped here.
 const db = supabase as any;
@@ -39,7 +40,7 @@ export default function AdminReturns() {
 
   const run = async (id: string, fn: () => Promise<string | void>) => {
     setBusy(id);
-    try { const msg = await fn(); if (msg) toast.success(msg); } catch (e: any) { toast.error(e.message || 'Something went wrong'); }
+    try { const msg = await fn(); if (msg) toast.success(msg); } catch (e: any) { toast.error(describeError(e) || 'Something went wrong'); }
     setBusy(null);
     load();
   };

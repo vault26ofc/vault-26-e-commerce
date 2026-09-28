@@ -9,6 +9,7 @@ import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
+import { Media } from '@/components/shared/Media';
 
 const LOOK = 'https://images.unsplash.com/photo-1520975954732-35dd22299614?auto=format&fit=crop&q=85&w=1600';
 
@@ -72,7 +73,7 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
 
         {/* Photo with hotspots */}
         <div className="relative aspect-[3/4] bg-[#1A1A1A] overflow-hidden">
-          <img src={cfg.image || LOOK} alt="Styled look" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
+          <Media src={cfg.image || LOOK} alt="Styled look" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
           {spots.slice(0, pieces.length).map((s, i) => (
             <button
               key={i}

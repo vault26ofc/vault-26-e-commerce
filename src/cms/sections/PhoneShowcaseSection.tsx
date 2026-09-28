@@ -9,6 +9,7 @@ import { TornEdge } from '@/components/polka/Polka';
 import { inr } from '@/lib/format';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
+import { Media } from '@/components/shared/Media';
 
 const MODEL = 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&q=85&w=1400';
 const CHIPS = ['All pieces', 'New', 'Bestsellers', 'Only here', 'Pre-order', 'Sale'];
@@ -95,7 +96,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
         className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-45 pointer-events-none"
       />
       {/* Full-length figure — twice the viewport tall, scrolls past the pinned phones */}
-      <img
+      <Media
         src={cfg.image || MODEL}
         alt="Full-length look from the VAULT 26 archive"
         loading="lazy"

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import type { CMSSection, BentoGridConfig, BentoItem } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
+import { Media } from '@/components/shared/Media';
 
 const DEFAULT_ITEMS: BentoItem[] = [
   {
@@ -74,7 +75,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
               <Link to={resolveHref((item as any).link ?? item.href, '/shop')} className="block w-full">
                 {/* Studio Light-Grey Image Container */}
                 <div className="relative aspect-[3/4.2] bg-[#EFEFEF] overflow-hidden rounded-none border border-black/5 flex items-center justify-center p-6 sm:p-8">
-                  <img
+                  <Media
                     src={item.image}
                     alt={item.title}
                     loading="lazy"

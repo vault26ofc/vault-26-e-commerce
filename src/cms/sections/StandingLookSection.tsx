@@ -5,6 +5,7 @@ import { useShopProducts } from '@/components/polka/useShopProducts';
 import { SeeAll, TornEdge } from '@/components/polka/Polka';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
+import { Media } from '@/components/shared/Media';
 
 const MODEL = 'https://images.unsplash.com/photo-1516826957135-700dedea698c?auto=format&fit=crop&q=85&w=1400';
 
@@ -47,7 +48,7 @@ export default function StandingLookSection({ section }: { section?: CMSSection 
         {/* Pinned standing model */}
         <div className="order-1 md:order-2 relative">
           <div className="md:sticky md:top-[62px] h-[70vh] md:h-[calc(100vh-62px)] flex flex-col items-center justify-end pb-4">
-            <img
+            <Media
               src={cfg.image || MODEL}
               alt="Full-length look from the VAULT 26 archive"
               loading="lazy"

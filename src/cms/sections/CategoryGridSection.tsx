@@ -7,6 +7,7 @@ import type { CMSSection, CategoryGridConfig, CategoryItem } from '../types';
 import { Num, Wrap } from '@/components/polka/Polka';
 import { cn } from '@/lib/utils';
 import { resolveHref, type LinkValue } from '@/lib/links';
+import { Media, MotionMedia } from '@/components/shared/Media';
 
 export interface NorseCategoryItem extends CategoryItem {
   seasonTag?: string;
@@ -100,7 +101,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
             {cfg.heading || 'Categories'}
           </h2>
           {floatA && (
-            <motion.img
+            <MotionMedia
               src={floatA}
               alt=""
               aria-hidden="true"
@@ -113,7 +114,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
             />
           )}
           {floatB && (
-            <motion.img
+            <MotionMedia
               src={floatB}
               alt=""
               aria-hidden="true"
@@ -157,7 +158,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
                       className="overflow-hidden"
                     >
                       <div className="grid md:grid-cols-[1fr_2fr] gap-6 py-6 px-3">
-                        <img src={row.image} alt={row.title} loading="lazy" className="w-full aspect-[4/3] object-cover grayscale" />
+                        <Media src={row.image} alt={row.title} loading="lazy" className="w-full aspect-[4/3] object-cover grayscale" />
                         <div className="flex flex-col justify-between gap-6">
                           <p className="font-sans text-[15px] md:text-[17px] text-[#0F0F0F] max-w-[520px] leading-relaxed">
                             {row.subtitle || 'Pieces from the archive, cut to be worn for years.'}

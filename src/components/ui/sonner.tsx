@@ -38,16 +38,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme="light"
       className="toaster group !font-ui"
       toastOptions={{
-        duration: 4000,
+        duration: 6000,
         classNames: {
           toast:
-            "group toast !rounded-none !border !shadow-[0_4px_40px_rgba(0,0,0,0.12)] !px-5 !py-4 !gap-3 !font-ui !bg-white !text-black !border-black/10",
+            "group toast !rounded-none !border !shadow-[0_4px_40px_rgba(0,0,0,0.12)] !px-5 !py-4 !gap-3 !font-ui !bg-white !text-black !border-black/10 data-[type=error]:!bg-[#BB0006] data-[type=error]:!text-white data-[type=error]:!border-[#BB0006]",
           title:
-            "!text-[11px] !tracking-[0.18em] !uppercase !font-bold !font-ui text-inherit",
+            "!text-[12px] !tracking-[0.06em] !font-bold !font-ui !text-inherit !normal-case",
           description:
-            "!text-[10px] !tracking-[0.08em] !font-ui !mt-0.5 opacity-70 text-inherit",
-          error:
-            "!bg-black !text-white !border-black [&_[data-title]]:!text-white [&_[data-description]]:!text-white/70",
+            "!text-[12px] !font-ui !mt-1 opacity-90 !text-inherit",
           success:
             "!bg-white !text-black !border-l-4 !border-l-black !border-t-0 !border-r-0 !border-b-0 [&_[data-title]]:!text-black [&_[data-description]]:!text-black/60",
           warning:

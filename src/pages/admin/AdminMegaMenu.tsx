@@ -8,6 +8,7 @@ import { SearchSelect } from '@/components/admin/SearchSelect';
 import { PAGES } from '@/lib/links';
 import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { describeError } from '@/lib/errors';
 
 // Generated types predate mega menu v2 columns; query these tables untyped.
 const db = supabase as any;
@@ -66,7 +67,7 @@ export default function AdminMegaMenu() {
     if (overlayTimer.current) window.clearTimeout(overlayTimer.current);
     overlayTimer.current = window.setTimeout(async () => {
       const { error } = await supabase.from('settings').upsert({ key: 'menu_overlay', value: next as any }, { onConflict: 'key' });
-      if (error) toast.error(error.message); else toast.success('Menu extras saved');
+      if (error) toast.error(describeError(error)); else toast.success('Menu extras saved');
     }, 700);
   };
 
@@ -93,7 +94,7 @@ export default function AdminMegaMenu() {
   const tabLabel = (t: Tab) => (t.tab_type === 'category' ? catName(t.category_id) : t.custom_label || '');
   const run = async (p: PromiseLike<{ error: any }>, ok?: string) => {
     const { error } = await p;
-    if (error) { toast.error(error.message); await load(); return false; }
+    if (error) { toast.error(describeError(error)); await load(); return false; }
     if (ok) toast.success(ok);
     return true;
   };
@@ -117,7 +118,7 @@ export default function AdminMegaMenu() {
     const free = cats.find((c) => !used.has(c.id));
     if (!free) return toast.error('Every category already has a tab — add a page tab by changing an existing one, or create a category first');
     const { data, error } = await db.from('mega_menu_tabs').insert({ tab_type: 'category', category_id: free.id, position: tabs.length, is_active: false }).select().single();
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     setTabs((ts) => [...ts, data]); setManaging(data.id);
     toast.success(`Added “${free.name}” (hidden until you tick Shown)`);
   };
@@ -144,7 +145,7 @@ export default function AdminMegaMenu() {
     if (!tab || !addCat) return;
     const { data, error } = await db.from('mega_menu_links')
       .insert({ tab_id: tab.id, link_type: 'category', category_id: addCat, position: tabLinks.length, is_visible: true }).select().single();
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     setLinks((ls) => [...ls, data]); setAddCat('');
     toast.success('Link added');
   };
@@ -173,10 +174,10 @@ export default function AdminMegaMenu() {
     setProducts((prev) => ({ ...prev, ...Object.fromEntries((ps || []).map((p: any) => [p.id, p])) }));
     const rows = slugs.map((s, i) => ({ tab_id: tab.id, product_id: (bySlug.get(s) as any)?.id, position: i })).filter((r) => r.product_id);
     const { error: delErr } = await db.from('mega_menu_featured').delete().eq('tab_id', tab.id);
-    if (delErr) return toast.error(delErr.message);
+    if (delErr) return toast.error(describeError(delErr));
     if (rows.length) {
       const { error } = await db.from('mega_menu_featured').insert(rows);
-      if (error) { toast.error(error.message); return load(); }
+      if (error) { toast.error(describeError(error)); return load(); }
     }
     const { data: f } = await db.from('mega_menu_featured').select('*').order('position');
     setFeatured(f || []);

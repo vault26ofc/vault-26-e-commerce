@@ -5,8 +5,10 @@ import { inr, slugify } from '@/lib/format';
 import { toast } from 'sonner';
 import { Copy, Eye, EyeOff, Pencil, Plus, Trash2, Wand2, X } from 'lucide-react';
 import { MediaListField } from '@/components/admin/MediaField';
+import { isVideoUrl } from '@/lib/media';
 import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
 import { buildVariantMatrix, duplicateVariantKeys, type Colour, type EditorVariant } from '@/lib/variants';
+import { describeError } from '@/lib/errors';
 
 type ProductForm = {
   id?: string;
@@ -137,7 +139,7 @@ export default function AdminProducts() {
 
   const toggleActive = async (p: any) => {
     const { error } = await supabase.from('products').update({ is_active: !p.is_active }).eq('id', p.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success(p.is_active ? 'Hidden from the store' : 'Visible in the store');
     load();
   };
@@ -148,7 +150,7 @@ export default function AdminProducts() {
     }
     if (!confirm(`Permanently delete "${p.name}" and all its variants? Past orders keep their line items but lose the link to this product.`)) return;
     const { error } = await supabase.from('products').delete().eq('id', p.id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Deleted');
     load();
   };
@@ -345,8 +347,9 @@ export default function AdminProducts() {
               </Step>
 
               <Step n={2} title="Photos & videos">
-                <MediaListField label="Images (first one is the cover)" kind="image" folder="vault26/products" value={editing.images} onChange={(images) => setEditing({ ...editing, images })} />
-                <MediaListField label="Videos (shown in the product gallery)" kind="video" folder="vault26/products" value={editing.videos} onChange={(videos) => setEditing({ ...editing, videos })} />
+                <MediaListField label="Photos & videos (the first photo is the cover)" kind="any" folder="vault26/products"
+                  value={[...editing.images, ...editing.videos]}
+                  onChange={(all) => setEditing({ ...editing, images: all.filter((u) => !isVideoUrl(u)), videos: all.filter((u) => isVideoUrl(u)) })} />
               </Step>
 
               <Step n={3} title="Sizes, colours & variants">

@@ -8,6 +8,7 @@ import { inr } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
+import { Media } from '@/components/shared/Media';
 
 const BG = 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&q=85&w=2400';
 
@@ -26,7 +27,7 @@ export default function ProductMarqueeSection({ section }: { section?: CMSSectio
   return (
     <section className="relative bg-white">
       <div className="relative overflow-hidden h-[520px] md:h-[640px]">
-        <img
+        <Media
           src={cfg.image || BG}
           alt=""
           aria-hidden="true"

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import { MediaField } from '@/components/admin/MediaField';
+import { describeError } from '@/lib/errors';
 
 const FIELDS: { k: string; l: string; type?: string; full?: boolean }[] = [
   { k: 'company_name', l: 'Company name' },
@@ -51,7 +52,7 @@ export default function AdminInvoiceTemplate() {
     const { error } = await supabase
       .from('settings')
       .upsert({ key: 'invoice', value: tpl, updated_at: new Date().toISOString() });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Invoice template saved');
   };
 

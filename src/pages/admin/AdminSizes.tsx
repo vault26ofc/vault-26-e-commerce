@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { SearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 type Category = { id: string; name: string };
 type Size = { id: string; category_id: string; label: string; position: number };
@@ -55,14 +56,14 @@ export default function AdminSizes() {
     if (editing?.id) {
       const { error } = await supabase.from('sizes').update({ label }).eq('id', editing.id);
       setSaving(false);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(describeError(error));
     } else {
       const maxPos = sizes.reduce((m, s) => Math.max(m, s.position), -1);
       const { error } = await supabase
         .from('sizes')
         .insert({ category_id: activeCategoryId, label, position: maxPos + 1 });
       setSaving(false);
-      if (error) return toast.error(error.message);
+      if (error) return toast.error(describeError(error));
     }
     toast.success('Saved');
     setEditing(null);
@@ -76,7 +77,7 @@ export default function AdminSizes() {
     if (!fresh.length) return toast.info('Those sizes are already in this category');
     const start = sizes.reduce((m, s) => Math.max(m, s.position), -1) + 1;
     const { error } = await supabase.from('sizes').insert(fresh.map((label, i) => ({ category_id: activeCategoryId, label, position: start + i })));
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success(`Added ${fresh.join(', ')}`);
     setQuick('');
     loadSizes(activeCategoryId);
@@ -85,7 +86,7 @@ export default function AdminSizes() {
   const remove = async (id: string) => {
     if (!confirm('Delete this size?')) return;
     const { error } = await supabase.from('sizes').delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Deleted');
     loadSizes(activeCategoryId);
   };

@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Link2, Upload, X } from 'lucide-react';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import { isVideoUrl, moveItem } from '@/lib/media';
 import { cn } from '@/lib/utils';
+import { describeError } from '@/lib/errors';
 
 type Kind = 'image' | 'video' | 'any';
 type MediaType = 'image' | 'video';
@@ -41,7 +42,7 @@ function useMediaUpload(folder: string) {
       const { secureUrl } = await upload(file, { folder, resourceType: file.type.startsWith('video/') ? 'video' : 'image' });
       return secureUrl;
     } catch (e: any) {
-      toast.error(e?.message || 'Upload failed');
+      toast.error(describeError(e) || 'Upload failed');
       return null;
     } finally {
       setBusy(false);

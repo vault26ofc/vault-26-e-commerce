@@ -6,6 +6,7 @@ import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import { MediaField } from '@/components/admin/MediaField';
 import { ProductPicker } from '@/components/admin/Pickers';
 import { isVideoUrl } from '@/lib/media';
+import { describeError } from '@/lib/errors';
 
 type Slide = {
   id: string;
@@ -50,7 +51,7 @@ export default function AdminLookbook() {
       ? await supabase.from('lookbook_slides' as any).update(payload).eq('id', editing.id)
       : await supabase.from('lookbook_slides' as any).insert({ ...payload, position: slides.length });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Saved');
     setEditing(null);
     load();
@@ -59,7 +60,7 @@ export default function AdminLookbook() {
   const remove = async (id: string) => {
     if (!confirm('Delete this slide?')) return;
     const { error } = await supabase.from('lookbook_slides' as any).delete().eq('id', id);
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(describeError(error));
     toast.success('Deleted');
     load();
   };
@@ -82,7 +83,7 @@ export default function AdminLookbook() {
       const { secureUrl } = await upload(file, { resourceType: mediaType, folder: 'vault26/lookbook' });
       setEditing((prev) => ({ ...prev, image_url: secureUrl, media_type: mediaType }));
     } catch (e: any) {
-      toast.error(e.message || 'Upload failed');
+      toast.error(describeError(e) || 'Upload failed');
     }
   };
 

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { CMSSection, EditorialSplitConfig } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
+import { Media } from '@/components/shared/Media';
 
 export default function EditorialSplitSection({ section }: { section: CMSSection }) {
   const cfg = section.config as EditorialSplitConfig;
@@ -8,7 +9,7 @@ export default function EditorialSplitSection({ section }: { section: CMSSection
   return (
     <section className="relative w-full h-[85vh] md:h-screen lg:h-screen overflow-hidden bg-black text-white font-ui">
       {/* Full Width Architectural Lifestyle Backdrop Matching Chienne Reference */}
-      <img
+      <Media
         src={cfg.image || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=90&w=1920'}
         alt="VAULT 26 Editorial Narrative"
         className="w-full h-full object-cover brightness-75 scale-105"

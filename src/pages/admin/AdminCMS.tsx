@@ -16,7 +16,7 @@ import { SECTION_FIELDS, SECTION_META } from '@/cms/registry';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import { MediaField } from '@/components/admin/MediaField';
 import { CategorySelect, LinkPicker, ProductPicker } from '@/components/admin/Pickers';
-import { moveItem } from '@/lib/media';
+import { isVideoUrl, moveItem } from '@/lib/media';
 import type {
   CMSSection, SectionType, Testimonial, FAQItem,
   AnnouncementBar, BrandSettings, ThemeSettings, SEOSettings,
@@ -24,6 +24,7 @@ import type {
 } from '@/cms/types';
 import { DEFAULT_HOME_SECTIONS } from '@/cms/hooks/useCMSPage';
 import { SearchSelect } from '@/components/admin/SearchSelect';
+import { describeError } from '@/lib/errors';
 
 // ─── Field Editor ────────────────────────────────────────────────────────────
 
@@ -265,7 +266,7 @@ export default function AdminCMS() {
       .from('website_sections')
       .update({ config, updated_at: new Date().toISOString() })
       .eq('id', section.id);
-    if (error) { toast.error('Save failed'); return; }
+    if (error) { toast.error('Save failed: ' + describeError(error)); return; }
     if (labelDraft.trim() && labelDraft.trim() !== section.label) {
       await supabase.from('website_sections').update({ label: labelDraft.trim() }).eq('id', section.id);
     }
@@ -340,7 +341,7 @@ export default function AdminCMS() {
       });
       const results = await Promise.all(writes);
       const failed = results.find((r) => r.error);
-      if (failed?.error) toast.error('Failed to reset layout: ' + failed.error.message);
+      if (failed?.error) toast.error('Failed to reset layout: ' + describeError(failed.error));
       else toast.success('Home page order restored — your content was kept');
       await loadSections();
     } catch (e: any) {
@@ -414,7 +415,7 @@ export default function AdminCMS() {
       setMedia((data as unknown as MediaAsset[]) ?? []);
       toast.success('Image uploaded');
     } catch (e: any) {
-      toast.error(e.message || 'Upload failed');
+      toast.error(describeError(e) || 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -690,17 +691,18 @@ export default function AdminCMS() {
         <TabsContent value="preloader" className="space-y-6 max-w-2xl">
           <div>
             <label className="block text-xs uppercase tracking-widest text-muted-foreground mb-1.5">Background type</label>
-            <SearchSelect value={preloader.bg_type || 'color'} onChange={(v) => setPreloader({ ...preloader, bg_type: v })}
-              options={[{ value: 'color', label: 'Solid color' }, { value: 'image', label: 'Image' }, { value: 'video', label: 'Video' }]} />
+            <SearchSelect value={preloader.bg_type === 'color' || !preloader.bg_type ? 'color' : 'media'}
+              onChange={(v) => setPreloader({ ...preloader, bg_type: v === 'color' ? 'color' : preloader.bg_video_url ? 'video' : 'image' })}
+              options={[{ value: 'color', label: 'Solid color' }, { value: 'media', label: 'Photo or video' }]} />
           </div>
-          {preloader.bg_type === 'image' && (
+          {preloader.bg_type && preloader.bg_type !== 'color' && (
             <div>
-              <MediaField label="Background image" kind="image" value={preloader.bg_image_url} onChange={(v) => setPreloader({ ...preloader, bg_image_url: v })} />
-            </div>
-          )}
-          {preloader.bg_type === 'video' && (
-            <div>
-              <MediaField label="Background video" kind="video" value={preloader.bg_video_url} onChange={(v) => setPreloader({ ...preloader, bg_video_url: v })} />
+              {/* One box: the type (image/video) follows whatever the admin picks. */}
+              <MediaField label="Background photo or video" kind="any"
+                value={preloader.bg_type === 'video' ? preloader.bg_video_url : preloader.bg_image_url}
+                onChange={(v) => setPreloader(isVideoUrl(v)
+                  ? { ...preloader, bg_type: 'video', bg_video_url: v }
+                  : { ...preloader, bg_type: 'image', bg_image_url: v })} />
             </div>
           )}
           <div>

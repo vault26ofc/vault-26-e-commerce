@@ -79,14 +79,14 @@ const PRODUCTS = (max?: number): FieldDef[] => [
     hint: max ? `Up to ${max}. Search, click to add, arrows to reorder.` : 'Search, click to add, arrows to reorder.' },
 ];
 const LINK = (key: string, label: string): FieldDef => ({ key, label, type: 'link', hint: 'Pick a product, a category or a page.' });
-const MEDIA = (key: string, label: string, kind: FieldDef['kind'] = 'image'): FieldDef => ({ key, label, type: 'media', kind });
+const MEDIA = (key: string, label: string, kind: FieldDef['kind'] = 'any'): FieldDef => ({ key, label, type: 'media', kind });
 const TEXT = (key: string, label: string, placeholder?: string): FieldDef => ({ key, label, type: 'text', placeholder });
 const AREA = (key: string, label: string, placeholder?: string): FieldDef => ({ key, label, type: 'textarea', placeholder });
 
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   hero: [
     TEXT('top_line', 'Small title', 'Online Store'), TEXT('title', 'Big title', 'Vault 26'),
-    MEDIA('photo', 'Photo or video', 'any'), MEDIA('paper', 'Paper background texture'),
+    MEDIA('photo', 'Photo or video', 'any'), MEDIA('paper', 'Paper background texture', 'image'),
     { key: 'labels', label: 'Stepped labels (up to 5, top to bottom)', type: 'list', itemLabel: 'Label',
       itemFields: [{ key: 'text', label: 'Text', type: 'text', placeholder: 'SEPTEMBER 2026' }] },
     TEXT('cta_label', 'Bottom link text', 'Shop Collection 2026'), LINK('cta_link', 'Bottom link goes to'),
@@ -96,7 +96,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { key: 'categories', label: 'Category chips', type: 'list', itemLabel: 'Chip', itemFields: [
       { key: 'category', label: 'Category', type: 'category' },
       { key: 'title', label: 'Text (empty = category name)', type: 'text' },
-      { key: 'image', label: 'Small image', type: 'media', kind: 'image' },
+      { key: 'image', label: 'Photo or video', type: 'media', kind: 'any' },
     ] },
   ],
   best_sellers: [
@@ -145,7 +145,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { key: 'items', label: 'Categories to list (empty = all categories automatically)', type: 'list', itemLabel: 'Category', itemFields: [
       { key: 'category', label: 'Category', type: 'category' },
       { key: 'subtitle', label: 'Description', type: 'text' },
-      { key: 'image', label: 'Image', type: 'media', kind: 'image' },
+      { key: 'image', label: 'Photo or video', type: 'media', kind: 'any' },
     ] },
     { key: 'limit', label: 'How many in automatic mode', type: 'number' },
     TEXT('button_label', 'Button word', 'Shop'),
@@ -200,13 +200,13 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     ...PRODUCTS(4),
   ],
   product_marquee: [
-    TEXT('title', 'Tag text', 'Picked for you'), MEDIA('image', 'Background photo'),
+    TEXT('title', 'Tag text', 'Picked for you'), MEDIA('image', 'Background photo or video'),
     TEXT('see_all_label', 'Link text', 'Shop all'), LINK('see_all_link', 'Link goes to'),
     ...PRODUCTS(),
   ],
   drop_countdown: [
     TEXT('eyebrow', 'Small label', 'Look 07 · Archive 01'), TEXT('title', 'Heading', 'Shop the look'),
-    MEDIA('image', 'Look photo'),
+    MEDIA('image', 'Look photo or video'),
     TEXT('cta_label', 'Button text', 'Full look'), LINK('cta_link', 'Button goes to'),
     TEXT('button_label', 'Product button text', 'Choose size'),
     ...PRODUCTS(4),
@@ -220,7 +220,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     ...PRODUCTS(8),
   ],
   standing_look: [
-    MEDIA('image', 'Model photo'), TEXT('title', 'Column heading', 'Complete the look'),
+    MEDIA('image', 'Model photo or video'), TEXT('title', 'Column heading', 'Complete the look'),
     TEXT('see_all_label', 'Link text', 'All'), LINK('see_all_link', 'Link goes to'),
     AREA('headline_lines', 'Big headline (one line per row)', 'Built / to be'),
     TEXT('headline_highlight', 'Highlighted last line', 'lived in'),
@@ -228,7 +228,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     ...PRODUCTS(10),
   ],
   phone_showcase: [
-    MEDIA('image', 'Model photo'), TEXT('brand', 'Brand name on the phones', 'Vault 26'),
+    MEDIA('image', 'Model photo or video'), TEXT('brand', 'Brand name on the phones', 'Vault 26'),
     TEXT('screen_title', 'Phone screen title', 'Shop all'),
     TEXT('chips', 'Filter chips (comma separated)', 'All pieces, New, Bestsellers, Only here, Pre-order, Sale'),
     TEXT('email', 'Email shown', 'hello@vault26.co.in'), TEXT('phone', 'Phone shown', '+91 99999 99999'),
@@ -238,11 +238,11 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   ],
   polka_bento: [
     TEXT('title', 'Tag text', 'The season board'), TEXT('see_all_label', 'Link text', 'Shop everything'), LINK('see_all_link', 'Link goes to'),
-    MEDIA('campaign_image', 'Campaign tile photo'), TEXT('campaign_title', 'Campaign title', 'Autumn / Winter'),
+    MEDIA('campaign_image', 'Campaign tile photo or video'), TEXT('campaign_title', 'Campaign title', 'Autumn / Winter'),
     TEXT('campaign_cta', 'Campaign link text', 'Shop the campaign'), LINK('campaign_link', 'Campaign tile goes to'),
     TEXT('offer_eyebrow', 'Red tile label', 'Members'), TEXT('offer_text', 'Red tile text', '−15% on first order'), LINK('offer_link', 'Red tile goes to'),
     TEXT('stat_eyebrow', 'Black tile label', 'Since 2026'), TEXT('stat_value', 'Black tile number', '650+'), TEXT('stat_text', 'Black tile text', 'pieces made to outlive the season'),
-    MEDIA('lookbook_image', 'Wide tile photo'), TEXT('lookbook_cta', 'Wide tile button', 'Open the lookbook'), LINK('lookbook_link', 'Wide tile goes to'),
+    MEDIA('lookbook_image', 'Wide tile photo or video'), TEXT('lookbook_cta', 'Wide tile button', 'Open the lookbook'), LINK('lookbook_link', 'Wide tile goes to'),
     MEDIA('tile_image', 'Small photo tile'), TEXT('tile_label', 'Small photo tile label', 'Outerwear'), LINK('tile_link', 'Small photo tile goes to'),
     TEXT('service_title', 'Outline tile title', 'Delivered in 3–5 days'), TEXT('service_text', 'Outline tile text', 'Free shipping over ₹999 · 7-day returns · COD available'),
     ...PRODUCTS(3),
