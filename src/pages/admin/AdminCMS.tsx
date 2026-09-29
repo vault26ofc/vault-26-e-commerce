@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SECTION_FIELDS, SECTION_META } from '@/cms/registry';
 import { useCloudinaryUpload } from '@/lib/useCloudinaryUpload';
 import { MediaField } from '@/components/admin/MediaField';
@@ -292,11 +293,29 @@ export default function AdminCMS() {
     loadSections();
   };
 
-  const deleteSection = async (section: CMSSection) => {
+  // Deleting a section is two steps: confirm, then type the section's name (GitHub-style).
+  const [deleteTarget, setDeleteTarget] = useState<CMSSection | null>(null);
+  const [deleteStep, setDeleteStep] = useState<1 | 2>(1);
+  const [deleteTyped, setDeleteTyped] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const sectionName = (s: CMSSection) => (s.label || SECTION_META[s.section_type]?.label || s.section_type).trim();
+
+  const deleteSection = (section: CMSSection) => {
     if (section.is_locked) { toast.error('This section is locked'); return; }
-    if (!confirm(`Delete "${section.label || section.section_type}"?`)) return;
-    await supabase.from('website_sections').delete().eq('id', section.id);
+    setDeleteTarget(section);
+    setDeleteStep(1);
+    setDeleteTyped('');
+  };
+
+  const confirmDeleteSection = async () => {
+    if (!deleteTarget || deleteTyped.trim() !== sectionName(deleteTarget)) return;
+    setDeleting(true);
+    const { error } = await supabase.from('website_sections').delete().eq('id', deleteTarget.id);
+    setDeleting(false);
+    if (error) { toast.error(`Could not delete the section: ${describeError(error)}`); return; }
     toast.success('Section deleted');
+    if (editingId === deleteTarget.id) setEditingId(null);
+    setDeleteTarget(null);
     loadSections();
   };
 
@@ -538,7 +557,7 @@ export default function AdminCMS() {
                     </div>
                     <label className="flex items-center gap-2 text-sm"><Switch checked={s.is_visible} onCheckedChange={() => toggleVisible(s)} /> Shown on site</label>
                     <Button variant="outline" size="sm" asChild>
-                      <a href={pageSlug === 'home' ? '/' : `/${pageSlug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> View on site</a>
+                      <a href={pageSlug === 'home' ? `/#section-${s.id}` : `/${pageSlug}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 mr-1.5" /> View on site</a>
                     </Button>
                     {!s.is_locked && (
                       <button title="Delete section" onClick={() => deleteSection(s)} className="p-2 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button>
@@ -846,6 +865,43 @@ export default function AdminCMS() {
           )}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open && !deleting) setDeleteTarget(null); }}>
+        <DialogContent>
+          {deleteTarget && (deleteStep === 1 ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Delete "{sectionName(deleteTarget)}"?</DialogTitle>
+                <DialogDescription>
+                  The section and everything in it (text, images, videos, products) will be removed from the site.
+                  This cannot be undone. To just take it off the site for now, turn off "Shown on site" instead.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+                <Button variant="destructive" onClick={() => setDeleteStep(2)}>Yes, continue</Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <form onSubmit={(e) => { e.preventDefault(); confirmDeleteSection(); }}>
+              <DialogHeader>
+                <DialogTitle>Confirm deletion</DialogTitle>
+                <DialogDescription>
+                  Type <span className="font-semibold text-foreground select-all">{sectionName(deleteTarget)}</span> to delete this section.
+                </DialogDescription>
+              </DialogHeader>
+              <Input autoFocus value={deleteTyped} onChange={(e) => setDeleteTyped(e.target.value)}
+                placeholder={sectionName(deleteTarget)} className="my-4" autoComplete="off" spellCheck={false} />
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)} disabled={deleting}>Cancel</Button>
+                <Button type="submit" variant="destructive" disabled={deleting || deleteTyped.trim() !== sectionName(deleteTarget)}>
+                  {deleting ? 'Deleting…' : 'Delete this section'}
+                </Button>
+              </DialogFooter>
+            </form>
+          ))}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
