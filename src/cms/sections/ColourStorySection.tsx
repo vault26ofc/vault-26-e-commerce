@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, motion, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { X } from 'lucide-react';
 import type { CMSSection } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
@@ -16,8 +16,8 @@ const SWATCHES = [
 // Scroll windows (0–1 of the pinned run) for each beat of the reveal.
 const BAR_START = 0.04;
 const BAR_STEP = 0.09;
-const PANEL = [0.5, 0.68] as const;
-const TITLE = [0.62, 0.9] as const;
+const PANEL = [0.45, 0.6] as const;
+const TITLE = [0.55, 0.78] as const;
 
 type Swatch = { name: string; hex: string; q: string; ink: string };
 
@@ -73,8 +73,11 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const panelX = useTransform(scrollYProgress, [PANEL[0], PANEL[1]], ['100%', '0%']);
-  const metaOpacity = useTransform(scrollYProgress, [TITLE[0], TITLE[0] + 0.08], [0, 1]);
-  const ctaY = useTransform(scrollYProgress, [TITLE[1] - 0.08, TITLE[1]], [30, 0]);
+  // Labels and button fade in once the title starts. Driven from React state, not a scroll-linked
+  // opacity: framer-motion hands those to the browser's ScrollTimeline, which left them stuck at 0.
+  const [revealed, setRevealed] = useState(false);
+  useMotionValueEvent(scrollYProgress, 'change', (v) => setRevealed(v >= TITLE[0]));
+  const fade = { initial: false, animate: { opacity: revealed ? 1 : 0 }, transition: { duration: 0.4 } } as const;
   const [open, setOpen] = useState<number | null>(null);
   const sw = open !== null ? swatches[open] : null;
 
@@ -86,9 +89,9 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
         ))}
         <div className="relative flex-1 overflow-hidden">
           <motion.div style={{ x: panelX }} className="absolute inset-0 bg-[#0F0F0F] text-white p-5 md:p-10 flex flex-col justify-between will-change-transform">
-            <motion.p style={{ opacity: metaOpacity }} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">{cfg.eyebrow || 'Shop by colour'}</motion.p>
+            <motion.p {...fade} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">{cfg.eyebrow || 'Shop by colour'}</motion.p>
             <div>
-              <motion.p style={{ opacity: metaOpacity }} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">{cfg.meta || 'Lato · body'}</motion.p>
+              <motion.p {...fade} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">{cfg.meta || 'Lato · body'}</motion.p>
               <h2 className="font-display font-[800] uppercase leading-[0.85] text-[clamp(44px,9vw,140px)]" aria-label={title}>
                 {title.split(' ').map((word, w, arr) => {
                   const before = arr.slice(0, w).join(' ').length + (w ? 1 : 0);
@@ -101,7 +104,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
                   );
                 })}
               </h2>
-              <motion.div style={{ opacity: metaOpacity, y: ctaY }}>
+              <motion.div initial={false} animate={{ opacity: revealed ? 1 : 0, y: revealed ? 0 : 30 }} transition={{ duration: 0.5 }}>
                 <Link to={resolveHref(cfg.cta_link, '/shop')} className="inline-flex mt-6 h-11 md:h-12 px-7 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
                   {cfg.cta_label || 'Explore the palette'}
                 </Link>
