@@ -12,7 +12,6 @@ import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
 import { Media } from '@/components/shared/Media';
 
 const MODEL = 'https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&q=85&w=1400';
-const CHIPS = ['All pieces', 'New', 'Bestsellers', 'Only here', 'Pre-order', 'Sale'];
 
 /* A phone frame whose screen content scrolls with the page. */
 function Phone({
@@ -79,8 +78,8 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
     image?: string; brand?: string; screen_title?: string; chips?: string; cta_label?: string; cta_link?: LinkValue;
     email?: string; phone?: string; hours?: string;
   };
-  const brand = cfg.brand || 'Vault 26';
-  const chips = cfg.chips ? cfg.chips.split(',').map((c) => c.trim()).filter(Boolean) : CHIPS;
+  const brand = cfg.brand;
+  const chips = (cfg.chips || '').split(',').map((c) => c.trim()).filter(Boolean);
   const products = useShopProducts(12, cfg);
   const list = [...products, ...products, ...products].slice(0, 14);
   const ref = useRef<HTMLElement>(null);
@@ -97,7 +96,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
       />
       {/* Full-length figure — twice the viewport tall, scrolls past the pinned phones */}
       <Media
-        src={cfg.image || MODEL}
+        src={cfg.image}
         alt="Full-length look from the VAULT 26 archive"
         loading="lazy"
         className="absolute right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 top-[40vh] h-[230vh] w-[56vw] md:w-[30vw] object-cover object-[50%_20%] grayscale contrast-[1.1] pointer-events-none [mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent),linear-gradient(to_bottom,black_88%,transparent)] [mask-composite:intersect]"
@@ -110,7 +109,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
             <PhoneBar brand={brand} />
             <div className="px-3 pt-2 font-sans">
               <p className="flex items-center gap-1 text-[10px] uppercase text-[#0F0F0F]/60"><ChevronLeft className="w-3 h-3" />Home</p>
-              <p className="font-display font-[800] uppercase text-[#0F0F0F] text-[34px] leading-[0.85] mt-1">{cfg.screen_title || 'Shop all'}</p>
+              <p className="font-display font-[800] uppercase text-[#0F0F0F] text-[34px] leading-[0.85] mt-1">{cfg.screen_title}</p>
               <div className="grid grid-cols-3 gap-1 mt-2">
                 {chips.map((c, i) => (
                   <span key={c} className={`h-6 flex items-center justify-center text-[9px] border ${i === 0 ? 'bg-[#BB0006] border-[#BB0006] text-white' : 'border-[#0F0F0F] text-[#0F0F0F]'}`}>{c}</span>
@@ -156,9 +155,9 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
                   {h} <ChevronDown className="w-3 h-3" />
                 </p>
               ))}
-              <p className="text-[12px] underline mt-4">{cfg.email || 'hello@vault26.co.in'}</p>
-              <p className="text-[10px] mt-1">{cfg.phone || '+91 99999 99999'}</p>
-              <p className="text-[10px]">{cfg.hours || 'Made in India · Mon–Sun 11–20'}</p>
+              <p className="text-[12px] underline mt-4">{cfg.email}</p>
+              <p className="text-[10px] mt-1">{cfg.phone}</p>
+              <p className="text-[10px]">{cfg.hours}</p>
               <p className="font-display font-[800] uppercase text-[46px] leading-[0.85] mt-4">{brand}</p>
               <p className="text-[8px] uppercase mt-3 leading-relaxed">© {brand}<br />Privacy policy<br />Terms of service</p>
             </div>
@@ -168,7 +167,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
             to={resolveHref(cfg.cta_link, '/shop')}
             className="absolute left-[4%] md:left-auto md:right-[4%] bottom-[5%] z-10 h-12 px-8 bg-white text-[#BB0006] font-sans text-[15px] flex items-center hover:bg-[#F1F1F1] transition-colors"
           >
-            {cfg.cta_label || 'Shop on any screen'}
+            {cfg.cta_label}
           </Link>
         </div>
       </div>

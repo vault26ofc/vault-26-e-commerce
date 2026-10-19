@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion';
-import { ArrowUpRight, ChevronLeft, ChevronRight, ShoppingBasket } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Instagram, ShoppingBasket } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { CMSSection } from '../types';
 import { useShopProducts } from '@/components/polka/useShopProducts';
@@ -19,15 +19,6 @@ type Pick = {
   thumbnail_type: 'image' | 'video';
   quote: string | null;
 };
-
-const SLIDE = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=800`;
-// Extra frames so the phone always has a reel to cycle through.
-const REEL_FILL = [
-  SLIDE('photo-1529139574466-a303027c1d8b'),
-  SLIDE('photo-1488161628813-04466f872be2'),
-  SLIDE('photo-1503342217505-b0a15ec3261c'),
-  SLIDE('photo-1520975954732-35dd22299614'),
-];
 
 /** Auto-advancing photo slider inside the phone: slides in from the right, dots at the top. */
 function PhoneSlider({ pick, frames }: { pick: Pick; frames: string[] }) {
@@ -88,8 +79,8 @@ function Media({ pick }: { pick: Pick }) {
 export default function InfluencerPicksSection({ section }: { section?: CMSSection }) {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [active, setActive] = useState(0);
-  const heading = section?.config?.heading || 'STYLED BY';
-  const subtitle = section?.config?.subtitle || 'INFLUENCER PICKS';
+  const heading = section?.config?.heading;
+  const subtitle = section?.config?.subtitle;
   const products = useShopProducts(12);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
@@ -142,7 +133,7 @@ export default function InfluencerPicksSection({ section }: { section?: CMSSecti
               transition={{ duration: 0.35 }}
               className="font-sans text-[#0F0F0F] text-[17px] md:text-[19px] leading-relaxed mt-5"
             >
-              “{pick.quote || 'Pieces I actually live in — cut well, built to last.'}”
+              {pick.quote && `“${pick.quote}”`}
               <footer className="mt-4 font-sans text-[14px]">
                 <span className="font-bold">{pick.name}</span>
                 {pick.handle && <span className="text-[#BB0006]"> · {pick.handle}</span>}
@@ -157,8 +148,8 @@ export default function InfluencerPicksSection({ section }: { section?: CMSSecti
               </div>
             ) : <span />}
             {pick.link_url && (
-              <a href={pick.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-sans uppercase text-[13px] text-[#BB0006] underline underline-offset-4">
-                Watch <ArrowUpRight className="w-4 h-4" />
+              <a href={pick.link_url} target="_blank" rel="noopener noreferrer" aria-label={`Watch ${pick.name} on Instagram`} className="inline-flex items-center gap-1.5 font-sans uppercase text-[13px] text-[#BB0006] underline underline-offset-4">
+                <Instagram className="w-4 h-4" /> Watch
               </a>
             )}
           </div>
@@ -168,7 +159,7 @@ export default function InfluencerPicksSection({ section }: { section?: CMSSecti
         <div className="mx-auto w-[260px] md:w-[300px] bg-[#0F0F0F] p-[9px] rounded-[40px] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
           <div className="relative aspect-[9/19] rounded-[32px] overflow-hidden bg-[#1A1A1A]">
             <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[34%] h-[22px] bg-[#0F0F0F] rounded-full z-20" />
-            <PhoneSlider pick={pick} frames={[pick.thumbnail_url || '', ...edit.map((p) => p.images[0]), ...REEL_FILL].slice(0, 6)} />
+            <PhoneSlider pick={pick} frames={[pick.thumbnail_url || '', ...edit.map((p) => p.images[0])].filter((f, i) => i === 0 || f).slice(0, 6)} />
             <div className="absolute left-3 right-3 bottom-4 z-10 bg-[#BB0006] text-white px-3 py-2 font-sans text-[13px]">
               {pick.handle || pick.name} is wearing {edit.length} pieces
             </div>

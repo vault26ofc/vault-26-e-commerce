@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { inr, fmtDate, istDay } from '@/lib/format';
+import { fetchAllRows } from '@/lib/fetchAll';
 import {
   ResponsiveContainer,
   BarChart, Bar,
@@ -45,15 +46,15 @@ export default function Dashboard() {
       since.setDate(since.getDate() - period);
 
       const [
-        { data: orders },
+        orders,
         { data: cats },
         { count: custCount },
-        { data: lowStockVars },
+        { count: lowStockCount },
       ] = await Promise.all([
-        supabase.from('orders').select('*').gte('created_at', since.toISOString()).order('created_at', { ascending: false }),
+        fetchAllRows<any>(() => supabase.from('orders').select('*').gte('created_at', since.toISOString()).order('created_at', { ascending: false }).order('id')).catch(() => []),
         supabase.from('categories').select('name, products(id)'),
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('product_variants').select('id').lt('stock', 5),
+        supabase.from('product_variants').select('id', { count: 'exact', head: true }).lt('stock', 5),
       ]);
 
       const all = orders || [];
@@ -67,19 +68,18 @@ export default function Dashboard() {
       setStats({
         revenue, orders: all.length, pending, cancelled, delivered, aov,
         customers: custCount || 0,
-        lowStock: lowStockVars?.length || 0,
+        lowStock: lowStockCount || 0,
       });
       setRecent(all.slice(0, 8));
 
       // ── Daily trend
       const buckets: Record<string, { orders: number; revenue: number }> = {};
       for (let i = period - 1; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        buckets[d.toISOString().slice(5, 10)] = { orders: 0, revenue: 0 };
+        // Days are IST calendar days.
+        buckets[istDay(Date.now() - i * 86_400_000).slice(5, 10)] = { orders: 0, revenue: 0 };
       }
       all.forEach(o => {
-        const k = new Date(o.created_at).toISOString().slice(5, 10);
+        const k = istDay(o.created_at).slice(5, 10);
         if (k in buckets) {
           buckets[k].orders += 1;
           if (o.payment_status === 'PAID' || o.payment_method === 'COD') {
@@ -444,7 +444,7 @@ export default function Dashboard() {
                       {o.status}
                     </span>
                   </td>
-                  <td className="p-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                  <td className="p-3 text-muted-foreground">{fmtDate(o.created_at)}</td>
                 </tr>
               ))}
               {!recent.length && (

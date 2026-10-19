@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { inr, fmtDate, istDay } from '@/lib/format';
 import { paymentLabel, readFunctionError } from '@/lib/payment';
 import { toast } from 'sonner';
 import { downloadCsv } from '@/lib/exportCsv';
 import { Download } from 'lucide-react';
 import { SearchSelect } from '@/components/admin/SearchSelect';
 import { describeError } from '@/lib/errors';
+import { fetchAllRows } from '@/lib/fetchAll';
 
 const STATUSES = ['PENDING','PACKED','SHIPPED','DELIVERED','CANCELLED'] as const;
 
@@ -43,7 +44,8 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [filter, setFilter] = useState<string>('ALL');
   const [retrying, setRetrying] = useState<string | null>(null);
-  const load = () => supabase.from('orders').select('*').order('created_at', { ascending: false }).then(({ data }) => setOrders(data || []));
+  const load = () => fetchAllRows<any>(() => supabase.from('orders').select('*').order('created_at', { ascending: false }).order('id'))
+    .then(setOrders).catch((e) => toast.error(describeError(e)));
 
   useEffect(() => {
     load();
@@ -86,7 +88,7 @@ export default function AdminOrders() {
 
   const exportRows = () => {
     if (!filtered.length) return toast.error('Nothing to export');
-    downloadCsv(`orders-${new Date().toISOString().slice(0,10)}.csv`,
+    downloadCsv(`orders-${istDay()}.csv`,
       filtered.map((o) => ({ order_number: o.order_number, email: o.email, status: o.status, payment_method: o.payment_method, payment_status: o.payment_status, subtotal: o.subtotal, shipping: o.shipping, total: o.total, awb: o.awb_number, courier: o.courier_name, created_at: o.created_at })));
   };
 
@@ -121,7 +123,7 @@ export default function AdminOrders() {
                   )}
                 </td>
                 <td className="p-3"><ShippingCell o={o} retrying={retrying === o.id} onRetry={() => retry(o)} /></td>
-                <td className="p-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+                <td className="p-3 text-muted-foreground">{fmtDate(o.created_at)}</td>
                 <td className="p-3"><Link to={`/invoice/${o.id}`} target="_blank" className="text-xs underline">Open</Link></td>
               </tr>
             ))}

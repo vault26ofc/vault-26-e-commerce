@@ -4,10 +4,6 @@ import { isVideoUrl } from '@/lib/media';
 
 type Store = { label?: string; city?: string; address?: string; phone?: string; map_url?: string; button_label?: string };
 
-const DEFAULT_STORES: Store[] = [
-  { label: 'FLAGSHIP', city: 'AMSTERDAM', address: 'Leidsestraat 27\n1017 NT Amsterdam', phone: '+31 6 19 30 31 67', map_url: 'https://maps.google.com' },
-  { label: 'FLAGSHIP', city: 'LONDON', address: '4-16 Great Pulteney\nLondon W1F 9ND', phone: '+44 7472 304020', map_url: 'https://maps.google.com' },
-];
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=95&w=1600';
 
 function StoreColumn({ store, align, delay }: { store: Store; align: 'left' | 'right'; delay: number }) {
@@ -43,8 +39,9 @@ function StoreColumn({ store, align, delay }: { store: Store; align: 'left' | 'r
 
 export default function FlagshipStoresSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as { stores?: Store[]; image?: string };
-  const stores = cfg.stores?.some((s) => s.city) ? cfg.stores.filter((s) => s.city) : DEFAULT_STORES;
-  const image = cfg.image || DEFAULT_IMAGE;
+  const stores = (cfg.stores || []).filter((s) => s.city);
+  if (!stores.length) return null;
+  const image = cfg.image;
   const [left, right] = stores;
   return (
     <section className="w-full bg-white text-black py-16 md:py-24 relative overflow-hidden select-none border-t border-black/10">

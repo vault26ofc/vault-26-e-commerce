@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '@/lib/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { inr, fmtDate, fmtTime } from '@/lib/format';
 import { paymentLabel, readFunctionError } from '@/lib/payment';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Package, ArrowRight, Truck, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { fetchAllRows } from '@/lib/fetchAll';
 
 const STATUS_LABELS = ['PENDING', 'PACKED', 'SHIPPED', 'DELIVERED'];
 
@@ -20,7 +21,7 @@ export function OrdersList() {
     if (!user) { setLoading(false); return; }
     (async () => {
       setLoading(true);
-      const { data } = await supabase.from('orders').select('*, order_items(image, product_name, quantity)').eq('user_id', user.id).order('created_at', { ascending: false });
+      const data = await fetchAllRows<any>(() => supabase.from('orders').select('*, order_items(image, product_name, quantity)').eq('user_id', user.id).order('created_at', { ascending: false }).order('id')).catch(() => []);
       setOrders(data || []);
       setLoading(false);
     })();
@@ -65,7 +66,7 @@ export function OrdersList() {
                     <div className="flex-1">
                       <div className="text-[12px] font-ui font-bold tracking-[0.04em] uppercase mb-2 group-hover:text-accent transition-colors">#{o.order_number}</div>
                       <div className="text-[10px] text-black/60 tracking-[0.1em] font-ui uppercase">
-                        LOGGED {new Date(o.created_at).toLocaleDateString()} // {o.order_items.length} PIECES
+                        LOGGED {fmtDate(o.created_at)} // {o.order_items.length} PIECES
                       </div>
                     </div>
                     <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end">
@@ -154,7 +155,7 @@ export function OrderDetail() {
         <header className="mb-16 border-b border-black/10 pb-12">
           <span className="eyebrow block mb-4">Transaction Details // #{o.order_number}</span>
           <h1 className="uppercase display-2 font-elegant ">Archive <span className="text-accent">Record</span></h1>
-          <p className="text-[10px] tracking-[0.04em] text-black/60 font-ui mt-6 uppercase">PLOTTED ON {new Date(o.created_at).toLocaleDateString()} AT {new Date(o.created_at).toLocaleTimeString()}</p>
+          <p className="text-[10px] tracking-[0.04em] text-black/60 font-ui mt-6 uppercase">PLOTTED ON {fmtDate(o.created_at)} AT {fmtTime(o.created_at)} IST</p>
         </header>
 
         {/* Timeline */}

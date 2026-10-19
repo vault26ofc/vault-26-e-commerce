@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { inr, fmtDate } from '@/lib/format';
 import { readFunctionError } from '@/lib/payment';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { describeError } from '@/lib/errors';
+import { fetchAllRows } from '@/lib/fetchAll';
 
 // Generated DB types predate the return columns; query orders untyped here.
 const db = supabase as any;
@@ -25,10 +26,10 @@ export default function AdminReturns() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const load = () =>
-    db.from('orders').select('*, order_items(product_name, variant_label, quantity)')
+    fetchAllRows<any>(() => db.from('orders').select('*, order_items(product_name, variant_label, quantity)')
       .neq('return_status', 'NONE')
-      .order('return_requested_at', { ascending: false })
-      .then(({ data }: { data: any[] | null }) => setOrders(data || []));
+      .order('return_requested_at', { ascending: false }).order('id'))
+      .then(setOrders).catch(() => setOrders([]));
 
   useEffect(() => {
     load();
@@ -99,7 +100,7 @@ export default function AdminReturns() {
                   <div className="text-xs text-muted-foreground">
                     {(o.order_items || []).map((i: any) => `${i.product_name}${i.variant_label ? ` (${i.variant_label})` : ''} × ${i.quantity}`).join(', ')}
                   </div>
-                  <div className="text-xs"><span className="uppercase tracking-widest">{o.return_status}</span>{o.return_requested_at && ` · requested ${new Date(o.return_requested_at).toLocaleDateString()}`}</div>
+                  <div className="text-xs"><span className="uppercase tracking-widest">{o.return_status}</span>{o.return_requested_at && ` · requested ${fmtDate(o.return_requested_at)}`}</div>
                   {o.return_reason && <div className="text-xs">Reason: {o.return_reason}</div>}
                   {o.return_awb && <a href={o.return_tracking_url} target="_blank" rel="noreferrer" className="text-xs underline">Return AWB {o.return_awb}</a>}
                   {o.return_status === 'RECEIVED' && (

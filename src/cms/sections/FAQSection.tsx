@@ -9,7 +9,7 @@ export default function FAQSection({ section }: { section: CMSSection }) {
   const { items, loading } = useFAQs(cfg.category);
   const [open, setOpen] = useState<string | null>(null);
 
-  const heading = cfg.heading || 'Frequently Asked Questions';
+  const heading = cfg.heading;
 
   if (loading || items.length === 0) return null;
 

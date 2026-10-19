@@ -5,45 +5,10 @@ import { TornEdge, Wrap } from '@/components/polka/Polka';
 import { useTestimonials } from '../hooks/useCMSPage';
 import type { CMSSection, TestimonialsConfig, Testimonial } from '../types';
 
-const FALLBACK_TESTIMONIALS: Testimonial[] = [
-  {
-    id: 't-1',
-    name: 'Aarav Mehta',
-    role: 'Fashion Editor',
-    body: 'Vault 26 has achieved what few homegrown luxury brands do — impeccable tailoring, heavy fabric weight, and understated elegance.',
-    rating: 5,
-    avatar: null, position: 0, is_active: true, created_at: '',
-  },
-  {
-    id: 't-2',
-    name: 'Rohan Kapoor',
-    role: 'Creative Director',
-    body: 'The heavy box tee and selvedge utility jacket are staples in my wardrobe now. Pure quiet luxury.',
-    rating: 5,
-    avatar: null, position: 1, is_active: true, created_at: '',
-  },
-  {
-    id: 't-3',
-    name: 'Priya Sharma',
-    role: 'Architect',
-    body: 'Silhouettes that speak for themselves. The attention to detail and material texture is world class.',
-    rating: 5,
-    avatar: null, position: 2, is_active: true, created_at: '',
-  },
-  {
-    id: 't-4',
-    name: 'Vikramaditya Roy',
-    role: 'Stylist & Designer',
-    body: 'Exceptional craftsmanship. The fit of the merino knit polo and structured trousers is unmatched.',
-    rating: 5,
-    avatar: null, position: 3, is_active: true, created_at: '',
-  }
-];
-
 export default function TestimonialsSection({ section }: { section: CMSSection }) {
   const cfg = section.config as TestimonialsConfig & { body?: string; sort_label?: string };
   const { items: dbItems } = useTestimonials();
-  const testimonials: Testimonial[] = dbItems && dbItems.length > 0 ? dbItems : FALLBACK_TESTIMONIALS;
+  const testimonials: Testimonial[] = dbItems || [];
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
   const t = testimonials[i % testimonials.length];
@@ -55,6 +20,8 @@ export default function TestimonialsSection({ section }: { section: CMSSection }
   }, [paused, testimonials.length]);
 
   const go = (d: number) => setI((n) => (n + d + testimonials.length) % testimonials.length);
+  // Only real reviews from Admin → CMS; none = no section.
+  if (!t) return null;
 
   return (
     <section
@@ -65,14 +32,14 @@ export default function TestimonialsSection({ section }: { section: CMSSection }
       <TornEdge color="#BB0006" position="top" seed={101} className="!-translate-y-[98%] !rotate-0" />
       <Wrap className="py-14 md:py-20 grid md:grid-cols-[1fr_2fr] gap-10 md:gap-16">
         <div>
-          <h2 className="font-display font-[800] uppercase text-[48px] md:text-[72px] leading-none">{cfg.heading || 'Reviews'}</h2>
+          <h2 className="font-display font-[800] uppercase text-[48px] md:text-[72px] leading-none">{cfg.heading}</h2>
           <p className="font-sans text-[15px] md:text-[16px] leading-relaxed mt-4 max-w-[360px]">
-            {cfg.body || 'What our customers say about the pieces that made it into their wardrobe. Honest impressions, favourite fits and recommendations.'}
+            {cfg.body}
           </p>
         </div>
         <div>
           <div className="border-y border-white/70 h-12 flex items-center justify-between font-sans uppercase text-[14px]">
-            <span>{cfg.sort_label || 'Newest first'}</span>
+            <span>{cfg.sort_label}</span>
             <span className="tabular-nums">{String((i % testimonials.length) + 1).padStart(2, '0')} / {String(testimonials.length).padStart(2, '0')}</span>
           </div>
           <div className="pt-8 min-h-[240px]">

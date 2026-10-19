@@ -5,16 +5,10 @@ import type { CMSSection } from '../types';
 import { TextColumns } from '@/components/polka/Polka';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import { isVideoUrl } from '@/lib/media';
+import { imageProps } from '@/lib/image';
+import { useIsPhone } from '@/components/shared/Media';
 
-type Card = { title: string; kicker: string; href?: string; link?: LinkValue; image: string; tone: 'red' | 'ink' | 'paper'; button_label?: string };
-
-const U = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=85&w=2000`;
-
-const DEFAULT_CARDS: Card[] = [
-  { title: 'Men', kicker: 'Outerwear · Knitwear · Denim', href: '/shop?category=men', image: U('photo-1516826957135-700dedea698c'), tone: 'red' },
-  { title: 'Women', kicker: 'Tailoring · Layers · Essentials', href: '/shop?category=women', image: U('photo-1485968579580-b6d095142e6e'), tone: 'ink' },
-  { title: 'Sneakers', kicker: 'Court · Runner · Leather', href: '/shop?category=shoes', image: U('photo-1552346154-21d32810aba3'), tone: 'paper' },
-];
+type Card = { title: string; kicker: string; href?: string; link?: LinkValue; image: string; image_mobile?: string; tone: 'red' | 'ink' | 'paper'; button_label?: string };
 
 const TONES = {
   red: { bg: '#BB0006', ink: '#FFFFFF', btnBg: '#FFFFFF', btnInk: '#BB0006' },
@@ -29,6 +23,9 @@ function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number;
   const scale = useTransform(progress, [start, Math.min(1, start + 1 / n)], [1, i === n - 1 ? 1 : 0.95]);
   const imgY = useTransform(progress, [Math.max(0, start - 1 / n), start + 1 / n], ['-4%', '4%']);
   const wordX = useTransform(progress, [Math.max(0, start - 1 / n), start + 1 / n], ['4%', '-3%']);
+  const phone = useIsPhone();
+  // Optional phone-only photo/video; empty = phones use the normal one.
+  const image = (phone && card.image_mobile) || card.image;
 
   return (
     <div className="sticky top-[56px] md:top-[62px] h-[calc(100vh-56px)] md:h-[calc(100vh-62px)]" style={{ zIndex: i + 1 }}>
@@ -46,9 +43,9 @@ function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number;
 
         {/* Photo panel */}
         <div className="absolute left-5 right-5 top-[26%] bottom-[20%] md:left-auto md:right-[4%] md:top-[8%] md:bottom-[8%] md:w-[38%] overflow-hidden">
-          {isVideoUrl(card.image)
-            ? <motion.video style={{ y: imgY }} src={card.image} autoPlay muted loop playsInline className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />
-            : <motion.img style={{ y: imgY }} src={card.image} alt={card.title} loading="lazy" className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />}
+          {isVideoUrl(image)
+            ? <motion.video key={image} style={{ y: imgY }} src={image} autoPlay muted loop playsInline className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />
+            : <motion.img style={{ y: imgY }} {...imageProps(image, { sizes: '(min-width: 768px) 40vw, 100vw' })} alt={card.title} className="absolute inset-[-10%_0] w-full h-[120%] object-cover grayscale contrast-[1.1]" />}
         </div>
 
         {/* Copy */}
@@ -78,9 +75,10 @@ function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number;
  */
 export default function CategoryCardsSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as { cards?: Card[] };
-  const cards = cfg.cards?.length ? cfg.cards : DEFAULT_CARDS;
+  const cards = (cfg.cards || []).filter((c) => c.title || c.image);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
+  if (!cards.length) return null;
 
   return (
     <section ref={ref} className="relative bg-white">

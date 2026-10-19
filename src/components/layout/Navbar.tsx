@@ -185,7 +185,7 @@ export default function Navbar() {
       if (!filter) { setSuggestions([]); setSearching(false); return; }
       const { data } = await supabase
         .from('products')
-        .select('id, name, slug, images, brands(name), product_variants(price)')
+        .select('id, name, slug, images, price, brands(name), product_variants(price)')
         .eq('is_active', true)
         .or(filter)
         .limit(6);
@@ -196,7 +196,7 @@ export default function Navbar() {
           name: p.name,
           slug: p.slug,
           image: (p.images || [])[0] || '/placeholder.svg',
-          price: Number(p.product_variants?.[0]?.price || 0),
+          price: (p.product_variants || []).reduce((m: number, v: any) => Math.min(m, Number(v.price)), Number(p.price) || Infinity) || 0,
           brand: p.brands?.name,
         }))
       );

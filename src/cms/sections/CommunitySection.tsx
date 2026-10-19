@@ -3,6 +3,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Instagram } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { CMSSection } from '../types';
+import { useBrandSettings } from '@/cms/hooks/useCMSPage';
+import { instagramUrl } from '@/lib/links';
 import { TornEdge } from '@/components/polka/Polka';
 
 type Photo = {
@@ -13,17 +15,6 @@ type Photo = {
   bento_size: 'sm' | 'md' | 'lg' | 'wide' | 'tall';
 };
 
-const U = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=900`;
-
-// Community fill keeps the wall full until enough customer photos are uploaded.
-const FILL: Photo[] = [
-  { id: 'cf-1', image_url: U('photo-1529139574466-a303027c1d8b'), media_type: 'image', handle: '@studio.notes', bento_size: 'sm' },
-  { id: 'cf-2', image_url: U('photo-1506794778202-cad84cf45f1d'), media_type: 'image', handle: '@archive.fits', bento_size: 'sm' },
-  { id: 'cf-3', image_url: U('photo-1539109136881-3be0616acf4b'), media_type: 'image', handle: '@worn.daily', bento_size: 'sm' },
-  { id: 'cf-4', image_url: U('photo-1503342217505-b0a15ec3261c'), media_type: 'image', handle: '@city.layers', bento_size: 'sm' },
-  { id: 'cf-5', image_url: U('photo-1485968579580-b6d095142e6e'), media_type: 'image', handle: '@rotation.club', bento_size: 'sm' },
-  { id: 'cf-6', image_url: U('photo-1520975954732-35dd22299614'), media_type: 'image', handle: '@late.edition', bento_size: 'sm' },
-];
 
 /*
  * Community, zoom-through type: pinned for two screens. A full-screen Editor's
@@ -33,8 +24,9 @@ const FILL: Photo[] = [
  */
 export default function CommunitySection({ section }: { section?: CMSSection }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const heading = section?.config?.heading || 'WORN BY VAULT 26';
-  const subtitle = section?.config?.subtitle || 'FROM THE COMMUNITY';
+  const brand = useBrandSettings();
+  const heading = section?.config?.heading;
+  const subtitle = section?.config?.subtitle;
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const sheetScale = useTransform(scrollYProgress, [0.3, 0.7], [1, 6], { ease: (t) => t * t });
@@ -60,7 +52,10 @@ export default function CommunitySection({ section }: { section?: CMSSection }) 
       .then(({ data }) => setPhotos((data as unknown as Photo[]) || []));
   }, []);
 
-  const wall = [...photos, ...FILL].slice(0, 6);
+  // Only real community photos; a short list repeats to fill the six tiles.
+  const wall = photos.length ? Array.from({ length: 6 }, (_, i) => ({ ...photos[i % photos.length], id: `${photos[i % photos.length].id}-${i}` })) : [];
+  const insta = instagramUrl(brand?.social_instagram);
+  if (!wall.length) return null;
 
   return (
     <section ref={ref} className="relative bg-[#0F0F0F] h-[320vh] overflow-clip">
@@ -80,14 +75,16 @@ export default function CommunitySection({ section }: { section?: CMSSection }) 
                 <p className="font-sans text-[14px] md:text-[15px] leading-relaxed mt-4 text-white/90">
                   Real people, real rotation. Tag us and your fit could be the next frame on this wall.
                 </p>
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-5 inline-flex h-11 px-5 items-center gap-2 bg-white text-[#BB0006] font-sans text-[14px] hover:bg-[#F1F1F1] transition-colors"
-                >
-                  <Instagram className="w-4 h-4" /> Tag @vault26
-                </a>
+                {insta && (
+                  <a
+                    href={insta}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-5 inline-flex h-11 px-5 items-center gap-2 bg-white text-[#BB0006] font-sans text-[14px] hover:bg-[#F1F1F1] transition-colors"
+                  >
+                    <Instagram className="w-4 h-4" /> Tag us
+                  </a>
+                )}
               </div>
               </motion.div>
             </div>

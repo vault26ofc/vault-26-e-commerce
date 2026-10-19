@@ -21,3 +21,28 @@ export function resolveHref(v: LinkValue, fallback = '/'): string {
   if (v.type === 'category') return `/category/${v.value}`;
   return v.value;
 }
+
+/** "@handle", "handle" or a full link → the Instagram profile URL (null when empty). */
+export function instagramUrl(v?: string | null): string | null {
+  const s = (v || '').trim();
+  if (!s) return null;
+  if (/^https?:\/\//i.test(s)) return s;
+  return `https://instagram.com/${s.replace(/^@/, '').replace(/^instagram\.com\//i, '')}`;
+}
+
+/** A WhatsApp number ("98765 43210", "+91…") or wa.me link → chat URL (null when empty or too short). */
+export function whatsappUrl(v?: string | null, text?: string): string | null {
+  const s = (v || '').trim();
+  if (!s) return null;
+  if (/^https?:\/\//i.test(s)) return s;
+  const d = s.replace(/\D/g, '');
+  if (d.length < 10) return null;
+  return `https://wa.me/${d.length === 10 ? `91${d}` : d}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
+}
+
+/** Any typed web address → an absolute URL (null when empty). */
+export function externalUrl(v?: string | null): string | null {
+  const s = (v || '').trim();
+  if (!s) return null;
+  return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+}

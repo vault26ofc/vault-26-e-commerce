@@ -14,15 +14,6 @@ type Slide = {
   product_slug: string | null;
 };
 
-const U = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&q=80&w=900`;
-
-// Editorial fill so the spread never looks empty while the lookbook is still small.
-const EDITORIAL_FILL: Slide[] = [
-  { id: 'ed-1', image_url: U('photo-1485968579580-b6d095142e6e'), media_type: 'image', caption: 'City layers', product_slug: null },
-  { id: 'ed-2', image_url: U('photo-1516826957135-700dedea698c'), media_type: 'image', caption: 'Off-duty denim', product_slug: null },
-  { id: 'ed-3', image_url: U('photo-1509631179647-0177331693ae'), media_type: 'image', caption: 'Quiet tailoring', product_slug: null },
-  { id: 'ed-4', image_url: U('photo-1520975954732-35dd22299614'), media_type: 'image', caption: 'Leather season', product_slug: null },
-];
 
 /*
  * Polka “space for reading” spread: oversized red title on the left, square
@@ -30,8 +21,8 @@ const EDITORIAL_FILL: Slide[] = [
  */
 export default function LookbookSection({ section, isPage = false }: { section?: CMSSection; isPage?: boolean }) {
   const [slides, setSlides] = useState<Slide[]>([]);
-  const heading = section?.config?.heading || 'VAULT 26 JOURNAL';
-  const subtitle = section?.config?.subtitle || 'EDITORIAL & LOOKBOOK';
+  const heading = section?.config?.heading;
+  const subtitle = section?.config?.subtitle;
   const cfg = (section?.config || {}) as { body?: string; cta_label?: string; cta_link?: LinkValue };
 
   useEffect(() => {
@@ -43,10 +34,10 @@ export default function LookbookSection({ section, isPage = false }: { section?:
       .then(({ data }) => setSlides((data as unknown as Slide[]) || []), (e) => console.warn('Lookbook slides error:', e));
   }, []);
 
-  const frames = isPage
-    ? (slides.length ? slides : EDITORIAL_FILL)
-    : [...slides, ...EDITORIAL_FILL].slice(0, 4);
-  const title = heading.replace(/^VAULT 26\s*/i, '') || heading;
+  const frames = isPage || !slides.length
+    ? slides
+    : Array.from({ length: 4 }, (_, i) => ({ ...slides[i % slides.length], id: `${slides[i % slides.length].id}-${i}` }));
+  const title = (heading || '').replace(/^VAULT 26\s*/i, '') || heading || '';
 
   return (
     <section className="bg-[#F1F1F1] py-16 md:py-24">
@@ -57,11 +48,11 @@ export default function LookbookSection({ section, isPage = false }: { section?:
             {title}
           </h2>
           <p className="font-sans text-[15px] md:text-[16px] leading-relaxed text-[#0F0F0F] mt-6 max-w-[440px]">
-            {cfg.body || 'Stories from the studio and the street. Every frame is styled from the current archive, and every piece in it is ready to shop.'}
+            {cfg.body}
           </p>
           {!isPage && (
             <Link to={resolveHref(cfg.cta_link, '/lookbook')} className="inline-flex mt-8 h-12 px-8 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
-              {cfg.cta_label || 'Open the lookbook'}
+              {cfg.cta_label}
             </Link>
           )}
         </div>

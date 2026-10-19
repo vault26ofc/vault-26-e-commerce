@@ -18,81 +18,6 @@ type Reel = {
   productName?: string;
 };
 
-const REELS_DATA: Reel[] = [
-  {
-    id: 'reel-1',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-a-black-jacket-41584-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?q=80&w=800',
-    handle: '@vault26.official',
-    caption: 'Archival Double-Breasted Tailoring in Milan 🇮🇹 #VAULT26',
-    likes: '18.4K',
-    comments: '412',
-    shares: '2.1K',
-    productSlug: 'unstructured-raw-linen-blazer',
-    productName: 'Raw Linen Blazer'
-  },
-  {
-    id: 'reel-2',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-model-posing-in-a-studio-setting-41585-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=800',
-    handle: '@vault26.official',
-    caption: 'Summer Linen Capsule drop now live 🌾 Link in bio.',
-    likes: '24.1K',
-    comments: '589',
-    shares: '3.4K',
-    productSlug: 'relaxed-resort-linen-shirt',
-    productName: 'Resort Linen Shirt'
-  },
-  {
-    id: 'reel-3',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-feet-of-a-person-walking-in-sneakers-42686-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?q=80&w=800',
-    handle: '@vault26.official',
-    caption: 'Movement test: Handcrafted Atelier Loafer 👞 #FootwearArchive',
-    likes: '14.8K',
-    comments: '304',
-    shares: '1.9K',
-    productSlug: 'italian-leather-atelier-loafer',
-    productName: 'Atelier Loafer'
-  },
-  {
-    id: 'reel-4',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-hands-holding-a-leather-wallet-41589-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=800',
-    handle: '@vault26.official',
-    caption: 'Full-grain vegetable-tanned leather details ✨',
-    likes: '12.3K',
-    comments: '215',
-    shares: '1.2K',
-    productSlug: 'minimalist-cargo-trousers',
-    productName: 'Pleated Trousers'
-  },
-  {
-    id: 'reel-5',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-young-woman-wearing-a-hat-and-sunglasses-41582-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=800',
-    handle: '@vault26.official',
-    caption: 'Eyewear & Accessories Archive 04 🕶️ #VaultEyewear',
-    likes: '19.6K',
-    comments: '478',
-    shares: '2.8K',
-    productSlug: 'heavyweight-box-tee',
-    productName: 'Box Tee — Onyx'
-  },
-  {
-    id: 'reel-6',
-    videoUrl: 'https://assets.mixkit.co/videos/preview/mixkit-model-walking-on-a-runway-41587-large.mp4',
-    posterUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=800',
-    handle: '@vault26.official',
-    caption: 'Paris Fashion Week Runway Highlight 🇫🇷',
-    likes: '31.2K',
-    comments: '890',
-    shares: '5.6K',
-    productSlug: 'raw-selvedge-oversized-denim',
-    productName: 'Selvedge Jacket'
-  }
-];
-
 type ReelsConfig = {
   handle?: string; tag?: string; follow_label?: string; instagram_url?: string; button_prefix?: string;
   reels?: { video?: string; poster?: string; caption?: string; likes?: string; comments?: string; shares?: string; product?: string[]; product_label?: string }[];
@@ -100,14 +25,12 @@ type ReelsConfig = {
 
 export default function InstagramReelsSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as ReelsConfig;
-  const handle = cfg.handle || '@vault26.official';
-  const reels: Reel[] = cfg.reels?.some((r) => r.video)
-    ? cfg.reels.filter((r) => r.video).map((r, i) => ({
+  const handle = cfg.handle;
+  const reels: Reel[] = (cfg.reels || []).filter((r) => r.video).map((r, i) => ({
         id: `cms-reel-${i}`, videoUrl: r.video!, posterUrl: r.poster || '', handle, caption: r.caption || '',
         likes: r.likes || '', comments: r.comments || '', shares: r.shares || '',
         productSlug: r.product?.[0], productName: r.product_label || '',
-      }))
-    : REELS_DATA;
+      }));
   const [muted, setMuted] = useState(true);
   const [playingId, setPlayingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -134,11 +57,13 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
     }
   };
 
+  if (!reels.length) return null;
+
   return (
     <section ref={sectionRef} className="relative py-16 md:py-24 bg-[#0F0F0F] text-white font-sans overflow-hidden">
       <TornEdge color="#FFFFFF" position="top" seed={107} />
       <div className="w-full">
-        
+
         {/* Section Header Bar */}
         <div className="relative z-[3] mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px] flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-10 gap-4">
           <div className="space-y-2">
@@ -148,7 +73,7 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
                 {handle}
               </span>
             </div>
-            <RedTag>{cfg.tag || 'As seen on Instagram'}</RedTag>
+            <RedTag>{cfg.tag}</RedTag>
           </div>
 
           <div className="flex items-center gap-4">
@@ -180,12 +105,12 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
             </div>
 
             <a
-              href={cfg.instagram_url || 'https://instagram.com'}
+              href={cfg.instagram_url}
               target="_blank"
               rel="noreferrer"
               className="bg-[#BB0006] text-white hover:bg-[#AA0001] h-10 px-5 text-[14px] font-sans transition-colors inline-flex items-center gap-2"
             >
-              <Instagram className="w-4 h-4" /> {cfg.follow_label || 'Follow us'}
+              <Instagram className="w-4 h-4" /> {cfg.follow_label}
             </a>
           </div>
         </div>
@@ -276,7 +201,7 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
                           className="w-full h-9 px-3 bg-[#BB0006] hover:bg-[#AA0001] text-white text-[13px] font-sans flex items-center justify-center gap-1.5 transition-colors"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
-                          {cfg.button_prefix || 'Shop'} {reel.productName}
+                          {cfg.button_prefix} {reel.productName}
                         </Link>
                       </div>
                     )}

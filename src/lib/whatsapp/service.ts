@@ -62,12 +62,12 @@ export async function resendQueueEntry(id: string): Promise<void> {
 }
 
 export async function getQueueStats(): Promise<QueueStats> {
-  const { data } = await supabase
-    .from('notification_queue')
-    .select('status');
-
+  // Exact counts per status (a plain select stops at 1000 rows).
+  const statuses = ['pending', 'processing', 'sent', 'failed', 'dead'] as const;
+  const results = await Promise.all(statuses.map((s) =>
+    supabase.from('notification_queue').select('id', { count: 'exact', head: true }).eq('status', s)));
   const counts = { pending: 0, processing: 0, sent: 0, failed: 0, dead: 0 };
-  (data || []).forEach((r: any) => { if (r.status in counts) counts[r.status as keyof QueueStats]++; });
+  statuses.forEach((s, i) => { counts[s] = results[i].count || 0; });
   return counts;
 }
 

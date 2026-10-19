@@ -5,6 +5,8 @@ import { Download, History, Minus, Plus, X } from 'lucide-react';
 import { downloadCsv } from '@/lib/exportCsv';
 import { SearchSelect } from '@/components/admin/SearchSelect';
 import { describeError } from '@/lib/errors';
+import { fetchAllRows } from '@/lib/fetchAll';
+import { fmtDateTime, istDay } from '@/lib/format';
 
 type Row = {
   id: string; size: string | null; color: string | null; color_hex: string | null; sku: string | null; stock: number;
@@ -30,10 +32,10 @@ export default function AdminInventory() {
   const [history, setHistory] = useState<{ row: Row; items: Movement[] } | null>(null);
 
   const load = () =>
-    supabase.from('product_variants')
+    fetchAllRows<Row>(() => supabase.from('product_variants')
       .select('id, size, color, color_hex, sku, stock, products(id, name, images, category_id, is_active)')
-      .order('stock')
-      .then(({ data }) => setRows((data as unknown as Row[]) || []));
+      .order('stock').order('id') as any)
+      .then(setRows).catch(() => setRows([]));
 
   useEffect(() => {
     load();
@@ -86,7 +88,7 @@ export default function AdminInventory() {
 
   const label = (r: Row) => [r.size, r.color].filter(Boolean).join(' · ') || 'One size';
 
-  const exportRows = () => downloadCsv(`inventory-${new Date().toISOString().slice(0, 10)}.csv`,
+  const exportRows = () => downloadCsv(`inventory-${istDay()}.csv`,
     filtered.map((r) => ({ product: r.products?.name, variant: label(r), sku: r.sku, stock: r.stock })));
 
   return (
@@ -189,7 +191,7 @@ export default function AdminInventory() {
                 <div key={m.id} className="p-4 flex justify-between gap-3 text-sm">
                   <div>
                     <div>{REASON_LABEL[m.reason] ?? m.reason}{m.orders?.order_number && <span className="text-muted-foreground"> · {m.orders.order_number}</span>}</div>
-                    <div className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-muted-foreground">{fmtDateTime(m.created_at)}</div>
                   </div>
                   <div className="text-right">
                     <div className={m.delta > 0 ? 'text-green-700' : 'text-destructive'}>{m.delta > 0 ? `+${m.delta}` : m.delta}</div>

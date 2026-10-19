@@ -28,7 +28,8 @@ export default function ProductMarqueeSection({ section }: { section?: CMSSectio
     <section className="relative bg-white">
       <div className="relative overflow-hidden h-[520px] md:h-[640px]">
         <Media
-          src={cfg.image || BG}
+          src={cfg.image}
+          mobileSrc={(cfg as any).image_mobile}
           alt=""
           aria-hidden="true"
           className="absolute inset-0 w-full h-full object-cover object-[50%_30%]"
@@ -37,8 +38,8 @@ export default function ProductMarqueeSection({ section }: { section?: CMSSectio
         <TornEdge color="#FFFFFF" position="top" seed={51} />
 
         <Wrap className="relative z-[3] pt-[clamp(56px,6vw,90px)] flex items-end justify-between gap-6">
-          <RedTag>{cfg.title || 'Picked for you'}</RedTag>
-          <span className="bg-white px-3 py-1.5"><SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label || 'Shop all'}</SeeAll></span>
+          <RedTag>{cfg.title}</RedTag>
+          <span className="bg-white px-3 py-1.5"><SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label}</SeeAll></span>
         </Wrap>
 
         <div className="absolute z-[3] left-0 right-0 bottom-[clamp(48px,6vw,88px)] overflow-hidden">

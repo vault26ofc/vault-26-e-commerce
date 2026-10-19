@@ -3,7 +3,9 @@ export type EditorVariant = {
   size: string;
   color: string;
   color_hex: string;
-  price: number;
+  /** null = follows the product price (and keeps following it when that changes). */
+  price: number | null;
+  /** null = follows the product's compare-at price. */
   compare_price: number | null;
   stock: number;
   /** Stock when the editor loaded it; the server applies the difference, so concurrent orders aren't overwritten. */
@@ -16,7 +18,7 @@ const key = (size: string, color: string) => `${size.trim().toLowerCase()}|${col
 
 /** Every size × colour combination; existing variants are kept as they are (id, price, stock). */
 export function buildVariantMatrix(
-  sizes: string[], colours: Colour[], existing: EditorVariant[], defaults: { price: number; stock: number },
+  sizes: string[], colours: Colour[], existing: EditorVariant[], defaults: { price: number | null; stock: number },
 ): EditorVariant[] {
   const byKey = new Map(existing.map((v) => [key(v.size, v.color), v]));
   const sizeList = sizes.length ? sizes : [''];

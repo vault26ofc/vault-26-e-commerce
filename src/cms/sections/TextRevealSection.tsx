@@ -4,11 +4,8 @@ import type { CMSSection, TextRevealConfig } from '../types';
 export default function TextRevealSection({ section }: { section: CMSSection }) {
   const cfg = section.config as TextRevealConfig;
   const typed = String((cfg as any).words_text || '').split('\n').map((w) => w.trim()).filter(Boolean);
-  const words: string[] = typed.length
-    ? typed
-    : Array.isArray(cfg.words) && cfg.words.length > 0
-    ? cfg.words
-    : ['ATTITUDE', 'CONFIDENCE'];
+  const words: string[] = typed.length ? typed : Array.isArray(cfg.words) ? cfg.words : [];
+  if (!words.length) return null;
   const showLine = cfg.show_accent_line !== false;
 
   return (

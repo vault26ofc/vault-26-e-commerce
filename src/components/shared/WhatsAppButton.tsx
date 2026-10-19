@@ -1,8 +1,14 @@
-export default function WhatsAppButton({ number = '919999999999' }: { number?: string }) {
-  const msg = encodeURIComponent('Greetings Vault 26. I require assistance with...');
+import { useBrandSettings } from '@/cms/hooks/useCMSPage';
+import { whatsappUrl } from '@/lib/links';
+
+/** Floating WhatsApp chat button; the number comes from Admin → CMS → Brand (hidden when not set). */
+export default function WhatsAppButton() {
+  const brand = useBrandSettings();
+  const href = whatsappUrl(brand?.social_whatsapp, 'Greetings Vault 26. I require assistance with...');
+  if (!href) return null;
   return (
     <a 
-      href={`https://wa.me/${number}?text=${msg}`} 
+      href={href} 
       target="_blank" 
       rel="noopener noreferrer"
       className="fixed bottom-24 lg:bottom-10 right-6 z-[100] h-14 w-14 rounded-full bg-black text-white shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-500 group border border-white/10"

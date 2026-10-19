@@ -39,6 +39,7 @@ function useScrollToSectionHash(sections: CMSSection[]) {
 /** The homepage is exactly what Admin → CMS says: its sections, order and visibility. */
 export default function Home() {
   useSEO({
+    page: 'home',
     title: 'VAULT 26 — Premium Streetwear Archive',
     description: 'Where high fashion meets street authenticity. Not just worn. Remembered.',
   });

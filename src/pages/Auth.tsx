@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSEO } from '@/lib/useSEO';
@@ -10,13 +10,21 @@ const LOGO_URL = "https://res.cloudinary.com/dsqeawg67/image/upload/v1776861404/
 
 const SITE_URL = import.meta.env.PROD ? 'https://vault26.co.in' : window.location.origin;
 
+/** Where to go after signing in (?next=/checkout); only same-site paths. */
+function useNext(): string | null {
+  const [params] = useSearchParams();
+  const next = params.get('next');
+  return next && next.startsWith('/') && !next.startsWith('//') ? next : null;
+}
+
 function GoogleButton({ label = 'Continue with Google' }: { label?: string }) {
   const [busy, setBusy] = useState(false);
+  const next = useNext();
   const onClick = async () => {
     setBusy(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${SITE_URL}/` },
+      options: { redirectTo: `${SITE_URL}${next || '/'}` },
     });
     if (error) { toast.error(error.message || 'Google sign-in failed'); setBusy(false); }
   };
@@ -51,6 +59,7 @@ function minutesLeft(email: string) {
 export function Login() {
   useSEO({ title: 'Sign In — Vault 26', noindex: true });
   const navigate = useNavigate();
+  const next = useNext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -78,7 +87,7 @@ export function Login() {
     }
     clearAttempts(trimmed);
     toast.success('Welcome back');
-    navigate('/account');
+    navigate(next || '/account');
   };
 
   return (
@@ -153,7 +162,7 @@ export function Login() {
 
         <div className="mt-12 text-center">
           <p className="text-[10px] tracking-[0.04em] text-black/60 uppercase font-ui">
-            New to the Archive? <Link to="/register" className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Apply for Membership</Link>
+            New to the Archive? <Link to={next ? `/register?next=${encodeURIComponent(next)}` : "/register"} className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Apply for Membership</Link>
           </p>
         </div>
       </motion.div>
@@ -164,6 +173,7 @@ export function Login() {
 export function Register() {
   useSEO({ title: 'Create Account — Vault 26', noindex: true });
   const navigate = useNavigate();
+  const next = useNext();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -196,7 +206,7 @@ export function Register() {
       setLoading(false);
     }
     toast.success('Account created. Welcome to Vault 26');
-    navigate('/account');
+    navigate(next || '/account');
   };
 
   return (
@@ -295,7 +305,7 @@ export function Register() {
 
         <div className="mt-12 text-center">
           <p className="text-[10px] tracking-[0.04em] text-black/60 uppercase font-ui">
-            Already in the Archive? <Link to="/login" className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Authorize Sign In</Link>
+            Already in the Archive? <Link to={next ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-black font-bold border-b border-black pb-0.5 ml-2 hover:text-accent hover:border-accent transition-colors">Authorize Sign In</Link>
           </p>
         </div>
       </motion.div>

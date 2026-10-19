@@ -9,11 +9,11 @@ export default function NewsletterSection({ section }: { section: CMSSection }) 
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const line1 = cfg.heading_line1 || 'JOIN THE';
-  const line2 = cfg.heading_line2 || 'Vault';
-  const body = cfg.body || 'BE THE FIRST TO RECEIVE EXCLUSIVE ACCESS TO LIMITED DROPS, EDITORIAL CONTENT, AND SECRET ARCHIVE RELEASES.';
-  const placeholder = cfg.placeholder || 'ENTER YOUR EMAIL';
-  const ctaLabel = cfg.cta_label || 'Join Now';
+  const line1 = cfg.heading_line1;
+  const line2 = cfg.heading_line2;
+  const body = cfg.body;
+  const placeholder = cfg.placeholder;
+  const ctaLabel = cfg.cta_label;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

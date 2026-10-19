@@ -19,7 +19,7 @@ export default function StandingLookSection({ section }: { section?: CMSSection 
     cta_label?: string; cta_link?: LinkValue; headline_lines?: string; headline_highlight?: string;
   };
   const products = useShopProducts(12, cfg);
-  const headline = (cfg.headline_lines || 'Built\nto be').split('\n');
+  const headline = (cfg.headline_lines || '').split('\n').filter(Boolean);
 
   return (
     <section className="relative bg-[#BB0006] overflow-clip">
@@ -35,8 +35,8 @@ export default function StandingLookSection({ section }: { section?: CMSSection 
         {/* Long product column (the “phone”) */}
         <div className="bg-white p-3 md:p-4 shadow-[0_20px_60px_rgba(0,0,0,0.25)] order-2 md:order-1">
           <div className="flex items-center justify-between px-1 pb-3 mb-3 border-b border-[#0F0F0F]/15">
-            <span className="font-display font-[800] uppercase text-[22px] leading-none text-[#0F0F0F]">{cfg.title || 'Complete the look'}</span>
-            <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label || 'All'}</SeeAll>
+            <span className="font-display font-[800] uppercase text-[22px] leading-none text-[#0F0F0F]">{cfg.title}</span>
+            <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label}</SeeAll>
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-6">
             {products.slice(0, 10).map((p) => (
@@ -49,17 +49,18 @@ export default function StandingLookSection({ section }: { section?: CMSSection 
         <div className="order-1 md:order-2 relative">
           <div className="md:sticky md:top-[62px] h-[70vh] md:h-[calc(100vh-62px)] flex flex-col items-center justify-end pb-4">
             <Media
-              src={cfg.image || MODEL}
+              src={cfg.image}
+              mobileSrc={(cfg as any).image_mobile}
               alt="Full-length look from the VAULT 26 archive"
               loading="lazy"
               className="flex-1 min-h-0 w-auto max-w-full object-cover grayscale contrast-[1.15] mix-blend-multiply"
             />
             <Link to={resolveHref(cfg.cta_link, '/shop')} className="mt-4 w-full max-w-[420px] h-12 bg-white text-[#BB0006] font-sans text-[15px] flex items-center justify-center hover:bg-[#F1F1F1] transition-colors">
-              {cfg.cta_label || 'Shop the full look'}
+              {cfg.cta_label}
             </Link>
             <p className="absolute right-0 top-[10%] font-display font-[800] uppercase text-white text-right leading-[0.9] text-[clamp(40px,5.5vw,84px)]">
               {headline.map((l, i) => <span key={i}>{l}<br /></span>)}
-              <span className="bg-white text-[#BB0006] px-[0.1em]">{cfg.headline_highlight || 'lived in'}</span>
+              <span className="bg-white text-[#BB0006] px-[0.1em]">{cfg.headline_highlight}</span>
             </p>
           </div>
         </div>

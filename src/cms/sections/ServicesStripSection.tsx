@@ -4,22 +4,14 @@ import type { CMSSection } from '../types';
 import { Num, Wrap } from '@/components/polka/Polka';
 import { resolveHref, type LinkValue } from '@/lib/links';
 
-const SERVICES = [
-  { title: 'Free shipping', body: 'On every order above ₹999, delivered in 3–5 days across India.', to: '/faq' },
-  { title: '7-day returns', body: 'Changed your mind? Send it back unworn with tags for a full refund.', to: '/faq' },
-  { title: 'Size exchange', body: 'Wrong fit? We swap sizes free of charge, once per order.', to: '/faq' },
-  { title: 'Pay your way', body: 'UPI, cards, net banking or cash on delivery — all secured.', to: '/faq' },
-];
-
 /*
  * Polka numbered-list board as the store promise: four numbered columns with
  * rule lines, a big display title per service, and an ink underline on hover.
  */
 export default function ServicesStripSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as { items?: { title?: string; body?: string; link?: LinkValue }[] };
-  const services = cfg.items?.some((s) => s.title)
-    ? cfg.items.filter((s) => s.title).map((s) => ({ title: s.title!, body: s.body || '', to: resolveHref(s.link, '/shop') }))
-    : SERVICES;
+  const services = (cfg.items || []).filter((s) => s.title).map((s) => ({ title: s.title!, body: s.body || '', to: resolveHref(s.link, '/shop') }));
+  if (!services.length) return null;
   return (
     <section className="bg-white py-14 md:py-20">
       <Wrap>

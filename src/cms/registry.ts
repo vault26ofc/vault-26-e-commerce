@@ -86,7 +86,7 @@ const AREA = (key: string, label: string, placeholder?: string): FieldDef => ({ 
 export const SECTION_FIELDS: Record<string, FieldDef[]> = {
   hero: [
     TEXT('top_line', 'Small title', 'Online Store'), TEXT('title', 'Big title', 'Vault 26'),
-    MEDIA('photo', 'Photo or video', 'any'), MEDIA('paper', 'Paper background texture', 'image'),
+    MEDIA('photo', 'Photo or video', 'any'), MEDIA('photo_mobile', 'Phone photo or video (optional — empty = phones use the one above)', 'any'), MEDIA('paper', 'Paper background texture', 'image'),
     { key: 'labels', label: 'Stepped labels (up to 5, top to bottom)', type: 'list', itemLabel: 'Label',
       itemFields: [{ key: 'text', label: 'Text', type: 'text', placeholder: 'SEPTEMBER 2026' }] },
     TEXT('cta_label', 'Bottom link text', 'Shop Collection 2026'), LINK('cta_link', 'Bottom link goes to'),
@@ -113,7 +113,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { key: 'show_accent_line', label: 'Show accent line', type: 'boolean' },
   ],
   editorial_split: [
-    MEDIA('image', 'Photo or video', 'any'),
+    MEDIA('image', 'Photo or video', 'any'), MEDIA('image_mobile', 'Phone photo or video (optional — empty = phones use the one above)', 'any'),
     { key: 'accent_number', label: 'Accent number', type: 'text', placeholder: '26' },
     AREA('heading_text', 'Heading (one line per row)'),
     AREA('body', 'Body text'),
@@ -200,7 +200,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     ...PRODUCTS(4),
   ],
   product_marquee: [
-    TEXT('title', 'Tag text', 'Picked for you'), MEDIA('image', 'Background photo or video'),
+    TEXT('title', 'Tag text', 'Picked for you'), MEDIA('image', 'Background photo or video'), MEDIA('image_mobile', 'Phone photo or video (optional — empty = phones use the one above)'),
     TEXT('see_all_label', 'Link text', 'Shop all'), LINK('see_all_link', 'Link goes to'),
     ...PRODUCTS(),
   ],
@@ -220,7 +220,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     ...PRODUCTS(8),
   ],
   standing_look: [
-    MEDIA('image', 'Model photo or video'), TEXT('title', 'Column heading', 'Complete the look'),
+    MEDIA('image', 'Model photo or video'), MEDIA('image_mobile', 'Phone photo or video (optional — empty = phones use the one above)'), TEXT('title', 'Column heading', 'Complete the look'),
     TEXT('see_all_label', 'Link text', 'All'), LINK('see_all_link', 'Link goes to'),
     AREA('headline_lines', 'Big headline (one line per row)', 'Built / to be'),
     TEXT('headline_highlight', 'Highlighted last line', 'lived in'),
@@ -251,6 +251,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
     TEXT('brand', 'Brand text on the photo', 'Vault 26'),
     { key: 'slides', label: 'Slides', type: 'list', itemLabel: 'Slide', itemFields: [
       { key: 'image', label: 'Photo or video', type: 'media', kind: 'any' },
+      { key: 'image_mobile', label: 'Phone photo or video (optional)', type: 'media', kind: 'any' },
       { key: 'title', label: 'Title', type: 'text', placeholder: 'VAULT 26 POLO CLUB' },
       { key: 'cta_label', label: 'Link text', type: 'text', placeholder: 'SHOP NOW' },
       { key: 'cta_link', label: 'Link goes to', type: 'link' },
@@ -269,6 +270,7 @@ export const SECTION_FIELDS: Record<string, FieldDef[]> = {
       { key: 'title', label: 'Title', type: 'text', placeholder: 'Men' },
       { key: 'kicker', label: 'Small line', type: 'text', placeholder: 'Outerwear · Knitwear · Denim' },
       { key: 'image', label: 'Photo or video', type: 'media', kind: 'any' },
+      { key: 'image_mobile', label: 'Phone photo or video (optional)', type: 'media', kind: 'any' },
       { key: 'link', label: 'Card goes to', type: 'link' },
       { key: 'button_label', label: 'Button text (empty = "Shop <title>")', type: 'text' },
       { key: 'tone', label: 'Colour', type: 'select', options: [{ value: 'red', label: 'Red' }, { value: 'ink', label: 'Black' }, { value: 'paper', label: 'Paper' }] },

@@ -1,76 +1,53 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { fmtCalendarDate, fmtDate, fmtDateTime, istDay } from '@/lib/format';
+import { fetchAllRows } from '@/lib/fetchAll';
 import { toast } from 'sonner';
 import { downloadCsv, downloadJson } from '@/lib/exportCsv';
 import { Download, Database } from 'lucide-react';
-import { SearchSelect } from '@/components/admin/SearchSelect';
 import { describeError } from '@/lib/errors';
-
-export function AdminCoupons() {
-  const [coupons, setCoupons] = useState<any[]>([]);
-  const [form, setForm] = useState({ code: '', type: 'PERCENT', value: 10, min_order: 0 });
-  const load = () => supabase.from('coupons').select('*').order('created_at', { ascending: false }).then(({ data }) => setCoupons(data || []));
-  useEffect(() => { load(); }, []);
-  const create = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { error } = await supabase.from('coupons').insert({ ...form, code: form.code.toUpperCase(), type: form.type as any });
-    if (error) return toast.error(describeError(error));
-    toast.success('Coupon created'); setForm({ code: '', type: 'PERCENT', value: 10, min_order: 0 }); load();
-  };
-  const toggle = async (c: any) => { await supabase.from('coupons').update({ is_active: !c.is_active }).eq('id', c.id); load(); };
-  return (
-    <div>
-      <h1 className="font-display text-2xl md:text-3xl mb-6">Coupons</h1>
-      <form onSubmit={create} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 mb-6 border border-border p-4">
-        <input required placeholder="CODE" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="border border-border bg-transparent px-3 py-2 text-sm uppercase" />
-        <SearchSelect value={form.type} onChange={(v) => setForm({ ...form, type: v })} options={[{ value: 'PERCENT', label: 'Percent off' }, { value: 'FLAT', label: 'Flat ₹ off' }]} />
-        <input type="number" placeholder="Value" value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} className="border border-border bg-transparent px-3 py-2 text-sm" />
-        <input type="number" placeholder="Min order" value={form.min_order} onChange={(e) => setForm({ ...form, min_order: Number(e.target.value) })} className="border border-border bg-transparent px-3 py-2 text-sm" />
-        <button className="bg-foreground text-background py-2 text-xs uppercase tracking-widest hover:bg-accent transition-colors">Create</button>
-      </form>
-      <div className="border border-border overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px] md:min-w-0">
-          <thead className="bg-secondary"><tr>{['Code','Type','Value','Min','Used','Active'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
-          <tbody>
-            {coupons.map((c) => (
-              <tr key={c.id} className="border-t border-border">
-                <td className="p-3 font-medium">{c.code}</td>
-                <td className="p-3">{c.type}</td>
-                <td className="p-3">{c.type === 'PERCENT' ? `${c.value}%` : inr(Number(c.value))}</td>
-                <td className="p-3">{inr(Number(c.min_order))}</td>
-                <td className="p-3">{c.used_count}{c.max_uses ? ` / ${c.max_uses}` : ''}</td>
-                <td className="p-3"><button onClick={() => toggle(c)} className="text-xs underline">{c.is_active ? 'Disable' : 'Enable'}</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
 
 export function AdminCustomers() {
   const [users, setUsers] = useState<any[]>([]);
-  useEffect(() => { supabase.from('profiles').select('*').order('created_at', { ascending: false }).then(({ data }) => setUsers(data || [])); }, []);
+  const [search, setSearch] = useState('');
+  const load = () => fetchAllRows<any>(() => supabase.from('profiles').select('*').order('created_at', { ascending: false }).order('id'))
+    .then(setUsers).catch((e) => toast.error(describeError(e)));
+  useEffect(() => { load(); }, []);
   const exportRows = () => {
     if (!users.length) return toast.error('Nothing to export');
-    downloadCsv(`customers-${new Date().toISOString().slice(0,10)}.csv`, users.map((u) => ({ name: u.name, email: u.email, phone: u.phone, joined: u.created_at })));
+    downloadCsv(`customers-${istDay()}.csv`, users.map((u) => ({ name: u.name, email: u.email, phone: u.phone, birthday: u.dob || '', joined: fmtDateTime(u.created_at) })));
   };
+  // Admins can set or correct a birthday (customers can only set theirs once).
+  const setDob = async (u: any) => {
+    const v = prompt(`Birthday for ${u.name || u.email} (YYYY-MM-DD, empty to clear):`, u.dob || '');
+    if (v === null) return;
+    const dob = v.trim() || null;
+    if (dob && !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return toast.error('Use the format YYYY-MM-DD');
+    const { error } = await supabase.from('profiles').update({ dob } as any).eq('id', u.id);
+    if (error) return toast.error(error.message.includes('dob_invalid') ? "That date isn't valid" : describeError(error));
+    toast.success('Birthday saved');
+    load();
+  };
+  const q = search.trim().toLowerCase();
+  const shown = q ? users.filter((u) => [u.name, u.email, u.phone].some((x) => (x || '').toLowerCase().includes(q))) : users;
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="font-display text-2xl md:text-3xl">Customers <span className="text-muted-foreground text-sm font-sans">({users.length})</span></h1>
-        <button onClick={exportRows} className="border border-border px-3 py-2 text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-secondary"><Download className="h-3.5 w-3.5" /> CSV</button>
+        <div className="flex gap-2">
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, email, phone…" className="border border-border bg-transparent px-3 py-2 text-sm w-48 sm:w-64" />
+          <button onClick={exportRows} className="border border-border px-3 py-2 text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-secondary"><Download className="h-3.5 w-3.5" /> CSV</button>
+        </div>
       </div>
       <div className="border border-border overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px] md:min-w-0">
-          <thead className="bg-secondary"><tr>{['Name','Email','Phone','Joined'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
+        <table className="w-full text-sm min-w-[700px] md:min-w-0">
+          <thead className="bg-secondary"><tr>{['Name','Email','Phone','Birthday','Joined'].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
           <tbody>
-            {users.map((u) => (
+            {shown.map((u) => (
               <tr key={u.id} className="border-t border-border">
                 <td className="p-3 font-medium">{u.name || '—'}</td><td className="p-3">{u.email}</td><td className="p-3">{u.phone || '—'}</td>
-                <td className="p-3 text-muted-foreground">{new Date(u.created_at).toLocaleDateString()}</td>
+                <td className="p-3"><button onClick={() => setDob(u)} className="hover:underline" title="Set or correct the birthday">{u.dob ? fmtCalendarDate(u.dob) : '—'}</button></td>
+                <td className="p-3 text-muted-foreground">{fmtDate(u.created_at)}</td>
               </tr>
             ))}
           </tbody>
@@ -109,6 +86,10 @@ export function AdminSettings() {
             className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" />
         </div>
       ))}
+      <label className="mb-5 flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={s.cod_enabled !== false} onChange={(e) => save('cod_enabled', e.target.checked)} />
+        Cash on delivery available at checkout
+      </label>
       <div className="mb-5">
         <label className="eyebrow">Announcement banner</label>
         <input defaultValue={s.announcement?.text || ''} onBlur={(e) => save('announcement', { ...s.announcement, text: e.target.value })}
@@ -146,28 +127,31 @@ export function AdminSettings() {
   );
 }
 
+/** Every row of a table, in pages (ordered by its primary key). */
+const readAll = (table: string) =>
+  fetchAllRows<any>(() => (supabase.from(table as any) as any).select('*').order(table === 'settings' ? 'key' : 'id'));
+
 function DataExportPanel() {
   const [busy, setBusy] = useState(false);
-  const TABLES = ['products', 'product_variants', 'categories', 'brands', 'orders', 'order_items', 'profiles', 'coupons', 'admin_notifications', 'addresses', 'wishlist_items', 'settings'] as const;
+  const TABLES = ['products', 'product_variants', 'categories', 'brands', 'orders', 'order_items', 'profiles', 'coupons', 'admin_notifications', 'addresses', 'wishlist_items', 'settings', 'coupon_redemptions'] as const;
 
   const exportTable = async (table: string) => {
     setBusy(true);
-    const { data, error } = await supabase.from(table as any).select('*');
+    let data: any[] = [];
+    try { data = await readAll(table); } catch (error) { setBusy(false); return toast.error(describeError(error)); }
     setBusy(false);
-    if (error) return toast.error(describeError(error));
-    if (!data?.length) return toast.error(`${table} is empty`);
-    downloadCsv(`${table}-${new Date().toISOString().slice(0,10)}.csv`, data as any);
+    if (!data.length) return toast.error(`${table} is empty`);
+    downloadCsv(`${table}-${istDay()}.csv`, data as any);
   };
 
   const exportAll = async () => {
     setBusy(true);
     const out: Record<string, any> = { exported_at: new Date().toISOString() };
     for (const t of TABLES) {
-      const { data } = await supabase.from(t as any).select('*');
-      out[t] = data || [];
+      out[t] = await readAll(t).catch(() => []);
     }
     setBusy(false);
-    downloadJson(`vault26-db-${new Date().toISOString().slice(0,10)}.json`, out);
+    downloadJson(`vault26-db-${istDay()}.json`, out);
     toast.success('Database exported');
   };
 

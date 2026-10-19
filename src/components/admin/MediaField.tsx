@@ -126,8 +126,10 @@ export function MediaField({ label, value, onChange, kind = 'any', folder = 'vau
 }
 
 /** An ordered list of images/videos. */
-export function MediaListField({ label, value, onChange, kind = 'any', folder = 'vault26/cms' }: {
+export function MediaListField({ label, value, onChange, kind = 'any', folder = 'vault26/cms', max }: {
   label?: string; value: string[]; onChange: (urls: string[]) => void; kind?: Kind; folder?: string;
+  /** Most items allowed; the add box hides once it's reached. */
+  max?: number;
 }) {
   const { run, busy, progress } = useMediaUpload(folder);
   const list = value || [];
@@ -149,7 +151,9 @@ export function MediaListField({ label, value, onChange, kind = 'any', folder = 
           ))}
         </div>
       )}
-      <MediaInput kind={kind} folder={folder} onPick={(u) => onChange([...list, u])} busy={busy} progress={progress} run={run} />
+      {max !== undefined && list.length >= max
+        ? <div className="text-[11px] text-muted-foreground">{max} is the most — remove one to add another.</div>
+        : <MediaInput kind={kind} folder={folder} onPick={(u) => onChange([...list, u])} busy={busy} progress={progress} run={run} />}
     </div>
   );
 }

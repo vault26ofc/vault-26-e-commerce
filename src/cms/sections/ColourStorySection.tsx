@@ -5,14 +5,6 @@ import { X } from 'lucide-react';
 import type { CMSSection } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
 
-const SWATCHES = [
-  { name: 'Paper', hex: '#FFFFFF', q: 'white', ink: '#0F0F0F' },
-  { name: 'Margins', hex: '#F1F1F1', q: 'grey', ink: '#0F0F0F' },
-  { name: "Editor's red", hex: '#BB0006', q: 'red', ink: '#FFFFFF' },
-  { name: 'Archive red', hex: '#AA0001', q: 'burgundy', ink: '#FFFFFF' },
-  { name: 'Print ink', hex: '#0F0F0F', q: 'black', ink: '#FFFFFF' },
-];
-
 // Scroll windows (0–1 of the pinned run) for each beat of the reveal.
 const BAR_START = 0.04;
 const BAR_STEP = 0.09;
@@ -66,10 +58,9 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
     title?: string; eyebrow?: string; meta?: string; cta_label?: string; cta_link?: LinkValue; swatch_text?: string;
     swatches?: { name?: string; hex?: string; q?: string }[];
   };
-  const title = cfg.title || 'Colour stories';
-  const swatches: Swatch[] = cfg.swatches?.some((s) => s.name && s.hex)
-    ? cfg.swatches.filter((s) => s.name && s.hex).map((s) => ({ name: s.name!, hex: s.hex!, q: s.q || s.name!.toLowerCase(), ink: inkFor(s.hex!) }))
-    : SWATCHES;
+  const title = cfg.title;
+  const swatches: Swatch[] = (cfg.swatches || []).filter((s) => s.name && s.hex)
+    .map((s) => ({ name: s.name!, hex: s.hex!, q: s.q || s.name!.toLowerCase(), ink: inkFor(s.hex!) }));
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const panelX = useTransform(scrollYProgress, [PANEL[0], PANEL[1]], ['100%', '0%']);
@@ -81,6 +72,8 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
   const [open, setOpen] = useState<number | null>(null);
   const sw = open !== null ? swatches[open] : null;
 
+  if (!swatches.length) return null;
+
   return (
     <section ref={ref} className="relative h-[300vh] bg-white" data-section="colour-story">
       <div className="sticky top-14 md:top-[62px] h-[calc(100vh-56px)] md:h-[calc(100vh-62px)] overflow-hidden flex bg-white border-y border-[#0F0F0F]/10">
@@ -89,9 +82,9 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
         ))}
         <div className="relative flex-1 overflow-hidden">
           <motion.div style={{ x: panelX }} className="absolute inset-0 bg-[#0F0F0F] text-white p-5 md:p-10 flex flex-col justify-between will-change-transform">
-            <motion.p {...fade} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">{cfg.eyebrow || 'Shop by colour'}</motion.p>
+            <motion.p {...fade} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">{cfg.eyebrow}</motion.p>
             <div>
-              <motion.p {...fade} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">{cfg.meta || 'Lato · body'}</motion.p>
+              <motion.p {...fade} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">{cfg.meta}</motion.p>
               <h2 className="font-display font-[800] uppercase leading-[0.85] text-[clamp(44px,9vw,140px)]" aria-label={title}>
                 {title.split(' ').map((word, w, arr) => {
                   const before = arr.slice(0, w).join(' ').length + (w ? 1 : 0);
@@ -106,7 +99,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
               </h2>
               <motion.div initial={false} animate={{ opacity: revealed ? 1 : 0, y: revealed ? 0 : 30 }} transition={{ duration: 0.5 }}>
                 <Link to={resolveHref(cfg.cta_link, '/shop')} className="inline-flex mt-6 h-11 md:h-12 px-7 items-center bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] transition-colors">
-                  {cfg.cta_label || 'Explore the palette'}
+                  {cfg.cta_label}
                 </Link>
               </motion.div>
             </div>
@@ -140,7 +133,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
                     {sw.name}
                   </motion.h3>
                   <p className="font-sans text-[15px] md:text-[16px] mt-4 max-w-[440px] opacity-85">
-                    {(cfg.swatch_text || 'Every piece in the archive cut in {colour} tones — tees, knits, outerwear and accessories.').replace('{colour}', sw.name.toLowerCase())}
+                    {(cfg.swatch_text || '').replace('{colour}', sw.name.toLowerCase())}
                   </p>
                   <Link
                     to={`/search?q=${encodeURIComponent(sw.q)}`}

@@ -32,6 +32,7 @@ const ACCESSORIES = [
 
 export default function AccessoriesPage() {
   useSEO({
+    page: 'accessories',
     title: 'Accessories — VAULT 26',
     description: 'The final details. Explore our archive of luxury sunglasses, jewelry, and headwear.',
   });

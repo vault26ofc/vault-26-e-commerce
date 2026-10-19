@@ -65,46 +65,46 @@ export default function PolkaBentoSection({ section }: { section?: CMSSection })
     <section ref={ref} className="bg-white py-14 md:py-20">
       <Wrap>
         <div className="flex items-end justify-between gap-6 mb-6 md:mb-8">
-          <RedTag>{cfg.title || 'The season board'}</RedTag>
-          <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label || 'Shop everything'}</SeeAll>
+          <RedTag>{cfg.title}</RedTag>
+          <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label}</SeeAll>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[200px] md:auto-rows-[260px] gap-3 md:gap-4">
           {/* Big campaign */}
           <Link to={resolveHref(cfg.campaign_link, '/shop')} className="group col-span-2 row-span-2 relative">
             <Drift progress={scrollYProgress} speed={8} className="absolute inset-0">
-              <Media src={cfg.campaign_image || U('photo-1509631179647-0177331693ae', 1600)} alt={cfg.campaign_title || 'Autumn / Winter'} loading="lazy" className="w-full h-full object-cover grayscale" />
+              <Media src={cfg.campaign_image} alt={cfg.campaign_title} loading="lazy" className="w-full h-full object-cover grayscale" />
             </Drift>
             <div className="absolute left-4 bottom-4 md:left-6 md:bottom-6">
-              <span className="bg-[#BB0006] text-white font-display uppercase text-[34px] md:text-[56px] leading-[0.95] px-[0.14em] pt-[0.08em] inline-block">{cfg.campaign_title || 'Autumn / Winter'}</span>
-              <span className="mt-2 block font-sans text-white text-[14px] underline underline-offset-4">{cfg.campaign_cta || 'Shop the campaign'}</span>
+              <span className="bg-[#BB0006] text-white font-display uppercase text-[34px] md:text-[56px] leading-[0.95] px-[0.14em] pt-[0.08em] inline-block">{cfg.campaign_title}</span>
+              <span className="mt-2 block font-sans text-white text-[14px] underline underline-offset-4">{cfg.campaign_cta}</span>
             </div>
           </Link>
 
           {/* Red statement */}
           <Link to={resolveHref(cfg.offer_link, '/shop')} className="relative bg-[#BB0006] text-white p-5 flex flex-col justify-between overflow-hidden">
             <TextColumns count={4} color="rgba(0,0,0,0.22)" className="absolute inset-0 p-2" />
-            <span className="relative font-sans uppercase text-[12px]">{cfg.offer_eyebrow || 'Members'}</span>
-            <p className="relative font-display uppercase text-[40px] md:text-[54px] leading-[0.85]">{cfg.offer_text || '−15% on first order'}</p>
+            <span className="relative font-sans uppercase text-[12px]">{cfg.offer_eyebrow}</span>
+            <p className="relative font-display uppercase text-[40px] md:text-[54px] leading-[0.85]">{cfg.offer_text}</p>
           </Link>
 
           {productTile(p1, 'row-span-2')}
 
           {/* Ink stats */}
           <div className="bg-[#0F0F0F] text-white p-5 flex flex-col justify-between">
-            <span className="font-sans uppercase text-[12px] text-white/70">{cfg.stat_eyebrow || 'Since 2026'}</span>
+            <span className="font-sans uppercase text-[12px] text-white/70">{cfg.stat_eyebrow}</span>
             <div>
-              <p className="font-display text-[64px] md:text-[80px] leading-none">{cfg.stat_value || '650+'}</p>
-              <p className="font-sans text-[13px] text-white/80 mt-1">{cfg.stat_text || 'pieces made to outlive the season'}</p>
+              <p className="font-display text-[64px] md:text-[80px] leading-none">{cfg.stat_value}</p>
+              <p className="font-sans text-[13px] text-white/80 mt-1">{cfg.stat_text}</p>
             </div>
           </div>
 
           {/* Wide lookbook */}
           <Link to={resolveHref(cfg.lookbook_link, '/lookbook')} className="group col-span-2 relative">
             <Drift progress={scrollYProgress} speed={14} className="absolute inset-0">
-              <Media src={cfg.lookbook_image || U('photo-1490481651871-ab68de25d43d', 1600)} alt="Lookbook" loading="lazy" className="w-full h-full object-cover grayscale" />
+              <Media src={cfg.lookbook_image} alt="Lookbook" loading="lazy" className="w-full h-full object-cover grayscale" />
             </Drift>
-            <span className="absolute right-4 bottom-4 bg-white text-[#BB0006] font-sans text-[14px] h-10 px-5 flex items-center">{cfg.lookbook_cta || 'Open the lookbook'}</span>
+            <span className="absolute right-4 bottom-4 bg-white text-[#BB0006] font-sans text-[14px] h-10 px-5 flex items-center">{cfg.lookbook_cta}</span>
           </Link>
 
           {productTile(p2, '')}
@@ -113,15 +113,15 @@ export default function PolkaBentoSection({ section }: { section?: CMSSection })
           {/* Portrait */}
           <Link to={resolveHref(cfg.tile_link, '/category/outerwear')} className="group relative row-span-1 md:row-span-1 col-span-2 md:col-span-1">
             <Drift progress={scrollYProgress} speed={10} className="absolute inset-0">
-              <Media src={cfg.tile_image || U('photo-1520975954732-35dd22299614', 900)} alt={cfg.tile_label || 'Outerwear'} loading="lazy" className="w-full h-full object-cover grayscale" />
+              <Media src={cfg.tile_image} alt={cfg.tile_label} loading="lazy" className="w-full h-full object-cover grayscale" />
             </Drift>
-            <span className="absolute left-3 top-3 bg-[#BB0006] text-white font-display uppercase text-[26px] leading-none px-2 pt-1">{cfg.tile_label || 'Outerwear'}</span>
+            <span className="absolute left-3 top-3 bg-[#BB0006] text-white font-display uppercase text-[26px] leading-none px-2 pt-1">{cfg.tile_label}</span>
           </Link>
 
           {/* Services */}
           <div className="col-span-2 md:col-span-1 border border-[#0F0F0F] p-5 flex flex-col justify-between">
-            <p className="font-display uppercase text-[#0F0F0F] text-[34px] leading-[0.9]">{cfg.service_title || 'Delivered in 3–5 days'}</p>
-            <p className="font-sans text-[13px] text-[#0F0F0F]/80">{cfg.service_text || 'Free shipping over ₹999 · 7-day returns · COD available'}</p>
+            <p className="font-display uppercase text-[#0F0F0F] text-[34px] leading-[0.9]">{cfg.service_title}</p>
+            <p className="font-sans text-[13px] text-[#0F0F0F]/80">{cfg.service_text}</p>
           </div>
         </div>
       </Wrap>

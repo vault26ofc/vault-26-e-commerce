@@ -11,6 +11,7 @@ import {
   useCustomerPreferences,
 } from '@/hooks/useWhatsApp';
 import type { WhatsAppLog, QueueEntry, NotificationTemplate, MarketingCampaign } from '@/lib/whatsapp/types';
+import { fmtDateTime } from '@/lib/format';
 
 const TABS = [
   { id: 'logs', label: 'Message Logs', icon: Inbox },
@@ -88,7 +89,7 @@ function LogsTab() {
                   <td className="py-3 px-3 text-muted-foreground">{log.provider}</td>
                   <td className="py-3 px-3"><StatusBadge status={log.status} /></td>
                   <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
-                    {log.sent_at ? new Date(log.sent_at).toLocaleString() : '—'}
+                    {fmtDateTime(log.sent_at)}
                   </td>
                 </tr>
               ))}
@@ -152,7 +153,7 @@ function QueueTab() {
                   <td className="py-3 px-3"><StatusBadge status={item.status} /></td>
                   <td className="py-3 px-3 text-center">{item.attempts}/{item.max_attempts}</td>
                   <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
-                    {new Date(item.next_retry_at).toLocaleString()}
+                    {fmtDateTime(item.next_retry_at)}
                   </td>
                   <td className="py-3 px-3 text-red-500 max-w-[160px] truncate">{item.error_text ?? '—'}</td>
                   <td className="py-3 px-3">

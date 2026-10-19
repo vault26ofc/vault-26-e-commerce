@@ -5,6 +5,8 @@ import type { CMSSection } from '../types';
 import { TextColumns, TornEdge, Wrap } from '@/components/polka/Polka';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import { isVideoUrl } from '@/lib/media';
+import { imageProps } from '@/lib/image';
+import { useIsPhone } from '@/components/shared/Media';
 
 export interface CampaignSlide {
   id?: string;
@@ -13,54 +15,18 @@ export interface CampaignSlide {
   cta_href?: string;
   cta_link?: LinkValue;
   image: string;
+  image_mobile?: string;
 }
 type Stat = { n: string; label: string; sub: string };
 type CarouselConfig = {
   slides?: CampaignSlide[]; brand?: string; statement?: string; highlight?: string; body?: string; stats?: Stat[];
 };
 
-const DEFAULT_SLIDES: CampaignSlide[] = [
-  {
-    id: 'slide-1',
-    title: 'VAULT 26 POLO CLUB',
-    cta_label: 'SHOP NOW',
-    cta_href: '/shop',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=95&w=2000'
-  },
-  {
-    id: 'slide-2',
-    title: 'ARCHIVE DROPS 26',
-    cta_label: 'EXPLORE COLLECTION',
-    cta_href: '/shop',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=95&w=2000'
-  },
-  {
-    id: 'slide-3',
-    title: 'QUIET LUXURY ESSENTIALS',
-    cta_label: 'DISCOVER DROPS',
-    cta_href: '/shop',
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&q=95&w=2000'
-  },
-  {
-    id: 'slide-4',
-    title: 'SEASONAL CAPSULES',
-    cta_label: 'VIEW LOOKBOOK',
-    cta_href: '/lookbook',
-    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=95&w=2000'
-  }
-];
-
-const STATS = [
-  { n: '650+', label: 'pieces in the archive', sub: 'built for years of wear' },
-  { n: '50+', label: 'new drops every month', sub: 'the catalogue keeps moving' },
-  { n: '20', label: 'fabric mills we work with', sub: 'independent and heritage' },
-  { n: '100%', label: 'hand-finished', sub: 'every seam checked by the studio' },
-];
-
 export default function CampaignCarouselSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as CarouselConfig;
-  const slides: CampaignSlide[] = (cfg.slides && cfg.slides.length > 0 ? cfg.slides : DEFAULT_SLIDES).map((s, i) => ({ ...s, id: s.id || `slide-${i}` }));
-  const stats: Stat[] = cfg.stats?.length ? cfg.stats : STATS;
+  // Only what's set in Admin → CMS; no slides = no section.
+  const slides: CampaignSlide[] = (cfg.slides || []).filter((s) => s.image).map((s, i) => ({ ...s, id: s.id || `slide-${i}` }));
+  const stats: Stat[] = (cfg.stats || []).filter((s) => s.n || s.label);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
@@ -70,7 +36,12 @@ export default function CampaignCarouselSection({ section }: { section?: CMSSect
     return () => clearInterval(t);
   }, [paused, slides.length]);
 
-  const slide = slides[index];
+  const slide = slides[index % Math.max(slides.length, 1)];
+  const phone = useIsPhone();
+  // Optional phone-only photo/video per slide; empty = phones use the normal one.
+  const media = slide ? (phone && slide.image_mobile) || slide.image : '';
+
+  if (!slide) return null;
 
   return (
     <section className="relative bg-white">
@@ -81,10 +52,10 @@ export default function CampaignCarouselSection({ section }: { section?: CMSSect
         onMouseLeave={() => setPaused(false)}
       >
         <AnimatePresence initial={false}>
-          {isVideoUrl(slide.image) ? (
+          {isVideoUrl(media) ? (
             <motion.video
-              key={slide.id}
-              src={slide.image}
+              key={`${slide.id}-${media}`}
+              src={media}
               autoPlay muted loop playsInline
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -94,8 +65,8 @@ export default function CampaignCarouselSection({ section }: { section?: CMSSect
             />
           ) : (
             <motion.img
-              key={slide.id}
-              src={slide.image}
+              key={`${slide.id}-${media}`}
+              {...imageProps(media, { sizes: '100vw', priority: index === 0 })}
               alt={slide.title}
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -108,10 +79,12 @@ export default function CampaignCarouselSection({ section }: { section?: CMSSect
         <TornEdge color="#FFFFFF" position="top" seed={23} />
         <Wrap className="relative z-[3] h-full">
           <div className="pt-[clamp(40px,5vw,72px)] flex items-start justify-between">
-            <span className="font-display font-[800] uppercase text-white text-[20px] md:text-[26px] leading-none">{cfg.brand || 'Vault 26'}</span>
-            <Link to={resolveHref(slide.cta_link ?? slide.cta_href, '/shop')} className="font-sans text-white text-[13px] md:text-[14px] uppercase underline underline-offset-4">
-              {slide.cta_label}
-            </Link>
+            <span className="font-display font-[800] uppercase text-white text-[20px] md:text-[26px] leading-none">{cfg.brand}</span>
+            {slide.cta_label && (
+              <Link to={resolveHref(slide.cta_link ?? slide.cta_href, '/shop')} className="font-sans text-white text-[13px] md:text-[14px] uppercase underline underline-offset-4">
+                {slide.cta_label}
+              </Link>
+            )}
           </div>
         </Wrap>
         <TornEdge color="#BB0006" position="bottom" seed={31} height="clamp(30px,4.5vw,70px)" />
@@ -121,15 +94,15 @@ export default function CampaignCarouselSection({ section }: { section?: CMSSect
       <div className="relative bg-[#BB0006] text-white pb-[clamp(60px,8vw,120px)]">
         <Wrap className="pt-6 md:pt-8">
           <h2 className="font-display font-[800] uppercase leading-[1.02] text-[clamp(30px,4.4vw,64px)] max-w-[1200px]">
-            {slide.title}. {cfg.statement || 'Some pieces are worn once. Others'}{' '}
-            <span className="bg-white text-[#BB0006] px-[0.12em]">{cfg.highlight || 'become part of you'}</span>
+            {[slide.title && `${slide.title}.`, cfg.statement].filter(Boolean).join(' ')}{' '}
+            {cfg.highlight && <span className="bg-white text-[#BB0006] px-[0.12em]">{cfg.highlight}</span>}
           </h2>
 
           <div className="mt-8 md:mt-10 grid md:grid-cols-2 gap-10">
             <TextColumns count={6} color="rgba(255,255,255,0.55)" className="hidden md:grid h-[260px]" />
             <div>
               <p className="font-sans text-[15px] md:text-[16px] leading-relaxed max-w-[520px]">
-                {cfg.body || "We believe good clothing doesn't end at the checkout. It stays in your rotation, takes on your habits and comes back to you in every season of your life."}
+                {cfg.body}
               </p>
               <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-8">
                 {stats.map((s, i) => (

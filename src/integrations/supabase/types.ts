@@ -80,6 +80,7 @@ export type Database = {
           full_name: string
           id: string
           is_default: boolean
+          label: string
           line1: string
           line2: string | null
           phone: string
@@ -93,6 +94,7 @@ export type Database = {
           full_name: string
           id?: string
           is_default?: boolean
+          label?: string
           line1: string
           line2?: string | null
           phone: string
@@ -106,6 +108,7 @@ export type Database = {
           full_name?: string
           id?: string
           is_default?: boolean
+          label?: string
           line1?: string
           line2?: string | null
           phone?: string
@@ -215,6 +218,9 @@ export type Database = {
           social_facebook: string | null
           social_instagram: string | null
           social_twitter: string | null
+          social_whatsapp: string | null
+          social_youtube: string | null
+          support_hours: string | null
           tagline: string | null
           updated_at: string
         }
@@ -230,6 +236,9 @@ export type Database = {
           social_facebook?: string | null
           social_instagram?: string | null
           social_twitter?: string | null
+          social_whatsapp?: string | null
+          social_youtube?: string | null
+          support_hours?: string | null
           tagline?: string | null
           updated_at?: string
         }
@@ -245,6 +254,9 @@ export type Database = {
           social_facebook?: string | null
           social_instagram?: string | null
           social_twitter?: string | null
+          social_whatsapp?: string | null
+          social_youtube?: string | null
+          support_hours?: string | null
           tagline?: string | null
           updated_at?: string
         }
@@ -472,42 +484,177 @@ export type Database = {
         }
         Relationships: []
       }
-      coupons: {
+      coupon_categories: {
+        Row: {
+          category_id: string
+          coupon_id: string
+        }
+        Insert: {
+          category_id: string
+          coupon_id: string
+        }
+        Update: {
+          category_id?: string
+          coupon_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_categories_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_excluded_products: {
+        Row: {
+          coupon_id: string
+          product_id: string
+        }
+        Insert: {
+          coupon_id: string
+          product_id: string
+        }
+        Update: {
+          coupon_id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_excluded_products_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_excluded_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupon_redemptions: {
         Row: {
           code: string
+          coupon_id: string | null
           created_at: string
-          expires_at: string | null
+          discount: number
           id: string
-          is_active: boolean
-          max_uses: number | null
-          min_order: number
-          type: Database["public"]["Enums"]["coupon_type"]
-          used_count: number
-          value: number
+          order_id: string
+          user_id: string | null
         }
         Insert: {
           code: string
+          coupon_id?: string | null
           created_at?: string
-          expires_at?: string | null
+          discount?: number
           id?: string
-          is_active?: boolean
-          max_uses?: number | null
-          min_order?: number
-          type: Database["public"]["Enums"]["coupon_type"]
-          used_count?: number
-          value: number
+          order_id: string
+          user_id?: string | null
         }
         Update: {
           code?: string
+          coupon_id?: string | null
           created_at?: string
+          discount?: number
+          id?: string
+          order_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coupon_redemptions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          assigned_user_id: string | null
+          bday_year: number | null
+          code: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          first_order_only: boolean
+          id: string
+          is_active: boolean
+          is_listed: boolean
+          kind: string
+          max_discount: number | null
+          max_uses: number | null
+          min_order: number
+          per_user_limit: number | null
+          starts_at: string | null
+          type: Database["public"]["Enums"]["coupon_type"]
+          used_count: number
+          value: number
+          welcome_tier_id: string | null
+        }
+        Insert: {
+          assigned_user_id?: string | null
+          bday_year?: number | null
+          code: string
+          created_at?: string
+          description?: string | null
           expires_at?: string | null
+          first_order_only?: boolean
           id?: string
           is_active?: boolean
+          is_listed?: boolean
+          kind?: string
+          max_discount?: number | null
           max_uses?: number | null
           min_order?: number
+          per_user_limit?: number | null
+          starts_at?: string | null
+          type: Database["public"]["Enums"]["coupon_type"]
+          used_count?: number
+          value: number
+          welcome_tier_id?: string | null
+        }
+        Update: {
+          assigned_user_id?: string | null
+          bday_year?: number | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          first_order_only?: boolean
+          id?: string
+          is_active?: boolean
+          is_listed?: boolean
+          kind?: string
+          max_discount?: number | null
+          max_uses?: number | null
+          min_order?: number
+          per_user_limit?: number | null
+          starts_at?: string | null
           type?: Database["public"]["Enums"]["coupon_type"]
           used_count?: number
           value?: number
+          welcome_tier_id?: string | null
         }
         Relationships: []
       }
@@ -855,6 +1002,42 @@ export type Database = {
         }
         Relationships: []
       }
+      mega_menu_featured: {
+        Row: {
+          id: string
+          position: number
+          product_id: string
+          tab_id: string
+        }
+        Insert: {
+          id?: string
+          position?: number
+          product_id: string
+          tab_id: string
+        }
+        Update: {
+          id?: string
+          position?: number
+          product_id?: string
+          tab_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mega_menu_featured_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mega_menu_featured_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "mega_menu_tabs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mega_menu_groups: {
         Row: {
           created_at: string
@@ -893,33 +1076,39 @@ export type Database = {
           created_at: string
           custom_href: string | null
           custom_label: string | null
-          group_id: string
+          group_id: string | null
           hover_image_url: string | null
           id: string
+          is_visible: boolean
           link_type: string
           position: number
+          tab_id: string | null
         }
         Insert: {
           category_id?: string | null
           created_at?: string
           custom_href?: string | null
           custom_label?: string | null
-          group_id: string
+          group_id?: string | null
           hover_image_url?: string | null
           id?: string
+          is_visible?: boolean
           link_type: string
           position?: number
+          tab_id?: string | null
         }
         Update: {
           category_id?: string | null
           created_at?: string
           custom_href?: string | null
           custom_label?: string | null
-          group_id?: string
+          group_id?: string | null
           hover_image_url?: string | null
           id?: string
+          is_visible?: boolean
           link_type?: string
           position?: number
+          tab_id?: string | null
         }
         Relationships: [
           {
@@ -934,6 +1123,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "mega_menu_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mega_menu_links_tab_id_fkey"
+            columns: ["tab_id"]
+            isOneToOne: false
+            referencedRelation: "mega_menu_tabs"
             referencedColumns: ["id"]
           },
         ]
@@ -1222,6 +1418,7 @@ export type Database = {
           shiprocket_order_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           stock_committed: boolean
+          stock_restored_at: string | null
           subtotal: number
           total: number
           tracking_url: string | null
@@ -1273,6 +1470,7 @@ export type Database = {
           shiprocket_order_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stock_committed?: boolean
+          stock_restored_at?: string | null
           subtotal: number
           total: number
           tracking_url?: string | null
@@ -1324,6 +1522,7 @@ export type Database = {
           shiprocket_order_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           stock_committed?: boolean
+          stock_restored_at?: string | null
           subtotal?: number
           total?: number
           tracking_url?: string | null
@@ -1456,6 +1655,8 @@ export type Database = {
           brand_id: string | null
           care: string | null
           category_id: string | null
+          color_images: Json
+          compare_at: number | null
           created_at: string
           description: string | null
           id: string
@@ -1464,13 +1665,18 @@ export type Database = {
           is_featured: boolean
           material: string | null
           name: string
+          price: number | null
+          sizes: string[]
           slug: string
+          stock: number
           videos: string[]
         }
         Insert: {
           brand_id?: string | null
           care?: string | null
           category_id?: string | null
+          color_images?: Json
+          compare_at?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1479,13 +1685,18 @@ export type Database = {
           is_featured?: boolean
           material?: string | null
           name: string
+          price?: number | null
+          sizes?: string[]
           slug: string
+          stock?: number
           videos?: string[]
         }
         Update: {
           brand_id?: string | null
           care?: string | null
           category_id?: string | null
+          color_images?: Json
+          compare_at?: number | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1494,7 +1705,10 @@ export type Database = {
           is_featured?: boolean
           material?: string | null
           name?: string
+          price?: number | null
+          sizes?: string[]
           slug?: string
+          stock?: number
           videos?: string[]
         }
         Relationships: [
@@ -1517,6 +1731,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          dob: string | null
           email: string | null
           id: string
           name: string | null
@@ -1524,6 +1739,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dob?: string | null
           email?: string | null
           id: string
           name?: string | null
@@ -1531,6 +1747,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dob?: string | null
           email?: string | null
           id?: string
           name?: string | null
@@ -1783,6 +2000,72 @@ export type Database = {
         }
         Relationships: []
       }
+      welcome_offer_settings: {
+        Row: {
+          code_prefix: string
+          enabled: boolean
+          first_order_only: boolean
+          id: boolean
+          max_discount: number | null
+          min_order: number
+          updated_at: string
+          valid_days: number
+        }
+        Insert: {
+          code_prefix?: string
+          enabled?: boolean
+          first_order_only?: boolean
+          id?: boolean
+          max_discount?: number | null
+          min_order?: number
+          updated_at?: string
+          valid_days?: number
+        }
+        Update: {
+          code_prefix?: string
+          enabled?: boolean
+          first_order_only?: boolean
+          id?: boolean
+          max_discount?: number | null
+          min_order?: number
+          updated_at?: string
+          valid_days?: number
+        }
+        Relationships: []
+      }
+      welcome_offer_tiers: {
+        Row: {
+          created_at: string
+          discount_type: Database["public"]["Enums"]["coupon_type"]
+          discount_value: number
+          id: string
+          is_active: boolean
+          label: string
+          position: number
+          target_percent: number
+        }
+        Insert: {
+          created_at?: string
+          discount_type?: Database["public"]["Enums"]["coupon_type"]
+          discount_value: number
+          id?: string
+          is_active?: boolean
+          label: string
+          position?: number
+          target_percent?: number
+        }
+        Update: {
+          created_at?: string
+          discount_type?: Database["public"]["Enums"]["coupon_type"]
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          position?: number
+          target_percent?: number
+        }
+        Relationships: []
+      }
       whatsapp_logs: {
         Row: {
           created_at: string
@@ -1883,10 +2166,13 @@ export type Database = {
         Args: { p_delta: number; p_reason: string; p_variant_id: string }
         Returns: number
       }
+      admin_delete_product: { Args: { p_id: string }; Returns: undefined }
+      available_coupons: { Args: { p_items: Json }; Returns: Json }
       call_shipping_function: {
         Args: { p_function: string; p_order_id: string }
         Returns: undefined
       }
+      check_cart_stock: { Args: { p_items: Json }; Returns: Json }
       check_rate_limit: {
         Args: {
           p_key: string
@@ -1903,6 +2189,18 @@ export type Database = {
           p_payment_id: string
         }
         Returns: Json
+      }
+      coupon_evaluate: {
+        Args: {
+          p_coupon: Database["public"]["Tables"]["coupons"]["Row"]
+          p_lines: Json
+          p_user: string
+        }
+        Returns: Json
+      }
+      coupon_reason_text: {
+        Args: { p_code: string; p_min?: number; p_reason: string }
+        Returns: string
       }
       create_order: {
         Args: {
@@ -1926,6 +2224,39 @@ export type Database = {
         }
         Returns: boolean
       }
+      issue_birthday_coupons: {
+        Args: {
+          p_discount_type: string
+          p_discount_value: number
+          p_max_discount: number
+          p_min_order: number
+          p_user_ids: string[]
+          p_valid_days: number
+        }
+        Returns: number
+      }
+      issue_welcome_coupon: { Args: { p_user: string }; Returns: string }
+      quote_order: {
+        Args: {
+          p_coupon_code?: string
+          p_items: Json
+          p_payment_method?: string
+        }
+        Returns: Json
+      }
+      recompute_product_stock: {
+        Args: { p_product: string }
+        Returns: undefined
+      }
+      save_coupon: {
+        Args: {
+          p_categories: string[]
+          p_excluded: string[]
+          p_fields: Json
+          p_id: string
+        }
+        Returns: string
+      }
       save_product: {
         Args: { p_product: Json; p_variants: Json }
         Returns: string
@@ -1938,10 +2269,16 @@ export type Database = {
         Args: { p_product: Json; p_product_id: string }
         Returns: undefined
       }
+      save_welcome_offer: {
+        Args: { p_settings: Json; p_tiers: Json }
+        Returns: undefined
+      }
       set_stock_context: {
         Args: { p_order?: string; p_reason: string }
         Returns: undefined
       }
+      size_rank: { Args: { p_label: string }; Returns: number }
+      welcome_offer_stats: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "customer"

@@ -11,98 +11,20 @@ import { cn } from '@/lib/utils';
 import { isVideoUrl } from '@/lib/media';
 import { useSEO } from '@/lib/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/lib/useAuth';
+import { imageProps } from '@/lib/image';
+import { isOneSize } from '@/lib/sizes';
+import { PRODUCT_CARD_SELECT, toProductCard } from '@/cms/lib/sectionProducts';
 
-const FALLBACK_PRODUCTS_MAP: Record<string, any> = {
-  'heavyweight-box-tee': {
-    id: 'bs-1',
-    slug: 'heavyweight-box-tee',
-    name: 'The Heavyweight Box Tee v2.0 - Archive',
-    description: 'Constructed from 280 GSM combed cotton. Boxy, drop-shoulder silhouette built for effortless layering.',
-    images: [
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=90&w=800',
-      'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&q=90&w=800'
-    ],
-    brands: { name: 'VAULT 26', slug: 'vault-26' },
-    categories: { name: 'Essentials', slug: 'men', id: 'cat-1' },
-    product_variants: [
-      { id: 'v1-1', price: 3490, compare_price: 4490, size: 'S', color: 'Onyx', color_hex: '#0F0F0F', stock: 10 },
-      { id: 'v1-2', price: 3490, compare_price: 4490, size: 'M', color: 'Onyx', color_hex: '#0F0F0F', stock: 15 },
-      { id: 'v1-3', price: 3490, compare_price: 4490, size: 'L', color: 'Onyx', color_hex: '#0F0F0F', stock: 20 },
-      { id: 'v1-4', price: 3490, compare_price: 4490, size: 'XL', color: 'Onyx', color_hex: '#0F0F0F', stock: 8 }
-    ]
-  },
-  'raw-selvedge-oversized-denim': {
-    id: 'bs-2',
-    slug: 'raw-selvedge-oversized-denim',
-    name: 'The Denim Shirt v2.0 - Archive',
-    description: '14oz japanese selvedge denim utility shirt. Custom hardware, double-stitched seams, relaxed silhouette.',
-    images: [
-      'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=90&w=800',
-      'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=90&w=800'
-    ],
-    brands: { name: 'VAULT 26', slug: 'vault-26' },
-    categories: { name: 'Outerwear', slug: 'men', id: 'cat-2' },
-    product_variants: [
-      { id: 'v2-1', price: 7990, compare_price: 9990, size: 'S', color: 'Indigo', color_hex: '#4B6B94', stock: 5 },
-      { id: 'v2-2', price: 7990, compare_price: 9990, size: 'M', color: 'Indigo', color_hex: '#4B6B94', stock: 12 },
-      { id: 'v2-3', price: 7990, compare_price: 9990, size: 'L', color: 'Indigo', color_hex: '#4B6B94', stock: 8 }
-    ]
-  },
-  'architectural-fleece-hoodie': {
-    id: 'bs-3',
-    slug: 'architectural-fleece-hoodie',
-    name: 'The Lightweight T-Shirt v2.0 - Archive',
-    description: '450 GSM French terry fleece with double-layered hood and ribbing. Designed for warmth and structured drape.',
-    images: [
-      'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=90&w=800',
-      'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&q=90&w=800'
-    ],
-    brands: { name: 'VAULT 26', slug: 'vault-26' },
-    categories: { name: 'Essentials', slug: 'men', id: 'cat-1' },
-    product_variants: [
-      { id: 'v3-1', price: 4290, compare_price: 5490, size: 'M', color: 'Heather Grey', color_hex: '#888888', stock: 10 },
-      { id: 'v3-2', price: 4290, compare_price: 5490, size: 'L', color: 'Heather Grey', color_hex: '#888888', stock: 14 }
-    ]
-  },
-  'minimalist-cargo-trousers': {
-    id: 'bs-4',
-    slug: 'minimalist-cargo-trousers',
-    name: 'The Merino Wool Polo v1.4 - Archive',
-    description: 'Fine 100% merino wool knit polo shirt. Breathable, naturally temperature-regulating and refined.',
-    images: [
-      'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&q=90&w=800',
-      'https://images.unsplash.com/photo-1517445312882-bc9910d016b7?auto=format&fit=crop&q=90&w=800'
-    ],
-    brands: { name: 'VAULT 26', slug: 'vault-26' },
-    categories: { name: 'Knitwear', slug: 'men', id: 'cat-3' },
-    product_variants: [
-      { id: 'v4-1', price: 6990, compare_price: 8990, size: 'M', color: 'Forest Green', color_hex: '#243029', stock: 8 },
-      { id: 'v4-2', price: 6990, compare_price: 8990, size: 'L', color: 'Forest Green', color_hex: '#243029', stock: 10 }
-    ]
-  },
-  'structured-utility-overshirt': {
-    id: 'bs-5',
-    slug: 'structured-utility-overshirt',
-    name: 'The Merino Zip Cardigan v1.3 - Archive',
-    description: 'Heavy gauge ribbed knit cardigan with two-way matte zipper and clean mock-neck collar.',
-    images: [
-      'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&q=90&w=800',
-      'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&q=90&w=800'
-    ],
-    brands: { name: 'VAULT 26', slug: 'vault-26' },
-    categories: { name: 'Outerwear', slug: 'men', id: 'cat-2' },
-    product_variants: [
-      { id: 'v5-1', price: 8490, compare_price: 10490, size: 'M', color: 'Navy', color_hex: '#1E293B', stock: 6 },
-      { id: 'v5-2', price: 8490, compare_price: 10490, size: 'L', color: 'Navy', color_hex: '#1E293B', stock: 9 }
-    ]
-  }
-};
+type Variant = { id: string; size: string | null; color: string | null; color_hex: string | null; stock: number; price: number | string; compare_price: number | string | null };
 
 export default function ProductDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [product, setProduct] = useState<any>(null);
-  const [variants, setVariants] = useState<any[]>([]);
+  const [missing, setMissing] = useState(false);
+  const [variants, setVariants] = useState<Variant[]>([]);
   const [activeImg, setActiveImg] = useState(0);
   const [color, setColor] = useState<string | null>(null);
   const [size, setSize] = useState<string | null>(null);
@@ -111,68 +33,49 @@ export default function ProductDetail() {
   const [reviews, setReviews] = useState<{ name: string; quote: string; rating: number }[]>([]);
   const [reviewIdx, setReviewIdx] = useState(0);
   const [related, setRelated] = useState<ProductCardData[]>([]);
+  const [freeShipping, setFreeShipping] = useState<number | null>(null);
   const add = useCart((s) => s.add);
   const { ids, toggle } = useWishlist();
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       if (!slug) return;
-      
-      let p = null;
-      try {
-        const { data, error } = await supabase.from('products').select('*, brands(name, slug), categories!products_category_id_fkey(name, slug, id), product_variants(*)').eq('slug', slug).maybeSingle();
-        if (!error && data) p = data;
-      } catch (e) {
-        console.warn('Supabase product query error:', e);
-      }
+      setProduct(null); setMissing(false);
+      const { data: p } = await supabase.from('products')
+        .select('*, brands(name, slug), categories!products_category_id_fkey(name, slug, id), product_variants(*)')
+        .eq('slug', slug).maybeSingle();
+      if (cancelled) return;
+      // Hidden products are only previewable by admins.
+      if (!p || (!(p as any).is_active && !isAdmin)) { setMissing(true); return; }
 
-      if (!p && slug && FALLBACK_PRODUCTS_MAP[slug]) {
-        p = FALLBACK_PRODUCTS_MAP[slug];
-      }
-
-      if (!p) {
-        p = {
-          id: `p-${slug}`,
-          slug: slug,
-          name: slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' - Archive',
-          description: 'Vault 26 limited edition archive piece. Heavyweight textile with custom finishing.',
-          images: [
-            'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=90&w=800',
-            'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&q=90&w=800'
-          ],
-          brands: { name: 'VAULT 26', slug: 'vault-26' },
-          categories: { name: 'Archive', slug: 'all', id: 'cat-1' },
-          product_variants: [
-            { id: `v-${slug}-1`, price: 4990, compare_price: 5990, size: 'M', color: 'Onyx', color_hex: '#0F0F0F', stock: 10 },
-            { id: `v-${slug}-2`, price: 4990, compare_price: 5990, size: 'L', color: 'Onyx', color_hex: '#0F0F0F', stock: 15 }
-          ]
-        };
-      }
-
-      // Videos join the gallery after the photos (the cover photo stays first for carts and cards).
-      setProduct({ ...(p as any), images: [...((p as any).images || []), ...((p as any).videos || [])] });
-      setVariants((p as any).product_variants || []);
+      // Variants in the product's size order (Admin → Sizes, kept in products.sizes).
+      const order: string[] = (p as any).sizes || [];
+      const vs: Variant[] = [...((p as any).product_variants || [])].sort((a: Variant, b: Variant) => {
+        const ia = order.indexOf(a.size || ''), ib = order.indexOf(b.size || '');
+        return (ia < 0 ? 1e9 : ia) - (ib < 0 ? 1e9 : ib);
+      });
+      setProduct(p);
+      setVariants(vs);
       setActiveImg(0);
-      const colors = Array.from(new Set(((p as any).product_variants || []).map((v: any) => v.color)));
-      setColor((colors[0] || 'Onyx') as any);
-      setSize(((p as any).product_variants?.[0]?.size || 'M') as any);
+      // Start on the first colour (and size) that is in stock.
+      const first = vs.find((v) => v.stock > 0) || vs[0];
+      setColor(first?.color ?? null);
+      const forColor = vs.filter((v) => v.color === (first?.color ?? null));
+      setSize(forColor.length === 1 ? forColor[0].size : (first && first.stock > 0 ? first.size : null));
 
-      // related
       if ((p as any).category_id) {
-        try {
-          const { data: rel } = await supabase.from('products').select('id, name, slug, images, brands(name), product_variants(price, compare_price)').eq('category_id', (p as any).category_id).neq('id', p.id).limit(4);
-          setRelated((rel || []).map((r: any) => {
-            const v = r.product_variants?.[0];
-            return { id: r.id, slug: r.slug, name: r.name, brand: r.brands?.name, images: r.images || [], price: Number(v?.price || 0), comparePrice: v?.compare_price ? Number(v.compare_price) : null };
-          }));
-        } catch {
-          setRelated([]);
-        }
+        const { data: rel } = await supabase.from('products').select(PRODUCT_CARD_SELECT)
+          .eq('category_id', (p as any).category_id).eq('is_active', true).neq('id', (p as any).id).limit(4);
+        if (!cancelled) setRelated((rel || []).map(toProductCard));
       }
     })();
-  }, [slug]);
+    return () => { cancelled = true; };
+  }, [slug, isAdmin]);
 
   useEffect(() => {
+    supabase.from('settings').select('value').eq('key', 'free_shipping_threshold').maybeSingle()
+      .then(({ data }) => { if (data) setFreeShipping(Number(data.value)); });
     (supabase.from('testimonials' as any) as any)
       .select('*')
       .eq('is_active', true)
@@ -192,16 +95,33 @@ export default function ProductDetail() {
   }, []);
 
   const colors = useMemo(() => {
-    const map = new Map<string, string>();
-    variants.forEach((v) => { if (v.color) map.set(v.color, v.color_hex); });
+    const map = new Map<string, string | null>();
+    variants.forEach((v) => { if (v.color && !map.has(v.color)) map.set(v.color, v.color_hex); });
     return Array.from(map.entries()).map(([color, hex]) => ({ color, hex }));
   }, [variants]);
 
   const sizesForColor = useMemo(() => variants.filter((v) => v.color === color), [variants, color]);
-  const activeVariant = useMemo(() => variants.find((v) => v.color === color && v.size === size), [variants, color, size]);
-  const minPrice = useMemo(() => Math.min(...variants.map((v) => Number(v.price))), [variants]);
+  // A single-size product (ONE SIZE) shows no size picker; a single plain item shows no pickers at all.
+  const showSizes = sizesForColor.length > 0 && !(sizesForColor.length === 1 && isOneSize(sizesForColor[0].size));
+  const activeVariant = useMemo(
+    () => variants.find((v) => v.color === color && (v.size === size || (!showSizes && sizesForColor.length === 1))),
+    [variants, color, size, showSizes, sizesForColor],
+  );
+  const minPrice = useMemo(
+    () => (variants.length ? Math.min(...variants.map((v) => Number(v.price))) : Number(product?.price || 0)),
+    [variants, product],
+  );
+
+  // Gallery: the chosen colour's own photos when it has any, otherwise the main photos (+ videos).
+  const gallery: string[] = useMemo(() => {
+    if (!product) return [];
+    const own: string[] = (color && product.color_images?.[color]) || [];
+    return own.length ? own : [...(product.images || []), ...(product.videos || [])];
+  }, [product, color]);
+  useEffect(() => { setActiveImg(0); }, [color]);
 
   useSEO(product ? {
+    page: `products/${product.slug}`,
     title: `${product.name} — Vault 26`,
     description: (product.description || `Shop ${product.name} from Vault 26 — premium minimalist streetwear made in India.`).slice(0, 160),
     image: product.images?.[0],
@@ -225,7 +145,17 @@ export default function ProductDetail() {
         seller: { '@type': 'Organization', name: 'Vault 26' },
       },
     },
-  } : { title: 'Loading… — Vault 26' });
+  } : { title: missing ? 'Not found — Vault 26' : 'Loading… — Vault 26', noindex: missing });
+
+  if (missing) {
+    return (
+      <div className="bg-white min-h-screen pt-[56px] md:pt-[62px] flex flex-col items-center justify-center text-center px-4">
+        <p className="font-display font-[800] uppercase text-[40px] md:text-[64px] leading-none text-[#0F0F0F]">Piece not found</p>
+        <p className="font-sans text-[15px] text-[#0F0F0F]/60 mt-3 mb-6">This piece is no longer in the archive.</p>
+        <Link to="/shop" className="h-12 px-8 bg-[#BB0006] text-white font-sans text-[15px] hover:bg-[#AA0001] flex items-center">Shop all pieces</Link>
+      </div>
+    );
+  }
 
   if (!product) {
     return <div className="mx-auto max-w-[1440px] px-4 md:px-8 pt-[110px] pb-20 grid lg:grid-cols-[1fr_1.7fr_1.4fr] gap-4 animate-pulse"><div className="space-y-4"><div className="h-8 bg-[#F1F1F1] w-32" /><div className="h-16 bg-[#F1F1F1] w-3/4" /></div><div className="aspect-[4/5] bg-[#F1F1F1]" /><div className="h-64 bg-[#F1F1F1]" /></div>;
@@ -234,7 +164,7 @@ export default function ProductDetail() {
   const wished = ids.includes(product.id);
 
   const addToCart = () => {
-    if (!activeVariant) { toast.error('Please select a size'); return; }
+    if (!activeVariant) { toast.error(variants.length ? 'Please select a size' : 'This piece is sold out'); return; }
     if (activeVariant.stock < qty) { toast.error('Not enough stock'); return; }
     add({
       variantId: activeVariant.id,
@@ -243,7 +173,7 @@ export default function ProductDetail() {
       brand: product.brands?.name,
       size: activeVariant.size,
       color: activeVariant.color,
-      image: product.images[0],
+      image: product.color_images?.[activeVariant.color || '']?.[0] || product.images?.[0] || '',
       price: Number(activeVariant.price),
       comparePrice: activeVariant.compare_price ? Number(activeVariant.compare_price) : null,
       quantity: qty,
@@ -255,11 +185,11 @@ export default function ProductDetail() {
   const buyNow = () => { addToCart(); setTimeout(() => navigate('/checkout'), 100); };
 
   const inStock = activeVariant ? activeVariant.stock > 0 : variants.some((v) => v.stock > 0);
-  const comparePrice = activeVariant?.compare_price || product.product_variants?.[0]?.compare_price;
+  const comparePrice = activeVariant ? activeVariant.compare_price : (variants[0]?.compare_price ?? product.compare_at);
   const details: { id: string; label: string; body: React.ReactNode }[] = [
     { id: 'desc', label: 'About the piece', body: product.description || 'A signature Vault 26 piece, made for the everyday wardrobe.' },
     { id: 'mat', label: 'Material & care', body: [product.material, product.care && `Care: ${product.care}`].filter(Boolean).join(' · ') || 'Care instructions are on the inside label.' },
-    { id: 'ship', label: 'Payment & delivery', body: 'Free shipping on orders above ₹999. Dispatched within 24 hours. Pay by UPI, card or cash on delivery.' },
+    { id: 'ship', label: 'Payment & delivery', body: `${freeShipping ? `Free shipping on orders above ${inr(freeShipping)}. ` : ''}Dispatched within 24 hours. Pay by UPI, card or cash on delivery.` },
     { id: 'ret', label: 'Returns & exchange', body: '7-day easy returns and size exchanges on unworn pieces with tags attached.' },
   ];
 
@@ -311,17 +241,24 @@ export default function ProductDetail() {
                   {colors.map((c) => (
                     <button
                       key={c.color}
-                      onClick={() => { setColor(c.color); setSize(null); }}
+                      onClick={() => {
+                        setColor(c.color);
+                        const forColor = variants.filter((v) => v.color === c.color);
+                        setSize(forColor.length === 1 ? forColor[0].size : null);
+                      }}
                       aria-label={c.color}
-                      className={cn('h-9 w-9 border transition-all', color === c.color ? 'border-[#BB0006] ring-2 ring-[#BB0006] ring-offset-2' : 'border-[#0F0F0F]/20 hover:border-[#0F0F0F]')}
-                      style={{ backgroundColor: c.hex }}
-                    />
+                      title={c.color}
+                      className={cn('h-9 min-w-9 border transition-all', !c.hex && 'px-2 font-sans text-[12px] uppercase', color === c.color ? 'border-[#BB0006] ring-2 ring-[#BB0006] ring-offset-2' : 'border-[#0F0F0F]/20 hover:border-[#0F0F0F]')}
+                      style={c.hex ? { backgroundColor: c.hex } : undefined}
+                    >
+                      {!c.hex && c.color}
+                    </button>
                   ))}
                 </div>
               </div>
             )}
 
-            {sizesForColor.length > 0 && (
+            {showSizes && (
               <div className="mt-8">
                 <span className="font-sans uppercase text-[13px] text-[#0F0F0F]">Size</span>
                 <div className="grid grid-cols-4 gap-2 mt-3">
@@ -345,7 +282,7 @@ export default function ProductDetail() {
 
             <div className="mt-auto pt-10 space-y-3">
               <p className="flex items-center gap-2 font-sans text-[15px] text-[#0F0F0F]">
-                <Info className="h-4 w-4" strokeWidth={1.8} /> {inStock ? 'In stock' : 'Out of stock'}
+                <Info className="h-4 w-4" strokeWidth={1.8} /> {inStock ? (activeVariant && activeVariant.stock <= 3 ? `Only ${activeVariant.stock} left` : 'In stock') : 'Sold out'}
               </p>
               <button onClick={addToCart} disabled={!inStock} className="w-full h-12 md:h-[52px] bg-[#BB0006] text-white font-sans text-[15px] md:text-[16px] hover:bg-[#AA0001] transition-colors disabled:opacity-50">
                 Add to bag
@@ -359,10 +296,10 @@ export default function ProductDetail() {
           {/* Main image */}
           <div className="relative order-1 lg:order-2 bg-[#F1F1F1] aspect-[4/5] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
             <AnimatePresence mode="wait">
-              {isVideoUrl(product.images[activeImg]) ? (
+              {isVideoUrl(gallery[activeImg]) ? (
                 <motion.video
-                  key={activeImg}
-                  src={product.images[activeImg]}
+                  key={`${color}-${activeImg}`}
+                  src={gallery[activeImg]}
                   autoPlay muted loop playsInline controls
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -372,8 +309,8 @@ export default function ProductDetail() {
                 />
               ) : (
                 <motion.img
-                  key={activeImg}
-                  src={product.images[activeImg]}
+                  key={`${color}-${activeImg}`}
+                  {...imageProps(gallery[activeImg], { sizes: '(min-width: 1024px) 40vw, 100vw', priority: activeImg === 0 })}
                   alt={product.name}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -395,12 +332,12 @@ export default function ProductDetail() {
                 <Share2 strokeWidth={1.7} className="h-5 w-5" />
               </button>
             </div>
-            {product.images.length > 1 && (
+            {gallery.length > 1 && (
               <>
-                <button onClick={() => setActiveImg((activeImg - 1 + product.images.length) % product.images.length)} aria-label="Previous image" className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#BB0006] text-white flex items-center justify-center">
+                <button onClick={() => setActiveImg((activeImg - 1 + gallery.length) % gallery.length)} aria-label="Previous image" className="lg:hidden absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#BB0006] text-white flex items-center justify-center">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button onClick={() => setActiveImg((activeImg + 1) % product.images.length)} aria-label="Next image" className="lg:hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#BB0006] text-white flex items-center justify-center">
+                <button onClick={() => setActiveImg((activeImg + 1) % gallery.length)} aria-label="Next image" className="lg:hidden absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#BB0006] text-white flex items-center justify-center">
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </>
@@ -429,9 +366,9 @@ export default function ProductDetail() {
                 );
               })}
             </div>
-            {product.images.length > 1 && (
+            {gallery.length > 1 && (
               <div className="hidden lg:flex gap-3 mt-3 overflow-x-auto scrollbar-hide">
-                {product.images.map((img: string, i: number) => (
+                {gallery.map((img: string, i: number) => (
                   <button
                     key={i}
                     onClick={() => setActiveImg(i)}
@@ -439,7 +376,7 @@ export default function ProductDetail() {
                   >
                     {isVideoUrl(img)
                       ? <video src={img} muted playsInline preload="metadata" className="w-full h-full object-cover" />
-                      : <img src={img} alt="" className="w-full h-full object-cover mix-blend-multiply" />}
+                      : <img {...imageProps(img, { sizes: '20vw', maxWidth: 640 })} alt="" className="w-full h-full object-cover mix-blend-multiply" />}
                   </button>
                 ))}
               </div>

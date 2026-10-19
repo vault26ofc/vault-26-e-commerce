@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { ProductCardData } from '@/components/product/ProductCard';
 
 /** Columns every product-showing section needs to render a ProductCard. */
-export const PRODUCT_CARD_SELECT = 'id, slug, name, images, created_at, brands(name), product_variants(price, compare_price, size, stock)';
+export const PRODUCT_CARD_SELECT = 'id, slug, name, images, created_at, price, compare_at, stock, brands(name), product_variants(price, compare_price, size, stock)';
 
 /** Section config keys added by the CMS "Products" field. */
 export type ProductPickConfig = { product_mode?: 'auto' | 'manual'; product_slugs?: string[] };
@@ -18,14 +18,17 @@ export function orderBySlugs<T extends { slug: string }>(rows: T[], slugs: strin
 export function toProductCard(p: any): ProductCardData {
   const variants: any[] = p.product_variants || [];
   const cheapest = variants.reduce<any>((min, v) => (!min || Number(v.price) < Number(min.price) ? v : min), null);
+  // products.stock is derived from the variants; a product with no variant rows is sold out.
+  const stock = typeof p.stock === 'number' ? p.stock : variants.reduce((n, v) => n + Math.max(0, Number(v.stock) || 0), 0);
   return {
     id: p.id,
     slug: p.slug,
     name: p.name,
     images: Array.isArray(p.images) ? p.images : [],
-    price: Number(cheapest?.price || 0),
-    comparePrice: cheapest?.compare_price ? Number(cheapest.compare_price) : null,
+    price: Number(cheapest?.price ?? p.price ?? 0),
+    comparePrice: cheapest ? (cheapest.compare_price ? Number(cheapest.compare_price) : null) : (p.compare_at ? Number(p.compare_at) : null),
     brand: p.brands?.name || 'VAULT 26',
+    soldOut: stock <= 0,
   };
 }
 

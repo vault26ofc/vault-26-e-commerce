@@ -6,62 +6,6 @@ import type { CMSSection, NewArrivalsConfig } from '../types';
 import { useSectionProducts, toProductCard, PRODUCT_CARD_SELECT, type ProductPickConfig } from '../lib/sectionProducts';
 import { resolveHref, type LinkValue } from '@/lib/links';
 
-const FALLBACK_NEW_ARRIVALS: ProductCardData[] = [
-  {
-    id: 'na-1',
-    slug: 'aop-boxy-camo-zip-up-hoodie',
-    name: 'AOP BOXY CAMO ZIP UP HOODIE',
-    images: [
-      '/camo_zip_up_hoodie.png',
-      '/camo_zip_up_hoodie.png'
-    ],
-    price: 7490,
-    comparePrice: 12490,
-    brand: 'VAULT 26',
-    isNew: true
-  },
-  {
-    id: 'na-2',
-    slug: 'kalamata-dias-stacked-cap',
-    name: 'KALAMATA DIAS STACKED CAP',
-    images: [
-      '/kalamata_stacked_cap.png',
-      '/kalamata_stacked_cap.png'
-    ],
-    price: 2490,
-    comparePrice: 4190,
-    brand: 'VAULT 26',
-    isNew: true,
-    sizeLabel: 'One Size'
-  },
-  {
-    id: 'na-3',
-    slug: 'off-white-closed-shield-knit-sweater',
-    name: 'OFF WHITE CLOSED SHIELD KNIT SWEATER',
-    images: [
-      '/off_white_knit_sweater.png',
-      '/off_white_knit_sweater.png'
-    ],
-    price: 7990,
-    comparePrice: 13290,
-    brand: 'VAULT 26',
-    isNew: true
-  },
-  {
-    id: 'na-4',
-    slug: 'black-camo-t-shirt',
-    name: 'BLACK CAMO T-SHIRT',
-    images: [
-      '/black_camo_tshirt.png',
-      '/black_camo_tshirt.png'
-    ],
-    price: 3490,
-    comparePrice: 4990,
-    brand: 'VAULT 26',
-    isNew: true
-  }
-];
-
 export default function NewArrivalsSection({ section }: { section: CMSSection }) {
   const cfg = section.config as NewArrivalsConfig & ProductPickConfig & { cta_link?: LinkValue };
   const { products: loaded } = useSectionProducts(cfg, async () => {
@@ -71,7 +15,8 @@ export default function NewArrivalsSection({ section }: { section: CMSSection })
   }, [cfg.product_count]);
   const products = loaded;
 
-  const displayProducts = products.length > 0 ? products : FALLBACK_NEW_ARRIVALS;
+  const displayProducts = products;
+  if (!displayProducts.length) return null;
 
   return (
     <section className="py-10 md:py-14 bg-white text-black font-sans w-full border-t border-black/5">
@@ -80,10 +25,10 @@ export default function NewArrivalsSection({ section }: { section: CMSSection })
         {/* Section Header (Daily Paper Style) */}
         <div className="mb-5 md:mb-7 text-left px-1">
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
-            {cfg.title || "NEW ARRIVALS"}
+            {cfg.title}
           </h2>
           <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
-            {cfg.subtitle || cfg.eyebrow || "FRESH DROPS"}
+            {cfg.subtitle || cfg.eyebrow}
           </p>
         </div>
 
@@ -100,7 +45,7 @@ export default function NewArrivalsSection({ section }: { section: CMSSection })
             to={resolveHref(cfg.cta_link ?? cfg.cta_href, "/shop")}
             className="inline-block border border-black text-black hover:bg-black hover:text-white px-9 py-3.5 text-xs font-sans font-bold tracking-[0.2em] uppercase transition-all duration-300 rounded-none shadow-none cursor-pointer"
           >
-            {cfg.cta_label || "SHOP NEW ARRIVALS"}
+            {cfg.cta_label}
           </Link>
         </div>
       </div>

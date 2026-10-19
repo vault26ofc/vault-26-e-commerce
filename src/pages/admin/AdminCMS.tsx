@@ -671,6 +671,7 @@ export default function AdminCMS() {
         <TabsContent value="brand">
           <div className="max-w-2xl space-y-6">
             <h2 className="text-lg font-semibold">Brand Settings</h2>
+            <p className="text-sm text-muted-foreground">The footer, the WhatsApp chat button and the support panel read these. Anything left empty is hidden on the site.</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <MediaField label="Logo" kind="image" value={(brand as any).logo_url} onChange={(v) => setBrand((b) => ({ ...b, logo_url: v }))} />
               <MediaField label="Favicon" kind="image" value={(brand as any).favicon_url} onChange={(v) => setBrand((b) => ({ ...b, favicon_url: v }))} />
@@ -679,9 +680,11 @@ export default function AdminCMS() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {([
                 ['site_name', 'Site Name'], ['tagline', 'Tagline'],
-                ['social_instagram', 'Instagram URL'], ['social_twitter', 'Twitter URL'],
-                ['social_facebook', 'Facebook URL'],
                 ['contact_email', 'Contact Email'], ['contact_phone', 'Contact Phone'],
+                ['support_hours', 'Support hours (e.g. Mon–Sun: 11:00–20:00 IST)'],
+                ['social_whatsapp', 'WhatsApp number or wa.me link'],
+                ['social_instagram', 'Instagram (@handle or link)'], ['social_youtube', 'YouTube link'],
+                ['social_twitter', 'Twitter URL'], ['social_facebook', 'Facebook URL'],
               ] as [string, string][]).map(([k, lbl]) => (
                 <div key={k}>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground mb-1.5 block">{lbl}</Label>
@@ -754,6 +757,7 @@ export default function AdminCMS() {
           <div className="max-w-2xl space-y-6">
             <div className="flex items-center gap-4 flex-wrap">
               <h2 className="text-lg font-semibold">SEO Settings</h2>
+              <p className="w-full text-xs text-muted-foreground">Page slugs: home, shop, lookbook, accessories, category/&lt;slug&gt;, brand/&lt;slug&gt;, products/&lt;slug&gt;. Empty fields keep the page's built-in text.</p>
               <div className="flex items-center gap-2">
                 <Label className="text-sm whitespace-nowrap">Page slug</Label>
                 <Input

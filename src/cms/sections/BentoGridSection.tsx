@@ -4,48 +4,10 @@ import type { CMSSection, BentoGridConfig, BentoItem } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import { Media } from '@/components/shared/Media';
 
-const DEFAULT_ITEMS: BentoItem[] = [
-  {
-    id: 1,
-    title: 'HEAVYWEIGHT BOX TEE V2.0',
-    category: 'ESSENTIALS',
-    image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=90&w=800',
-    href: '/products/heavyweight-box-tee',
-    col_span: 1,
-    row_span: 1
-  },
-  {
-    id: 2,
-    title: 'RAW SELVEDGE DENIM JACKET',
-    category: 'OUTERWEAR',
-    image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&q=90&w=800',
-    href: '/products/raw-selvedge-oversized-denim',
-    col_span: 1,
-    row_span: 1
-  },
-  {
-    id: 3,
-    title: 'ARCHITECTURAL FLEECE HOODIE',
-    category: 'LIMITED EDITION',
-    image: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?auto=format&fit=crop&q=90&w=800',
-    href: '/products/architectural-fleece-hoodie',
-    col_span: 1,
-    row_span: 1
-  },
-  {
-    id: 4,
-    title: 'OFF WHITE SHIELD KNIT SWEATER',
-    category: 'KNITWEAR',
-    image: '/off_white_knit_sweater.png',
-    href: '/products/off-white-closed-shield-knit-sweater',
-    col_span: 1,
-    row_span: 1
-  }
-];
-
 export default function BentoGridSection({ section }: { section: CMSSection }) {
   const cfg = section.config as BentoGridConfig;
-  const items: BentoItem[] = Array.isArray(cfg.items) && cfg.items.length > 0 ? cfg.items : DEFAULT_ITEMS;
+  const items: BentoItem[] = Array.isArray(cfg.items) ? cfg.items.filter((it) => it.image || it.title) : [];
+  if (!items.length) return null;
 
   return (
     <section className="py-10 md:py-14 bg-white text-black font-sans w-full border-t border-black/5">
@@ -54,10 +16,10 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
         {/* Section Header (Daily Paper Style) */}
         <div className="mb-5 md:mb-7 text-left px-1">
           <h2 className="text-xl md:text-2xl font-sans font-bold uppercase tracking-wide text-black leading-tight">
-            {cfg.heading || "EDITORIAL ARCHIVE"}
+            {cfg.heading}
           </h2>
           <p className="text-xs md:text-sm font-sans font-[800] uppercase text-black/80 tracking-wide mt-0.5">
-            {cfg.eyebrow || "CURATED HIGHLIGHTS"}
+            {cfg.eyebrow}
           </p>
         </div>
 
@@ -85,7 +47,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
                   {/* Category Badge (Top Left Corner) */}
                   <div className="absolute top-3 left-3 z-10 pointer-events-none">
                     <span className="bg-white text-black text-[10px] sm:text-xs font-sans font-bold uppercase tracking-wider px-2 py-1 shadow-sm rounded-none border border-black/5">
-                      {item.category || "ARCHIVE"}
+                      {item.category}
                     </span>
                   </div>
                 </div>
@@ -113,7 +75,7 @@ export default function BentoGridSection({ section }: { section: CMSSection }) {
             to={resolveHref((cfg as any).cta_link ?? cfg.cta_href, '/shop')}
             className="inline-block border border-black text-black hover:bg-black hover:text-white px-9 py-3.5 text-xs font-sans font-bold tracking-[0.2em] uppercase transition-all duration-300 rounded-none shadow-none cursor-pointer"
           >
-            {cfg.cta_label || "EXPLORE ALL EDITIONS"}
+            {cfg.cta_label}
           </Link>
         </div>
       </div>

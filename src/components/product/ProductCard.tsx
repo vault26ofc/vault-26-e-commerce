@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { inr } from '@/lib/format';
 import { useWishlist } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { imageProps } from '@/lib/image';
 
 export type ProductCardData = {
   id: string;
@@ -17,6 +18,8 @@ export type ProductCardData = {
   isNew?: boolean;
   isLowStock?: boolean;
   sizeLabel?: string;
+  /** No stock in any size (or no stock rows at all). */
+  soldOut?: boolean;
 };
 
 /**
@@ -33,7 +36,8 @@ export default function ProductCard({ p, large = false }: { p: ProductCardData; 
     ? Math.round(((p.comparePrice - p.price) / p.comparePrice) * 100)
     : null;
 
-  const mainImage = p.images?.[0] || '/camo_zip_up_hoodie.png';
+  const mainImage = p.images?.[0] || '';
+  const sizes = large ? '(min-width: 768px) 50vw, 100vw' : '(min-width: 768px) 25vw, 50vw';
   const secondImage = p.images?.[1] && p.images[1] !== mainImage ? p.images[1] : null;
 
   return (
@@ -54,23 +58,19 @@ export default function ProductCard({ p, large = false }: { p: ProductCardData; 
         onMouseLeave={() => setHovered(false)}
       >
         <div className={cn('absolute inset-0 flex items-center justify-center', large ? 'p-[7%]' : 'p-[8%]')}>
-          <motion.img
-            src={mainImage}
+          {mainImage && <motion.img
+            {...imageProps(mainImage, { sizes, maxWidth: 1280 })}
             alt={p.name}
-            loading="lazy"
-            decoding="async"
             animate={{ opacity: hovered && secondImage ? 0 : 1, scale: hovered ? 1.04 : 1 }}
             transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
             className="w-full h-full object-cover mix-blend-multiply pointer-events-none"
-          />
+          />}
         </div>
         {secondImage && (
           <div className={cn('absolute inset-0 flex items-center justify-center', large ? 'p-[7%]' : 'p-[8%]')}>
             <motion.img
-              src={secondImage}
+              {...imageProps(secondImage, { sizes, maxWidth: 1280 })}
               alt=""
-              loading="lazy"
-              decoding="async"
               initial={false}
               animate={{ opacity: hovered ? 1 : 0, scale: hovered ? 1.04 : 1 }}
               transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
@@ -79,7 +79,11 @@ export default function ProductCard({ p, large = false }: { p: ProductCardData; 
           </div>
         )}
 
-        {(discountPercent !== null || p.isNew) && (
+        {p.soldOut ? (
+          <span className="absolute top-3 left-3 bg-[#0F0F0F] text-white font-display font-[800] uppercase text-[13px] leading-none px-1.5 pt-1 pb-0.5">
+            Sold out
+          </span>
+        ) : (discountPercent !== null || p.isNew) && (
           <span className="absolute top-3 left-3 bg-[#BB0006] text-white font-display font-[800] uppercase text-[13px] leading-none px-1.5 pt-1 pb-0.5">
             {discountPercent !== null ? `-${discountPercent}%` : 'New'}
           </span>

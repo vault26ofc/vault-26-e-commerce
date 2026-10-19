@@ -3,14 +3,10 @@ import type { CMSSection, MarqueeConfig } from '../types';
 
 export default function MarqueeSection({ section }: { section: CMSSection }) {
   const cfg = section.config as MarqueeConfig & { items?: { text?: string }[]; speed?: number };
-  const items = [
-    'FREE SHIPPING ON ORDERS OVER ₹2,500',
-    'VAULT 26 ARCHIVE',
-    'QUIET LUXURY ESSENTIALS',
-    'CRAFTED IN INDIA',
-    'LIMITED EDITION RELEASES',
-    'BEYOND TRENDS'
-  ];
+  // Only the admin's messages (the legacy single `heading` still counts).
+  const typed = (cfg?.items || []).map((x) => x.text?.trim()).filter(Boolean) as string[];
+  const items = typed.length ? typed : cfg?.heading ? [cfg.heading] : [];
+  if (!items.length) return null;
 
   return (
     <section className="relative bg-[#BB0006] text-white w-full overflow-hidden select-none border-y border-[#AA0001]">
@@ -22,9 +18,7 @@ export default function MarqueeSection({ section }: { section: CMSSection }) {
         >
           {[0, 1].map((k) => (
             <span key={k} className="flex items-center gap-8">
-              {(cfg?.items?.some((x) => x.text?.trim())
-                ? cfg.items.map((x) => x.text?.trim()).filter(Boolean) as string[]
-                : cfg?.heading ? [cfg.heading, ...items.slice(1)] : items).map((t, i) => (
+              {items.map((t, i) => (
                 <span key={`${k}-${i}`} className="flex items-center gap-8">
                   {t}
                   <span className="font-display font-[800] text-[16px] leading-none">✱</span>

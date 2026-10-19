@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TornEdge } from '@/components/polka/Polka';
+import { useBrandSettings } from '@/cms/hooks/useCMSPage';
+import { externalUrl, instagramUrl, whatsappUrl } from '@/lib/links';
 
 // Stepped edge of the red panel (x% per band), traced from the Polka sign-off board.
 const SIGNOFF_STEPS = [49, 45, 42, 48, 45, 50, 54, 52, 58, 53, 51, 47, 42];
@@ -69,16 +71,6 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
       { label: 'My orders', to: '/orders' },
     ],
   },
-  {
-    title: 'Social',
-    links: [
-      { label: 'Instagram', to: 'https://instagram.com', external: true },
-      { label: 'Twitter', to: 'https://twitter.com', external: true },
-      { label: 'Facebook', to: 'https://facebook.com', external: true },
-      { label: 'Tiktok', to: 'https://tiktok.com', external: true },
-      { label: 'Playlist', to: 'https://music.apple.com', external: true },
-    ],
-  },
 ];
 
 /*
@@ -86,6 +78,20 @@ const COLUMNS: { title: string; links: FooterLink[] }[] = [
  * + newsletter on the left, link columns on the right, giant wordmark, legal row.
  */
 export default function Footer() {
+  // Contact details and social links come from Admin → CMS → Brand; anything not set is hidden.
+  const brand = useBrandSettings();
+  const contactEmail = brand?.contact_email?.trim() || '';
+  const contactPhone = brand?.contact_phone?.trim() || '';
+  const hours = brand?.support_hours?.trim() || '';
+  const whatsapp = whatsappUrl(brand?.social_whatsapp, 'Hi Vault 26, I need help with…');
+  const social: FooterLink[] = ([
+    ['Instagram', instagramUrl(brand?.social_instagram)],
+    ['YouTube', externalUrl(brand?.social_youtube)],
+    ['WhatsApp', whatsappUrl(brand?.social_whatsapp)],
+    ['Twitter', externalUrl(brand?.social_twitter)],
+    ['Facebook', externalUrl(brand?.social_facebook)],
+  ] as [string, string | null][]).filter(([, to]) => to).map(([label, to]) => ({ label, to: to!, external: true }));
+  const columns = social.length ? [...COLUMNS, { title: 'Social', links: social }] : COLUMNS;
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
@@ -114,10 +120,12 @@ export default function Footer() {
         <div className="grid lg:grid-cols-[1fr_1.9fr] gap-12">
           {/* Contact + newsletter */}
           <div>
-            <a href="tel:+919999999999" className="text-[15px] hover:underline">+91 99999 99999</a>
-            <a href="mailto:hello@vault26.co.in" className="block mt-2 text-[22px] md:text-[26px] underline underline-offset-4 decoration-1">
-              hello@vault26.co.in
-            </a>
+            {contactPhone && <a href={`tel:${contactPhone.replace(/[^\d+]/g, '')}`} className="text-[15px] hover:underline">{contactPhone}</a>}
+            {contactEmail && (
+              <a href={`mailto:${contactEmail}`} className="block mt-2 text-[22px] md:text-[26px] underline underline-offset-4 decoration-1">
+                {contactEmail}
+              </a>
+            )}
 
             <div className="mt-10 max-w-[440px]">
               <p className="font-display font-[800] uppercase text-[26px] md:text-[30px] leading-none">Stay in the know</p>
@@ -144,14 +152,13 @@ export default function Footer() {
 
             <p className="mt-10 text-[15px] leading-relaxed">
               <span className="underline underline-offset-4 decoration-1">Made in India · Shipping worldwide</span>
-              <br />
-              <span className="underline underline-offset-4 decoration-1">Mon–Sun: 11:00–20:00 IST</span>
+              {hours && <><br /><span className="underline underline-offset-4 decoration-1">{hours}</span></>}
             </p>
           </div>
 
           {/* Link columns */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-x-6 gap-y-10">
-            {COLUMNS.map((col) => (
+            {columns.map((col) => (
               <div key={col.title}>
                 <p className="uppercase text-[15px] md:text-[16px] mb-4">{col.title}</p>
                 <ul className="space-y-2.5">
@@ -198,11 +205,18 @@ export default function Footer() {
           <div className="relative mx-auto h-full w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-[30px] py-8 md:py-12 flex flex-col md:flex-row justify-between">
             <div className="flex flex-col md:max-w-[46%]">
               <p className="font-display font-[800] uppercase text-[22px] md:text-[28px] leading-none">Need a hand with your order?</p>
-              <p className="font-sans uppercase text-[13px] md:text-[15px] mt-5 md:mt-8">Write to us:</p>
-              <a href="mailto:hello@vault26.co.in" className="font-sans text-[19px] md:text-[26px] mt-1 hover:underline underline-offset-4">hello@vault26.co.in</a>
-              <a href="https://wa.me/919999999999" target="_blank" rel="noreferrer" className="mt-5 self-start h-11 px-6 bg-white text-[#BB0006] font-sans text-[14px] flex items-center hover:bg-[#F1F1F1] transition-colors">
-                Chat on WhatsApp
-              </a>
+              {contactEmail && (
+                <>
+                  <p className="font-sans uppercase text-[13px] md:text-[15px] mt-5 md:mt-8">Write to us:</p>
+                  <a href={`mailto:${contactEmail}`} className="font-sans text-[19px] md:text-[26px] mt-1 hover:underline underline-offset-4">{contactEmail}</a>
+                </>
+              )}
+              {whatsapp && (
+                <a href={whatsapp} target="_blank" rel="noreferrer" className="mt-5 self-start h-11 px-6 bg-white text-[#BB0006] font-sans text-[14px] flex items-center hover:bg-[#F1F1F1] transition-colors">
+                  Chat on WhatsApp
+                </a>
+              )}
+              {hours && <p className="font-sans text-[13px] mt-3 text-white/85">{hours}</p>}
               <p className="mt-5 md:mt-auto font-sans text-[12px] leading-relaxed text-white/85 max-w-[340px]">
                 Secure checkout · Free shipping over ₹999 · 7-day returns · Made in India
               </p>

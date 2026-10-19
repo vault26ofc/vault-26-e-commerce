@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { inr, fmtDate } from '@/lib/format';
 import { paymentLabel } from '@/lib/payment';
 import { Printer, Download } from 'lucide-react';
 
@@ -123,7 +123,7 @@ export default function Invoice() {
                 {invoiceNo}
               </div>
               <div className="text-xs text-neutral-500 mt-1">
-                Date: {new Date(order.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                Date: {fmtDate(order.created_at)}
               </div>
               <div className="text-xs text-neutral-500">Order: {order.order_number}</div>
               <div className="text-xs text-neutral-500 mt-2">

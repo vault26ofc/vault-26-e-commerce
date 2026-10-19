@@ -5,127 +5,7 @@ import type {
   BrandSettings, ThemeSettings, SEOSettings,
 } from '../types';
 
-const BASE_HOME_SECTIONS: CMSSection[] = [
-  {
-    id: 'default-hero',
-    page_slug: 'home',
-    section_type: 'hero',
-    label: 'Hero',
-    position: 10,
-    is_visible: true,
-    is_locked: true,
-    config: {
-      eyebrow: 'ESTABLISHED MMXXVI // ARCHIVE 01',
-      heading: 'Vault 26',
-      heading_italic: 'BEYOND TRENDS.',
-      search_placeholder: 'FIND YOUR PIECE...',
-      search_cta: 'Go to Catalog',
-      cta_href: '/shop',
-      social_proof_count: '2K+',
-      social_proof_text: 'Clothing that highlights character and stays timeless.',
-      background_image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=90&w=1920'
-    }
-  },
-  {
-    id: 'default-marquee',
-    page_slug: 'home',
-    section_type: 'marquee',
-    label: 'Marquee Ticker',
-    position: 12,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      heading: 'FREE SHIPPING ON ORDERS OVER ₹2,500'
-    }
-  },
-  {
-    id: 'default-category-bar',
-    page_slug: 'home',
-    section_type: 'category_bar',
-    label: 'Category Bar',
-    position: 13,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
-    id: 'default-best-sellers',
-    page_slug: 'home',
-    section_type: 'best_sellers',
-    label: 'Best Sellers',
-    position: 15,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      eyebrow: 'CURATED HIGHLIGHTS',
-      title: 'Bestsellers',
-      subtitle: 'Our most celebrated pieces, crafted from heavyweight fabrics.',
-      cta_label: 'View all',
-      cta_href: '/shop',
-      product_count: 4
-    }
-  },
-  {
-    id: 'default-campaign-carousel',
-    page_slug: 'home',
-    section_type: 'campaign_carousel',
-    label: 'Campaign Carousel',
-    position: 16,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
-    id: 'default-category-grid',
-    page_slug: 'home',
-    section_type: 'category_grid',
-    label: 'Categories',
-    position: 20,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      categories: [
-        { slug: 'outerwear', title: 'OUTERWEAR & JACKETS', seasonTag: 'Autumn/Winter 26', subtitle: 'Heavyweight jackets & technical coats', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=95&w=1200', href: '/shop?category=jackets' },
-        { slug: 'knitwear', title: 'SWEATERS & KNITWEAR', seasonTag: 'Core Archive', subtitle: 'Italian wool & relaxed linen knits', image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=95&w=1200', href: '/shop?category=sweaters' },
-        { slug: 'sneakers', title: 'SNEAKERS & FOOTWEAR', seasonTag: 'Handcrafted Atelier 26', subtitle: 'Minimalist leather trainers & studio sneakers', image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=95&w=2000', href: '/shop?category=shoes', isFullWidth: true }
-      ]
-    }
-  },
-  {
-    id: 'default-lookbook',
-    page_slug: 'home',
-    section_type: 'lookbook',
-    label: 'SSENSE Lookbook',
-    position: 25,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
-    id: 'default-instagram-reels',
-    page_slug: 'home',
-    section_type: 'instagram_reels',
-    label: 'Instagram Reels',
-    position: 92,
-    is_visible: true,
-    is_locked: false,
-    config: {}
-  },
-  {
-    id: 'default-testimonials',
-    page_slug: 'home',
-    section_type: 'testimonials',
-    label: 'Testimonials',
-    position: 95,
-    is_visible: true,
-    is_locked: false,
-    config: {
-      heading: 'Testimonials'
-    }
-  }
-];
-
-/** Homepage order used when the database is unreachable (and by "Reset home layout"). */
+/** Default homepage order, used by Admin → CMS "Reset home layout" (sections start empty; content is only what the admin sets). */
 const HOME_ORDER: [CMSSection['section_type'], string][] = [
   ['hero', 'Hero'], ['marquee', 'Marquee'], ['category_bar', 'Category Bar'], ['best_sellers', 'Best Sellers'],
   ['category_cards', 'Category Cards'], ['product_marquee', 'Product Belt'], ['polka_bento', 'Season Board'],
@@ -135,13 +15,13 @@ const HOME_ORDER: [CMSSection['section_type'], string][] = [
   ['drop_countdown', 'Shop the Look'], ['testimonials', 'Testimonials'], ['community', 'Community'],
   ['influencer_picks', 'Influencer Picks'], ['services_strip', 'Store Promise'],
 ];
-export const DEFAULT_HOME_SECTIONS: CMSSection[] = HOME_ORDER.map(([type, label], i) => {
-  const base = BASE_HOME_SECTIONS.find((s) => s.section_type === type);
-  return { ...(base ?? { id: `default-${type}`, page_slug: 'home', section_type: type, label, is_visible: true, is_locked: false, config: {} }), position: (i + 1) * 10 };
-});
+export const DEFAULT_HOME_SECTIONS: CMSSection[] = HOME_ORDER.map(([type, label], i) => ({
+  id: `default-${type}`, page_slug: 'home', section_type: type, label, is_visible: true, is_locked: false, config: {}, position: (i + 1) * 10,
+}));
 
 export function useCMSPage(slug: string) {
-  const [sections, setSections] = useState<CMSSection[]>(slug === 'home' ? DEFAULT_HOME_SECTIONS : []);
+  // Pages show exactly the sections saved in Admin → CMS — no built-in layout or content.
+  const [sections, setSections] = useState<CMSSection[]>([]);
   const [loading, setLoading] = useState(false);
 
   const fetch = useCallback(async () => {
@@ -153,17 +33,9 @@ export function useCMSPage(slug: string) {
         .eq('is_visible', true)
         .order('position', { ascending: true });
       
-      const loaded = (data as unknown as CMSSection[]) ?? [];
-      if (loaded.length > 0) {
-        setSections(loaded);
-      } else if (slug === 'home') {
-        setSections(DEFAULT_HOME_SECTIONS);
-      } else {
-        setSections([]);
-      }
+      setSections((data as unknown as CMSSection[]) ?? []);
     } catch (e) {
-      console.warn('Error fetching CMS sections, using defaults:', e);
-      if (slug === 'home') setSections(DEFAULT_HOME_SECTIONS);
+      console.warn('Error fetching CMS sections:', e);
     } finally {
       setLoading(false);
     }
@@ -237,12 +109,18 @@ export function useActiveAnnouncementBar() {
   return bar;
 }
 
+// One request per page load, shared by the footer, WhatsApp button and anything else that needs it.
+let brandRequest: Promise<BrandSettings | null> | null = null;
+const loadBrand = () => (brandRequest ??= Promise.resolve(supabase.from('brand_settings').select('*').limit(1).maybeSingle())
+  .then(({ data }) => data as unknown as BrandSettings | null)
+  .catch((e) => { console.warn('Brand settings error:', e); brandRequest = null; return null; }));
+
 export function useBrandSettings() {
   const [brand, setBrand] = useState<BrandSettings | null>(null);
   useEffect(() => {
-    Promise.resolve(supabase.from('brand_settings').select('*').limit(1).maybeSingle())
-      .then(({ data }) => setBrand(data as unknown as BrandSettings | null))
-      .catch((e) => console.warn('Brand settings error:', e));
+    let cancelled = false;
+    loadBrand().then((b) => { if (!cancelled) setBrand(b); });
+    return () => { cancelled = true; };
   }, []);
   return brand;
 }

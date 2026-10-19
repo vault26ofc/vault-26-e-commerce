@@ -9,6 +9,8 @@ import { isVideoUrl } from '@/lib/media';
 import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
 import { buildVariantMatrix, duplicateVariantKeys, type Colour, type EditorVariant } from '@/lib/variants';
 import { describeError } from '@/lib/errors';
+import { fetchAllRows } from '@/lib/fetchAll';
+import { isOneSize } from '@/lib/sizes';
 
 type ProductForm = {
   id?: string;
@@ -17,12 +19,17 @@ type ProductForm = {
   material: string; care: string;
   is_active: boolean; is_featured: boolean;
   images: string[]; videos: string[];
+  /** Base price: variants with a blank price use it (and follow it when it changes). */
+  price: number | null; compare_at: number | null;
+  /** Optional photos per colour (max 8); shown instead of the main photos when that colour is picked. */
+  color_images: Record<string, string[]>;
   variants: EditorVariant[];
 };
 
 const empty: ProductForm = {
   name: '', slug: '', description: '', brand_id: null, category_id: null, extra_category_ids: [],
-  material: '', care: '', is_active: true, is_featured: false, images: [], videos: [], variants: [],
+  material: '', care: '', is_active: true, is_featured: false, images: [], videos: [],
+  price: null, compare_at: null, color_images: {}, variants: [],
 };
 
 const inputCls = 'w-full border border-border bg-transparent px-3 py-2 text-sm';
@@ -61,21 +68,29 @@ export default function AdminProducts() {
   const [sizesPicked, setSizesPicked] = useState<string[]>([]);
   const [colours, setColours] = useState<Colour[]>([]);
   const [colourDraft, setColourDraft] = useState<Colour>({ name: '', hex: '#000000' });
-  const [defaults, setDefaults] = useState({ price: 0, stock: 0 });
+  const [defaults, setDefaults] = useState({ stock: 0 });
+  const [photoColour, setPhotoColour] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [search, setSearch] = useState('');
 
   const load = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('id, name, slug, is_active, is_featured, images, videos, category_id, brands(name), categories!products_category_id_fkey(name), product_variants(id, price, stock)')
-      .order('created_at', { ascending: false });
-    // product_categories has no FK (keeps storefront embeds unambiguous), so join it here.
-    const { data: extras } = await supabase.from('product_categories').select('product_id, category_id');
-    const byProduct = new Map<string, { category_id: string }[]>();
-    (extras || []).forEach((e) => byProduct.set(e.product_id, [...(byProduct.get(e.product_id) || []), { category_id: e.category_id }]));
-    setProducts((data || []).map((p) => ({ ...p, product_categories: byProduct.get(p.id) || [] })));
+    try {
+      const [data, extras] = await Promise.all([
+        fetchAllRows<any>(() => supabase
+          .from('products')
+          .select('id, name, slug, is_active, is_featured, images, videos, category_id, stock, brands(name), categories!products_category_id_fkey(name), product_variants(id, price, stock)')
+          .order('created_at', { ascending: false }).order('id')),
+        // product_categories has no FK (keeps storefront embeds unambiguous), so join it here.
+        fetchAllRows<{ product_id: string; category_id: string }>(() => supabase.from('product_categories')
+          .select('product_id, category_id').order('product_id').order('category_id')),
+      ]);
+      const byProduct = new Map<string, { category_id: string }[]>();
+      extras.forEach((e) => byProduct.set(e.product_id, [...(byProduct.get(e.product_id) || []), { category_id: e.category_id }]));
+      setProducts(data.map((p) => ({ ...p, product_categories: byProduct.get(p.id) || [] })));
+    } catch (e) {
+      toast.error(describeError(e));
+    }
   };
 
   useEffect(() => {
@@ -100,8 +115,8 @@ export default function AdminProducts() {
     form.variants.forEach((v) => { if (v.color && !cs.has(v.color)) cs.set(v.color, v.color_hex || '#000000'); });
     setColours([...cs].map(([name, hex]) => ({ name, hex })));
     setColourDraft({ name: '', hex: '#000000' });
-    const first = form.variants[0];
-    setDefaults({ price: first?.price ?? 0, stock: 0 });
+    setDefaults({ stock: 0 });
+    setPhotoColour(null);
   };
 
   const openNew = () => startEditing({ ...empty, category_id: activeCategory !== 'ALL' ? activeCategory : null });
@@ -112,14 +127,20 @@ export default function AdminProducts() {
     const { data: extrasData } = await supabase.from('product_categories').select('category_id').eq('product_id', id);
     const extras = extrasData || [];
     if (!p) return null;
+    const pp = p as any;
+    const base = pp.price != null ? Number(pp.price) : (v?.length ? Number(v[0].price) : null);
+    const cmp = pp.compare_at != null ? Number(pp.compare_at) : null;
     return {
       id: p.id, name: p.name, slug: p.slug, description: p.description || '',
       brand_id: p.brand_id, category_id: p.category_id, extra_category_ids: extras.map((e) => e.category_id),
       material: p.material || '', care: p.care || '',
-      is_active: p.is_active, is_featured: p.is_featured, images: p.images || [], videos: (p as any).videos || [],
+      is_active: p.is_active, is_featured: p.is_featured, images: p.images || [], videos: pp.videos || [],
+      price: base, compare_at: cmp, color_images: pp.color_images || {},
+      // A variant at the product price shows blank ("uses the product price").
       variants: (v || []).map((x) => ({
-        id: x.id, size: x.size || '', color: x.color || '', color_hex: x.color_hex || '#000000',
-        price: Number(x.price), compare_price: x.compare_price ? Number(x.compare_price) : null,
+        id: x.id, size: isOneSize(x.size) ? '' : x.size || '', color: x.color || '', color_hex: x.color_hex || '#000000',
+        price: base !== null && Number(x.price) === base ? null : Number(x.price),
+        compare_price: x.compare_price == null || (cmp !== null && Number(x.compare_price) === cmp) ? null : Number(x.compare_price),
         stock: x.stock, original_stock: x.stock, sku: x.sku || '',
       })),
     };
@@ -131,7 +152,7 @@ export default function AdminProducts() {
     const f = await loadForm(id);
     if (!f) return;
     startEditing({
-      ...f, id: undefined, name: `${f.name} (copy)`, slug: `${f.slug}-copy`, is_active: false,
+      ...f, id: undefined, name: `${f.name} (copy)`, slug: `${f.slug}-copy`, is_active: false, color_images: { ...f.color_images },
       variants: f.variants.map(({ id: _id, original_stock: _o, ...v }) => ({ ...v, stock: 0, sku: '' })),
     });
     toast.info('Duplicated as a hidden draft — adjust and save');
@@ -148,9 +169,18 @@ export default function AdminProducts() {
     if (p.is_active && confirm(`Hide "${p.name}" from the store instead of deleting it?\n\nHiding keeps its order history intact. OK = hide, Cancel = continue to delete.`)) {
       return toggleActive(p);
     }
-    if (!confirm(`Permanently delete "${p.name}" and all its variants? Past orders keep their line items but lose the link to this product.`)) return;
-    const { error } = await supabase.from('products').delete().eq('id', p.id);
-    if (error) return toast.error(describeError(error));
+    if (!confirm(`Permanently delete "${p.name}"? Its variants, wishlist entries, influencer-pick tags and mega-menu picks are removed and lookbook slides are unlinked. This can't be undone.`)) return;
+    // Refused (PRODUCT_SOLD:<units>) when it was ever sold — then it can only be hidden.
+    const { error } = await supabase.rpc('admin_delete_product' as any, { p_id: p.id });
+    if (error) {
+      const sold = /PRODUCT_SOLD:(\d+)/.exec(error.message);
+      if (sold) {
+        toast.error(`"${p.name}" has sold ${sold[1]} unit${sold[1] === '1' ? '' : 's'}, so it can't be deleted — hide it instead.`);
+        if (p.is_active && confirm(`Hide "${p.name}" from the store now?`)) toggleActive(p);
+        return;
+      }
+      return toast.error(describeError(error));
+    }
     toast.success('Deleted');
     load();
   };
@@ -160,7 +190,7 @@ export default function AdminProducts() {
     if (!sizesPicked.length && !colours.length) return toast.error('Pick at least one size or add a colour');
     // Keep the chosen order of sizes as defined for the category.
     const orderedSizes = [...categorySizes.filter((s) => sizesPicked.includes(s)), ...sizesPicked.filter((s) => !categorySizes.includes(s))];
-    const next = buildVariantMatrix(orderedSizes, colours, editing.variants, defaults);
+    const next = buildVariantMatrix(orderedSizes, colours, editing.variants, { price: null, stock: defaults.stock });
     const k = (v: EditorVariant) => `${v.size.trim().toLowerCase()}|${v.color.trim().toLowerCase()}`;
     const kept = new Set(next.map(k));
     const dropped = editing.variants.filter((v) => !kept.has(k(v)));
@@ -184,8 +214,9 @@ export default function AdminProducts() {
     if (!editing) return;
     if (!editing.name.trim()) return toast.error('Give the product a name');
     if (!editing.category_id) return toast.error('Choose a category');
+    if (!(Number(editing.price) > 0)) return toast.error('Give the product a price above ₹0');
     if (!editing.variants.length) return toast.error('Add at least one variant (step 3)');
-    if (editing.variants.some((v) => !(v.price > 0))) return toast.error('Every variant needs a price above ₹0');
+    if (editing.variants.some((v) => v.price !== null && !(v.price > 0))) return toast.error('A variant price must be above ₹0 (leave it blank to use the product price)');
     const dups = duplicateVariantKeys(editing.variants);
     if (dups.length) return toast.error(`Duplicate variants: ${dups.join(', ')}`);
     if (!editing.images.length && !confirm('This product has no images. Save anyway?')) return;
@@ -197,9 +228,14 @@ export default function AdminProducts() {
         extra_category_ids: editing.extra_category_ids.filter((c) => c !== editing.category_id),
         material: editing.material, care: editing.care, is_active: editing.is_active, is_featured: editing.is_featured,
         images: editing.images, videos: editing.videos,
+        price: editing.price, compare_at: editing.compare_at || null,
+        // Photos only for colours the product still has; 8 at most each.
+        color_images: Object.fromEntries(Object.entries(editing.color_images)
+          .filter(([name, urls]) => urls.length && editing.variants.some((v) => v.color.trim() === name))
+          .map(([name, urls]) => [name, urls.slice(0, 8)])),
       },
       p_variants: editing.variants.map((v) => ({
-        id: v.id ?? null, size: v.size, color: v.color, color_hex: v.color_hex, price: v.price,
+        id: v.id ?? null, size: v.size, color: v.color, color_hex: v.color_hex, price: v.price ?? null,
         compare_price: v.compare_price || null, stock: v.stock, sku: v.sku,
         ...(v.original_stock !== undefined ? { original_stock: v.original_stock } : {}),
       })),
@@ -249,7 +285,7 @@ export default function AdminProducts() {
             {filtered.map((p) => {
               const vs = p.product_variants || [];
               const minP = vs.length ? Math.min(...vs.map((v: any) => Number(v.price))) : 0;
-              const stock = vs.reduce((s: number, v: any) => s + v.stock, 0);
+              const stock = typeof p.stock === 'number' ? p.stock : vs.reduce((s: number, v: any) => s + v.stock, 0);
               const out = vs.filter((v: any) => v.stock === 0).length;
               const low = vs.filter((v: any) => v.stock > 0 && v.stock <= lowStock).length;
               return (
@@ -266,7 +302,9 @@ export default function AdminProducts() {
                   </td>
                   <td className="p-3">{inr(minP)}</td>
                   <td className="p-3">
-                    {stock}
+                    {vs.length === 0
+                      ? <div className="text-[10px] uppercase tracking-widest text-destructive font-medium" title="No stock rows: shows sold out online. Open it and add sizes with quantities.">Needs size counts</div>
+                      : stock}
                     {out > 0 && <div className="text-[10px] uppercase tracking-widest text-destructive">{out} sold out</div>}
                     {low > 0 && <div className="text-[10px] uppercase tracking-widest text-amber-700">{low} low</div>}
                   </td>
@@ -328,6 +366,12 @@ export default function AdminProducts() {
                   <Field label="URL slug" hint={editing.slug ? `/products/${editing.slug}` : undefined}>
                     <input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: slugify(e.target.value) })} className={inputCls} />
                   </Field>
+                  <Field label="Price (₹) *" hint="Variants with a blank price use this, and follow it when you change it.">
+                    <input type="number" min={0} value={editing.price ?? ''} onChange={(e) => setEditing({ ...editing, price: e.target.value === '' ? null : Number(e.target.value) })} className={inputCls} />
+                  </Field>
+                  <Field label="Compare-at price (₹)" hint="Optional old price, shown struck through.">
+                    <input type="number" min={0} value={editing.compare_at ?? ''} onChange={(e) => setEditing({ ...editing, compare_at: e.target.value === '' ? null : Number(e.target.value) })} className={inputCls} />
+                  </Field>
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Also show this product in</div>
@@ -385,10 +429,22 @@ export default function AdminProducts() {
                           <span key={`${c.name}-${i}`} className="inline-flex items-center gap-2 border border-border pl-2 pr-1 py-1 text-xs">
                             <input type="color" value={c.hex || '#000000'} onChange={(e) => setColours(colours.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))} className="h-4 w-4 border-0 p-0 bg-transparent" />
                             {c.name}
+                            <button type="button" onClick={() => setPhotoColour(photoColour === c.name ? null : c.name)}
+                              className={`text-[10px] uppercase tracking-widest underline ${photoColour === c.name ? 'font-bold' : ''}`}>
+                              Photos ({editing.color_images[c.name]?.length || 0})
+                            </button>
                             <button type="button" onClick={() => setColours(colours.filter((_, j) => j !== i))} aria-label={`Remove ${c.name}`}><X className="h-3 w-3" /></button>
                           </span>
                         ))}
                       </div>
+                      {photoColour && colours.some((c) => c.name === photoColour) && (
+                        <div className="border border-border p-3 mb-3">
+                          <MediaListField label={`Photos for ${photoColour} (optional, up to 8 — shown instead of the main photos when this colour is picked)`}
+                            kind="image" folder="vault26/products" max={8}
+                            value={editing.color_images[photoColour] || []}
+                            onChange={(urls) => setEditing({ ...editing, color_images: { ...editing.color_images, [photoColour]: urls } })} />
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <input type="color" value={colourDraft.hex} onChange={(e) => setColourDraft({ ...colourDraft, hex: e.target.value })} className="h-9 w-10 border border-border" />
                         <input value={colourDraft.name} onChange={(e) => setColourDraft({ ...colourDraft, name: e.target.value })} placeholder="Colour name, e.g. Sand"
@@ -405,7 +461,6 @@ export default function AdminProducts() {
                     </div>
 
                     <div className="flex flex-wrap items-end gap-3 border-t border-border pt-4">
-                      <Field label="Default price (₹)"><input type="number" min={0} value={defaults.price} onChange={(e) => setDefaults({ ...defaults, price: Number(e.target.value) })} className={`${inputCls} w-32`} /></Field>
                       <Field label="Default stock"><input type="number" min={0} value={defaults.stock} onChange={(e) => setDefaults({ ...defaults, stock: Number(e.target.value) })} className={`${inputCls} w-28`} /></Field>
                       <button type="button" onClick={generate} className="bg-foreground text-background px-4 py-2 text-xs uppercase tracking-widest flex items-center gap-2"><Wand2 className="h-4 w-4" /> Generate variants</button>
                     </div>
@@ -417,6 +472,7 @@ export default function AdminProducts() {
                     <div className="flex flex-wrap gap-3 items-center justify-between p-2 bg-secondary text-xs">
                       <span>{editing.variants.length} variant{editing.variants.length === 1 ? '' : 's'} · {editing.variants.reduce((s, v) => s + v.stock, 0)} in stock</span>
                       <span className="flex gap-3">
+                        <button type="button" className="underline" onClick={() => applyToAll({ price: null, compare_price: null })}>All use product price</button>
                         <button type="button" className="underline" onClick={() => { const v = prompt('Price for all variants (₹):'); if (v !== null && Number(v) > 0) applyToAll({ price: Number(v) }); }}>Set all prices</button>
                         <button type="button" className="underline" onClick={() => { const v = prompt('Stock for all variants:'); if (v !== null && Number(v) >= 0) applyToAll({ stock: Math.floor(Number(v)) }); }}>Set all stock</button>
                       </span>
@@ -435,8 +491,10 @@ export default function AdminProducts() {
                                 <input value={v.color} onChange={(e) => setVariant(i, { color: e.target.value })} placeholder="—" className={smallInput} />
                               </div>
                             </td>
-                            <td className="p-2 w-24"><input type="number" min={0} value={v.price} onChange={(e) => setVariant(i, { price: Number(e.target.value) })} className={`${smallInput} ${v.price > 0 ? '' : 'border-destructive'}`} /></td>
-                            <td className="p-2 w-24"><input type="number" min={0} value={v.compare_price ?? ''} onChange={(e) => setVariant(i, { compare_price: e.target.value ? Number(e.target.value) : null })} placeholder="—" className={smallInput} /></td>
+                            <td className="p-2 w-24"><input type="number" min={0} value={v.price ?? ''} onChange={(e) => setVariant(i, { price: e.target.value === '' ? null : Number(e.target.value) })}
+                              placeholder={editing.price ? String(editing.price) : 'price'} title="Blank = product price" className={`${smallInput} ${v.price === null || v.price > 0 ? '' : 'border-destructive'}`} /></td>
+                            <td className="p-2 w-24"><input type="number" min={0} value={v.compare_price ?? ''} onChange={(e) => setVariant(i, { compare_price: e.target.value ? Number(e.target.value) : null })}
+                              placeholder={editing.compare_at ? String(editing.compare_at) : '—'} title="Blank = product compare-at price" className={smallInput} /></td>
                             <td className="p-2 w-20"><input type="number" min={0} value={v.stock} onChange={(e) => setVariant(i, { stock: Math.max(0, Math.floor(Number(e.target.value))) })} className={`${smallInput} ${v.stock === 0 ? 'text-destructive' : v.stock <= lowStock ? 'text-amber-700' : ''}`} /></td>
                             <td className="p-2 w-32"><input value={v.sku} onChange={(e) => setVariant(i, { sku: e.target.value })} placeholder="optional" className={smallInput} /></td>
                             <td className="p-2 w-8"><button type="button" onClick={() => setEditing({ ...editing, variants: editing.variants.filter((_, j) => j !== i) })} className="text-destructive p-1" aria-label="Remove variant"><Trash2 className="h-4 w-4" /></button></td>
@@ -446,7 +504,7 @@ export default function AdminProducts() {
                     </table>
                   </div>
                 )}
-                <button type="button" onClick={() => setEditing({ ...editing, variants: [...editing.variants, { size: '', color: '', color_hex: '#000000', price: defaults.price, compare_price: null, stock: 0, sku: '' }] })}
+                <button type="button" onClick={() => setEditing({ ...editing, variants: [...editing.variants, { size: '', color: '', color_hex: '#000000', price: null, compare_price: null, stock: 0, sku: '' }] })}
                   className="text-xs uppercase tracking-widest underline">+ Add a single variant manually</button>
               </Step>
 

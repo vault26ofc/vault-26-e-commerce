@@ -8,6 +8,11 @@ import { useSEO } from '@/lib/useSEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { productSearchFilter } from '@/lib/search';
+import { fetchAllByIds, fetchAllRows } from '@/lib/fetchAll';
+import { sortSizes } from '@/lib/sizes';
+import { toProductCard } from '@/cms/lib/sectionProducts';
+
+const LIST_SELECT = 'id, name, slug, images, created_at, brand_id, category_id, price, compare_at, stock, brands(name, slug, id), categories!products_category_id_fkey(name, slug, id), product_variants(price, compare_price, stock, size, color, color_hex)';
 
 type Mode = 'category' | 'brand' | 'search' | 'all';
 
@@ -30,6 +35,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
   const q = params.get('q') || '';
 
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [sizeOrder, setSizeOrder] = useState<string[]>([]);
   const [categories, setCategories] = useState<Cat[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +49,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
     : 'Browse the full Vault 26 archive — premium minimalist clothing and streetwear, made in India.';
 
   useSEO({
+    page: mode === 'all' ? 'shop' : mode === 'category' && slug ? `category/${slug}` : mode === 'brand' && slug ? `brand/${slug}` : undefined,
     title: title ? `${title} — Vault 26` : 'Archive — Shop Vault 26',
     description: seoDescription,
   });
@@ -88,41 +95,48 @@ export default function ProductListing({ mode }: { mode: Mode }) {
         setCategories(cats || []);
         setBrands(brs || []);
 
-        let query = supabase
-          .from('products')
-          .select('id, name, slug, images, created_at, brand_id, category_id, brands(name, slug, id), categories!products_category_id_fkey(name, slug, id), product_variants(price, compare_price, stock, size, color, color_hex)')
-          .eq('is_active', true);
+        // Every matching product, in pages (newest first, id as the tie-breaker).
+        const base = () => supabase.from('products').select(LIST_SELECT).eq('is_active', true);
+        const newest = <Q extends { order: (c: string, o?: object) => Q }>(q: Q) => q.order('created_at', { ascending: false }).order('id');
+        let rows: any[] = [];
+        let order: string[] = [];
 
         if (mode === 'category' && slug) {
           const cat = (cats || []).find((c) => c.slug === slug);
           if (cat) {
             // Primary category, or listed here as an extra category.
-            const { data: extra } = await supabase.from('product_categories').select('product_id').eq('category_id', cat.id);
-            const ids = (extra || []).map((e) => e.product_id);
-            query = ids.length ? query.or(`category_id.eq.${cat.id},id.in.(${ids.join(',')})`) : query.eq('category_id', cat.id);
+            const [extra, primary, sizes] = await Promise.all([
+              fetchAllRows<{ product_id: string }>(() => supabase.from('product_categories').select('product_id').eq('category_id', cat.id).order('product_id')),
+              fetchAllRows<any>(() => newest(base().eq('category_id', cat.id) as any)),
+              supabase.from('sizes').select('label').eq('category_id', cat.id).order('position'),
+            ]);
+            const have = new Set(primary.map((p) => p.id));
+            const more = await fetchAllByIds<any>(extra.map((e) => e.product_id).filter((id) => !have.has(id)), (chunk) => newest(base().in('id', chunk) as any));
+            rows = [...primary, ...more].sort((a, b) => b.created_at.localeCompare(a.created_at) || a.id.localeCompare(b.id));
+            order = (sizes.data || []).map((x: any) => x.label);
             setTitle(cat.name); setEyebrow('Category Archive');
           }
           else { setTitle(slug); setEyebrow('Category Archive'); }
         }
         if (mode === 'brand' && slug) {
           const br = (brs || []).find((b) => b.slug === slug);
-          if (br) { query = query.eq('brand_id', br.id); setTitle(br.name); setEyebrow('Brand Archive'); }
+          if (br) { rows = await fetchAllRows<any>(() => newest(base().eq('brand_id', br.id) as any)); setTitle(br.name); setEyebrow('Brand Archive'); }
         }
         if (mode === 'search') {
           const filter = await productSearchFilter(q);
-          if (filter) query = query.or(filter);
+          rows = await fetchAllRows<any>(() => newest((filter ? base().or(filter) : base()) as any));
           setTitle(q ? `Results for "${q}"` : 'Search');
           setEyebrow('Search Results');
         }
         if (mode === 'all') {
+          rows = await fetchAllRows<any>(() => newest(base() as any));
           setTitle('The Archive');
           setEyebrow('Shop All');
         }
 
-        const { data, error } = await query.limit(200);
         if (cancelled) return;
-        if (error) console.warn('Product list error:', error);
-        setAllProducts(data || []);
+        setSizeOrder(order);
+        setAllProducts(rows);
       } catch (e) {
         console.warn('Product list error:', e);
       } finally {
@@ -143,36 +157,29 @@ export default function ProductListing({ mode }: { mode: Mode }) {
       });
     });
     return {
-      availableSizes: Array.from(s).sort(),
+      // The category's Admin → Sizes order, then the usual XS…XXL / numeric order.
+      availableSizes: sortSizes(Array.from(s), sizeOrder),
       availableColors: Array.from(c.entries()).map(([name, hex]) => ({ name, hex })),
     };
-  }, [allProducts]);
+  }, [allProducts, sizeOrder]);
 
   // Apply filters
   const products: ProductCardData[] = useMemo(() => {
     let list = allProducts.filter((p: any) => {
       const variants = p.product_variants || [];
-      const v = variants[0];
-      const price = Number(v?.price || 0);
+      const card = toProductCard(p);
+      const price = card.price;
       if (price < minPrice || price > maxPrice) return false;
       if (mode === 'all' && activeCategorySlug && p.categories?.slug !== activeCategorySlug) return false;
       if (selectedBrands.length && !selectedBrands.includes(p.brand_id)) return false;
       if (selectedSizes.length && !variants.some((vv: any) => selectedSizes.includes(vv.size))) return false;
       if (selectedColors.length && !variants.some((vv: any) => selectedColors.includes(vv.color))) return false;
-      if (onSaleOnly && !(v?.compare_price && Number(v.compare_price) > price)) return false;
+      if (onSaleOnly && !(card.comparePrice && card.comparePrice > price)) return false;
       if (inStockOnly && !variants.some((vv: any) => Number(vv.stock || 0) > 0)) return false;
       return true;
     });
 
-    let mapped: ProductCardData[] = list.map((p: any) => {
-      const v = p.product_variants?.[0];
-      return {
-        id: p.id, slug: p.slug, name: p.name, brand: p.brands?.name,
-        images: p.images || [],
-        price: Number(v?.price || 0),
-        comparePrice: v?.compare_price ? Number(v.compare_price) : null,
-      };
-    });
+    let mapped: ProductCardData[] = list.map((p: any) => ({ ...toProductCard(p), brand: p.brands?.name }));
 
     if (sort === 'price_asc') mapped.sort((a, b) => a.price - b.price);
     if (sort === 'price_desc') mapped.sort((a, b) => b.price - a.price);

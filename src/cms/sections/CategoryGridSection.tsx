@@ -15,30 +15,6 @@ export interface NorseCategoryItem extends CategoryItem {
   isFullWidth?: boolean;
 }
 
-const DEFAULT_CATEGORIES: NorseCategoryItem[] = [
-  {
-    slug: 'outerwear',
-    title: 'OUTERWEAR & JACKETS',
-    subtitle: 'Heavyweight jackets & technical coats',
-    image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=95&w=1200',
-    href: '/shop?category=jackets'
-  },
-  {
-    slug: 'knitwear',
-    title: 'SWEATERS & KNITWEAR',
-    subtitle: 'Italian wool & relaxed linen knits',
-    image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&q=95&w=1200',
-    href: '/shop?category=sweaters'
-  },
-  {
-    slug: 'sneakers',
-    title: 'SNEAKERS & FOOTWEAR',
-    subtitle: 'Minimalist leather trainers & studio sneakers',
-    image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=95&w=2000',
-    href: '/shop?category=shoes',
-  }
-];
-
 type Row = { key: string; title: string; subtitle?: string; image: string; href: string };
 
 /*
@@ -52,7 +28,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
   };
   const picked = (cfg.items || []).filter((it) => it.category);
   const cfgCats: NorseCategoryItem[] =
-    Array.isArray(cfg.categories) && cfg.categories.length > 0 ? (cfg.categories as NorseCategoryItem[]) : DEFAULT_CATEGORIES;
+    Array.isArray(cfg.categories) ? (cfg.categories as NorseCategoryItem[]) : [];
 
   const [rows, setRows] = useState<Row[]>(() =>
     cfgCats.map((c, i) => ({ key: c.slug || String(i), title: c.title, subtitle: c.subtitle, image: c.image, href: c.href || '/shop' })),
@@ -101,7 +77,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
         {/* Oversized title with floating tiles */}
         <div className="relative">
           <h2 className="font-display font-[800] uppercase text-[#0F0F0F] leading-[0.82] text-center text-[clamp(64px,15.4vw,222px)] tracking-[-0.01em]">
-            {cfg.heading || 'Categories'}
+            {cfg.heading}
           </h2>
           {floatA && (
             <MotionMedia
@@ -164,7 +140,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
                         <Media src={row.image} alt={row.title} loading="lazy" className="w-full aspect-[4/3] object-cover grayscale" />
                         <div className="flex flex-col justify-between gap-6">
                           <p className="font-sans text-[15px] md:text-[17px] text-[#0F0F0F] max-w-[520px] leading-relaxed">
-                            {row.subtitle || 'Pieces from the archive, cut to be worn for years.'}
+                            {row.subtitle}
                           </p>
                           <Link to={row.href} className="self-start h-12 px-8 bg-[#BB0006] text-white font-sans text-[15px] flex items-center hover:bg-[#AA0001] transition-colors">
                             {cfg.button_label ? `${cfg.button_label} ${row.title.toLowerCase()}` : `Shop ${row.title.toLowerCase()}`}
@@ -181,7 +157,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
 
         <div className="text-center mt-6">
           <Link to={resolveHref(cfg.bottom_link, '/shop')} className="font-sans text-[13px] md:text-[14px] uppercase text-[#BB0006] underline underline-offset-4">
-            {cfg.bottom_label || 'Go to catalogue'}
+            {cfg.bottom_label}
           </Link>
         </div>
       </Wrap>

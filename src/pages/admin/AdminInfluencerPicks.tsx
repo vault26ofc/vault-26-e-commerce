@@ -56,7 +56,8 @@ export default function AdminInfluencerPicks() {
       handle: editing.handle || null,
       video_source: editing.video_source || 'link',
       video_url: editing.video_source === 'upload' ? editing.video_url : null,
-      link_url: editing.video_source === 'link' ? editing.link_url : null,
+      // Uploaded videos can still carry an optional Instagram reel link (the site shows the icon only then).
+      link_url: editing.link_url?.trim() || null,
       thumbnail_url: editing.thumbnail_url || null,
       thumbnail_type: editing.thumbnail_type || 'image',
       quote: editing.quote || null,
@@ -174,14 +175,13 @@ export default function AdminInfluencerPicks() {
               <button onClick={() => setEditing({ ...editing, video_source: 'link' })} className={`flex-1 border py-2 text-xs uppercase tracking-widest ${editing.video_source === 'link' ? 'bg-foreground text-background border-foreground' : 'border-border'}`}>Link out</button>
             </div>
 
-            {editing.video_source === 'upload' ? (
-              <MediaField label="Video" kind="video" folder="vault26/influencers" value={editing.video_url} onChange={(url) => setEditing({ ...editing, video_url: url })} />
-            ) : (
-              <label className="block text-xs uppercase tracking-widest text-muted-foreground">
-                Link URL
-                <input value={editing.link_url || ''} onChange={(e) => setEditing({ ...editing, link_url: e.target.value })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" placeholder="https://instagram.com/reel/..." />
-              </label>
+            {editing.video_source === 'upload' && (
+              <MediaField label="Video *" kind="video" folder="vault26/influencers" value={editing.video_url} onChange={(url) => setEditing({ ...editing, video_url: url })} />
             )}
+            <label className="block text-xs uppercase tracking-widest text-muted-foreground">
+              {editing.video_source === 'upload' ? 'Instagram reel link (optional)' : 'Link URL *'}
+              <input value={editing.link_url || ''} onChange={(e) => setEditing({ ...editing, link_url: e.target.value })} className="mt-1.5 w-full border border-border bg-transparent px-3 py-2 text-sm" placeholder="https://instagram.com/reel/..." />
+            </label>
 
             <MediaField label="Thumbnail (image or video)" kind="any" folder="vault26/influencers" value={editing.thumbnail_url}
               onChange={(url) => setEditing({ ...editing, thumbnail_url: url, thumbnail_type: isVideoUrl(url) ? 'video' : 'image' })} />

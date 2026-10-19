@@ -45,9 +45,9 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
       <Wrap className="relative z-[3] py-[clamp(80px,9vw,140px)] grid lg:grid-cols-[1fr_1.1fr_1fr] gap-8 lg:gap-10 items-center">
         {/* Title + list */}
         <div>
-          <p className="font-sans uppercase text-[13px] text-white/60">{cfg.eyebrow || 'Look 07 · Archive 01'}</p>
+          <p className="font-sans uppercase text-[13px] text-white/60">{cfg.eyebrow}</p>
           <h2 className="font-display font-[800] uppercase text-[clamp(52px,6.5vw,104px)] leading-[0.85] mt-2">
-            {cfg.title || 'Shop the look'}
+            {cfg.title}
           </h2>
           <ol className="mt-8 border-t border-white/30">
             {pieces.map((p, i) => (
@@ -67,13 +67,13 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
             ))}
           </ol>
           <Link to={resolveHref(cfg.cta_link, '/shop')} className="mt-6 inline-flex h-12 px-7 items-center bg-white text-[#BB0006] font-sans text-[15px] hover:bg-[#F1F1F1] transition-colors">
-            {cfg.cta_label || 'Full look'} · {inr(total)}
+            {cfg.cta_label} · {inr(total)}
           </Link>
         </div>
 
         {/* Photo with hotspots */}
         <div className="relative aspect-[3/4] bg-[#1A1A1A] overflow-hidden">
-          <Media src={cfg.image || LOOK} alt="Styled look" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
+          <Media src={cfg.image} alt="Styled look" loading="lazy" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />
           {spots.slice(0, pieces.length).map((s, i) => (
             <button
               key={i}
@@ -121,7 +121,7 @@ export default function DropCountdownSection({ section }: { section?: CMSSection
                   to={`/products/${current.slug}`}
                   className="mt-4 h-12 w-full bg-[#BB0006] text-white font-sans text-[15px] flex items-center justify-center gap-2 hover:bg-[#AA0001] transition-colors"
                 >
-                  <ShoppingBasket className="w-4 h-4" /> {cfg.button_label || 'Choose size'}
+                  <ShoppingBasket className="w-4 h-4" /> {cfg.button_label}
                 </Link>
               </motion.div>
             )}

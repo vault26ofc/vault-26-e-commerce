@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
+import { fetchAllByIds } from '@/lib/fetchAll';
+import { PRODUCT_CARD_SELECT, toProductCard } from '@/cms/lib/sectionProducts';
 import ProductCard, { ProductCardData } from '@/components/product/ProductCard';
 import { motion } from 'framer-motion';
 
@@ -14,11 +16,9 @@ export default function Wishlist() {
     if (ids.length === 0) { setItems([]); setLoading(false); return; }
     (async () => {
       setLoading(true);
-      const { data } = await supabase.from('products').select('id, name, slug, images, brands(name), product_variants(price, compare_price)').in('id', ids);
-      setItems((data || []).map((p: any) => {
-        const v = p.product_variants?.[0];
-        return { id: p.id, slug: p.slug, name: p.name, brand: p.brands?.name, images: p.images || [], price: Number(v?.price || 0), comparePrice: v?.compare_price ? Number(v.compare_price) : null };
-      }));
+      const rows = await fetchAllByIds<any>(ids, (chunk) => supabase.from('products').select(PRODUCT_CARD_SELECT).in('id', chunk).order('id')).catch(() => []);
+      const byId = new Map(rows.map((p) => [p.id, p]));
+      setItems(ids.map((id) => byId.get(id)).filter(Boolean).map((p: any) => ({ ...toProductCard(p), brand: p.brands?.name })));
       setLoading(false);
     })();
   }, [ids]);

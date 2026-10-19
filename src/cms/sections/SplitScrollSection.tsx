@@ -14,7 +14,7 @@ import type { ProductPickConfig } from '@/cms/lib/sectionProducts';
  */
 export default function SplitScrollSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as ProductPickConfig & { phrase?: string; caption?: string; title?: string; see_all_label?: string; see_all_link?: LinkValue };
-  const phrase = cfg.phrase || 'Wear what matters · New season · ';
+  const phrase = cfg.phrase;
   const products = useShopProducts(8, cfg);
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
@@ -34,15 +34,15 @@ export default function SplitScrollSection({ section }: { section?: CMSSection }
           </motion.p>
         </div>
         <p className="absolute left-5 md:left-8 bottom-6 md:bottom-10 max-w-[320px] font-sans text-white text-[13px] md:text-[14px] leading-relaxed">
-          — {cfg.caption || 'Independent cuts, heavyweight fabrics and pieces that stay in your rotation for years.'}
+          — {cfg.caption}
         </p>
       </div>
 
       {/* Scrolling product column */}
       <div className="px-4 sm:px-6 md:px-8 lg:px-[30px] py-12 md:py-[min(10vh,96px)]">
         <div className="flex items-end justify-between gap-4 mb-8">
-          <RedTag>{cfg.title || 'The edit'}</RedTag>
-          <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label || 'View all'}</SeeAll>
+          <RedTag>{cfg.title}</RedTag>
+          <SeeAll to={resolveHref(cfg.see_all_link, '/shop')}>{cfg.see_all_label}</SeeAll>
         </div>
         <div className="grid grid-cols-2 gap-x-3 md:gap-x-4 gap-y-10">
           {products.slice(0, 8).map((p, i) => (

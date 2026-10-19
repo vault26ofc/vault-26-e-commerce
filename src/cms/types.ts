@@ -192,9 +192,14 @@ export interface BrandSettings {
   social_instagram: string | null;
   social_twitter: string | null;
   social_facebook: string | null;
+  /** WhatsApp number or wa.me link. */
+  social_whatsapp: string | null;
+  social_youtube: string | null;
   contact_email: string | null;
   contact_phone: string | null;
   address: string | null;
+  /** e.g. "Mon–Sun: 11:00–20:00 IST" */
+  support_hours: string | null;
 }
 
 export interface ThemeSettings {

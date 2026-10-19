@@ -2,9 +2,11 @@ import type { CSSProperties } from 'react';
 import type { CMSSection } from '../types';
 import { resolveHref, type LinkValue } from '@/lib/links';
 import { isVideoUrl } from '@/lib/media';
+import { imageProps } from '@/lib/image';
+import { useIsPhone } from '@/components/shared/Media';
 
 type HeroConfig = {
-  top_line?: string; title?: string; photo?: string; paper?: string;
+  top_line?: string; title?: string; photo?: string; photo_mobile?: string; paper?: string;
   labels?: { text?: string }[]; cta_label?: string; cta_link?: LinkValue; cta_href?: string;
 };
 
@@ -29,13 +31,8 @@ const BAND_EDGES = [
 ];
 
 // Labels sit on the paper, flush against the photo edge of their band.
-const LABELS: { band: number; text: string }[] = [
-  { band: 2, text: 'SEPTEMBER 2026' },
-  { band: 6, text: 'STREETWEAR' },
-  { band: 10, text: 'ARCHIVE 01' },
-  { band: 13, text: 'EST. MMXXVI' },
-  { band: 17, text: 'NEW COLLECTION' },
-];
+// Bands the (up to 5) stepped labels sit on, top to bottom.
+const LABEL_BANDS = [2, 6, 10, 13, 17];
 
 // Torn black strip along the bottom edge (reference keypoints + fine jitter).
 const TORN_KEYPOINTS: [number, number][] = [
@@ -49,8 +46,6 @@ const TORN_KEYPOINTS: [number, number][] = [
 const TORN_TOP = 555;
 
 const RED = '#BB0006';
-const PHOTO_SRC = '/polka_hero_editorial.jpg';
-const PAPER_SRC = '/hero_paper_texture.jpg';
 
 const pctX = (x: number) => `${((x / POSTER_W) * 100).toFixed(3)}%`;
 const posY = (y: number) =>
@@ -99,9 +94,11 @@ const DISPLAY_FONT: CSSProperties = {
 export default function HeroSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as HeroConfig;
   const ctaHref = resolveHref(cfg.cta_link ?? cfg.cta_href, '/shop');
-  const photo = cfg.photo || PHOTO_SRC;
+  const phone = useIsPhone();
+  // Optional phone-only photo/video; empty = phones use the normal one.
+  const photo = (phone && cfg.photo_mobile) || cfg.photo;
   // Labels keep their stepped positions; the admin only edits the words.
-  const labels = LABELS.map((l, i) => ({ ...l, text: cfg.labels?.[i]?.text?.trim() || (cfg.labels?.length ? '' : l.text) })).filter((l) => l.text);
+  const labels = LABEL_BANDS.map((band, i) => ({ band, text: cfg.labels?.[i]?.text?.trim() || '' })).filter((l) => l.text);
 
   return (
     <section
@@ -109,22 +106,24 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
       aria-label="VAULT 26 — Online Store"
     >
       {/* Crumpled paper */}
-      <img
-        src={cfg.paper || PAPER_SRC}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-      />
+      {cfg.paper && (
+        <img
+          src={cfg.paper}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+      )}
 
       {/* Photo with stepped, torn right edge */}
       <div className="absolute inset-0" style={{ clipPath: PHOTO_CLIP }}>
-        {isVideoUrl(photo) ? (
+        {!photo ? null : isVideoUrl(photo) ? (
           <video src={photo} autoPlay muted loop playsInline
             className="absolute left-0 top-0 h-full object-cover object-[50%_30%] grayscale contrast-[1.08]"
             style={{ width: pctX(600) }} />
         ) : (
           <img
-            src={photo}
+            {...imageProps(photo, { priority: true, sizes: '100vw' })}
             alt="VAULT 26 editorial campaign"
             className="absolute left-0 top-0 h-full object-cover object-[50%_30%] grayscale contrast-[1.08]"
             style={{ width: pctX(600) }}
@@ -157,24 +156,24 @@ export default function HeroSection({ section }: { section?: CMSSection }) {
           className="uppercase leading-none font-[800] tracking-[0.06em] text-[5.2cqw] md:text-[4.35cqw]"
           style={DISPLAY_FONT}
         >
-          {cfg.top_line || 'Online Store'}
+          {cfg.top_line}
         </p>
         <h1
           className="uppercase leading-none font-[800] mt-[0.9cqw] text-[10.4cqw] md:text-[11.1cqw]"
           style={DISPLAY_FONT}
         >
-          {cfg.title || 'Vault 26'}
+          {cfg.title}
         </h1>
       </div>
 
       {/* Bottom-right line — on desktop kept clear of the floating WhatsApp button */}
-      <a
+      {cfg.cta_label && <a
         href={ctaHref}
         className="absolute uppercase leading-none font-[800] text-[3.4cqw] md:text-[3.1cqw] bottom-[calc((100%-var(--nav))*0.078)] md:bottom-[max(calc((100%-var(--nav))*0.078),100px)] hover:opacity-80 transition-opacity"
         style={{ ...DISPLAY_FONT, right: pctX(POSTER_W - 912) }}
       >
-        {cfg.cta_label || 'Shop Collection 2026'}
-      </a>
+        {cfg.cta_label}
+      </a>}
 
       {/* Torn black bottom edge */}
       <svg

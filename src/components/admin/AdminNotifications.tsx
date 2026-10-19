@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { fmtDateTime } from '@/lib/format';
 
 interface Notification {
   id: string;
@@ -85,7 +86,7 @@ export default function AdminNotifications() {
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{n.title}</div>
                     {n.message && <div className="text-xs text-muted-foreground mt-0.5">{n.message}</div>}
-                    <div className="text-[10px] text-muted-foreground mt-1">{new Date(n.created_at).toLocaleString()}</div>
+                    <div className="text-[10px] text-muted-foreground mt-1">{fmtDateTime(n.created_at)}</div>
                   </div>
                 </div>
               </div>

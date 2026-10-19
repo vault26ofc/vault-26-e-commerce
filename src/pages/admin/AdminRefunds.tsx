@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { inr } from '@/lib/format';
+import { inr, fmtDateTime } from '@/lib/format';
 import { readFunctionError } from '@/lib/payment';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { SearchSelect } from '@/components/admin/SearchSelect';
 import { describeError } from '@/lib/errors';
+import { fetchAllRows } from '@/lib/fetchAll';
 
 const REFUND_STATUSES = ['NONE', 'REQUESTED', 'PROCESSING', 'REFUNDED', 'REJECTED'] as const;
 
@@ -22,12 +23,14 @@ export default function AdminRefunds() {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    let q = supabase.from('orders').select('*').order('updated_at', { ascending: false });
-    if (filter === 'PENDING') q = q.in('refund_status', ['REQUESTED', 'PROCESSING'] as any);
-    else if (filter === 'REFUNDED') q = q.eq('refund_status', 'REFUNDED' as any);
-    else q = q.neq('refund_status', 'NONE' as any);
-    const { data } = await q;
-    setOrders(data || []);
+    const build = () => {
+      let q = supabase.from('orders').select('*');
+      if (filter === 'PENDING') q = q.in('refund_status', ['REQUESTED', 'PROCESSING'] as any);
+      else if (filter === 'REFUNDED') q = q.eq('refund_status', 'REFUNDED' as any);
+      else q = q.neq('refund_status', 'NONE' as any);
+      return q.order('updated_at', { ascending: false }).order('id');
+    };
+    try { setOrders(await fetchAllRows<any>(build)); } catch (e) { toast.error(describeError(e)); }
   };
 
   useEffect(() => { load(); }, [filter]);
@@ -121,7 +124,7 @@ export default function AdminRefunds() {
                 <td className="p-3">{inr(Number(o.total))}</td>
                 <td className="p-3">{inr(Number(o.refund_amount) || 0)}</td>
                 <td className="p-3"><span className="text-xs px-2 py-1 bg-secondary rounded">{o.refund_status}</span></td>
-                <td className="p-3 text-muted-foreground text-xs">{new Date(o.updated_at).toLocaleString()}</td>
+                <td className="p-3 text-muted-foreground text-xs">{fmtDateTime(o.updated_at)}</td>
                 <td className="p-3"><Button size="sm" variant="outline" onClick={() => openEdit(o)}>Manage</Button></td>
               </tr>
             ))}
@@ -181,7 +184,8 @@ export default function AdminRefunds() {
 function CancelledOrders({ onInitiate }: { onInitiate: (o: any) => void }) {
   const [list, setList] = useState<any[]>([]);
   useEffect(() => {
-    supabase.from('orders').select('*').eq('status', 'CANCELLED' as any).eq('refund_status', 'NONE' as any).then(({ data }) => setList(data || []));
+    fetchAllRows<any>(() => supabase.from('orders').select('*').eq('status', 'CANCELLED' as any).eq('refund_status', 'NONE' as any).order('created_at', { ascending: false }).order('id'))
+      .then(setList).catch(() => setList([]));
   }, []);
   if (list.length === 0) return <div className="text-sm text-muted-foreground border border-border p-4">No cancelled orders awaiting refund.</div>;
   return (
