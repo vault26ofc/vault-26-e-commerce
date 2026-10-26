@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { bornOn } from './birthday';
+import { bornOn, dayWindow } from './birthday';
+
+describe('dayWindow', () => {
+  it('runs from midnight to midnight IST on that day', () => {
+    expect(dayWindow('2026-10-26')).toEqual({ starts_at: '2026-10-25T18:30:00.000Z', expires_at: '2026-10-26T18:30:00.000Z' });
+  });
+  it('crosses month and year ends', () => {
+    expect(dayWindow('2026-12-31').expires_at).toBe('2026-12-31T18:30:00.000Z');
+    expect(dayWindow('2028-02-28').expires_at).toBe('2028-02-28T18:30:00.000Z');
+  });
+});
 
 describe('bornOn', () => {
   it('matches day and month, whatever the birth year', () => {

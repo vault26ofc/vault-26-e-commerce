@@ -6,8 +6,8 @@ import { describeError } from '@/lib/errors';
 import { fetchAllRows } from '@/lib/fetchAll';
 import { fmtCalendarDate, fmtDate, fromIstInput, inr, istDay, toIstInput } from '@/lib/format';
 import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
-import { bornOn } from '@/lib/birthday';
-import { askConfirm } from '@/components/shared/AskDialog';
+import { bornOn, dayWindow } from '@/lib/birthday';
+import { Calendar } from '@/components/ui/calendar';
 
 type Kind = 'general' | 'welcome' | 'birthday';
 type Coupon = {
@@ -49,7 +49,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-const offerProblem = (f: Offer) => {
+const offerProblem = (f: Pick<Offer, 'type' | 'value'>) => {
   const value = Number(f.value);
   if (!(value > 0)) return 'The discount must be above 0';
   if (f.type === 'PERCENT' && value > 100) return 'A percent discount can be at most 100';
@@ -432,24 +432,19 @@ function WelcomeOffer() {
 
 // ─────────────────────────────────────────────────────────────────── birthday coupons
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-type BirthdayOffer = Offer & { code_prefix: string; description: string };
-const birthdayDefaults = (): BirthdayOffer => ({
-  code_prefix: 'BDAY', description: '', type: 'PERCENT', value: '15', max_discount: '', min_order: '0',
-  max_uses: '1', per_user_limit: '1', first_order_only: false, starts_at: '',
-  expires_at: toIstInput(new Date(Date.now() + 30 * 86_400_000).toISOString()), is_active: true, categories: [], excluded: [],
-});
+/** Calendar Date ⇄ "YYYY-MM-DD" by its calendar parts (no time-zone shift). */
+const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const toDate = (day: string) => { const [y, m, d] = day.split('-').map(Number); return new Date(y, m - 1, d); };
 
 function BirthdayCoupons() {
-  const options = useScope();
-  const [day, setDay] = useState(istDay());
+  const today = istDay();
+  const [day, setDay] = useState(today);
   const year = Number(day.slice(0, 4));
   const [people, setPeople] = useState<Person[]>([]);
   const [issued, setIssued] = useState<Map<string, string>>(new Map()); // "<user>|<year>" → code
-  const [picked, setPicked] = useState<string[]>([]);
-  const [offer, setOffer] = useState<BirthdayOffer>(birthdayDefaults);
+  const [type, setType] = useState<Offer['type']>('PERCENT');
+  const [value, setValue] = useState('15');
   const [busy, setBusy] = useState(false);
-  const patch = (p: Partial<Offer>) => setOffer({ ...offer, ...p });
 
   const load = async () => {
     try {
@@ -466,94 +461,85 @@ function BirthdayCoupons() {
   const born = useMemo(() => people.filter((p) => p.dob && bornOn(p.dob, day))
     .sort((a, b) => (a.name || a.email || '').localeCompare(b.name || b.email || '')), [people, day]);
   const codeOf = (id: string) => issued.get(`${id}|${year}`);
-  const eligible = useMemo(() => born.filter((p) => !issued.has(`${p.id}|${year}`)), [born, issued, year]);
-  // Everyone born that day is ticked; untick anyone to leave them out.
-  useEffect(() => { setPicked(eligible.map((p) => p.id)); }, [eligible]);
-
+  const toRelease = born.filter((p) => !codeOf(p.id));
   const dayLabel = `${Number(day.slice(8, 10))} ${MONTHS[Number(day.slice(5, 7)) - 1]}`;
 
   const release = async () => {
-    if (!picked.length) return toast.error('Tick at least one customer');
-    const problem = offerProblem(offer);
+    const problem = offerProblem({ type, value });
     if (problem) return toast.error(problem);
-    if (!/^[A-Z0-9]{2,12}$/.test(offer.code_prefix)) return toast.error('The code prefix needs 2–12 letters or digits');
-    const ends = fromIstInput(offer.expires_at);
-    const starts = fromIstInput(offer.starts_at);
-    if (ends && Date.parse(ends) <= Math.max(Date.now(), starts ? Date.parse(starts) : 0)) return toast.error('The expiry must be after now and after the start');
-    if (!(await askConfirm({
-      title: `Release ${picked.length} birthday code${picked.length === 1 ? '' : 's'}?`,
-      body: `Each ticked customer born on ${dayLabel} gets their own ${offer.code_prefix}- code, shown under Account → My Coupons.`,
-      okLabel: 'Release',
-    }))) return;
     setBusy(true);
     const { data, error } = await supabase.rpc('issue_birthday_coupons' as any, {
-      p_user_ids: picked,
-      p_fields: { ...offerFields(offer), code_prefix: offer.code_prefix, description: offer.description, birthday: day },
-      p_categories: offer.categories,
-      p_excluded: offer.excluded,
+      p_user_ids: toRelease.map((p) => p.id),
+      // One use, whole store, valid on that day only (IST).
+      p_fields: { type, value: Number(value), max_uses: 1, per_user_limit: 1, ...dayWindow(day), is_active: true, birthday: day },
+      p_categories: [],
+      p_excluded: [],
     });
     setBusy(false);
     if (error) return toast.error(describeError(error));
-    toast.success(`${data} birthday code${data === 1 ? '' : 's'} created`);
+    toast.success(`${data} birthday code${data === 1 ? '' : 's'} released`);
     load();
   };
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <p className="text-sm text-muted-foreground">
-        Pick a birthday, check who was born that day, set the offer and release. Each customer gets their own code
-        (like {offer.code_prefix || 'BDAY'}-7KQ2XA), one per birthday year, under Account → My Coupons.
-      </p>
-      <div className="flex flex-wrap items-end gap-4">
-        <Field label="Birthday">
-          <input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className={`${inputCls} w-48`} />
-        </Field>
-        <span className="text-sm text-muted-foreground pb-2">{born.length} customer{born.length === 1 ? '' : 's'} born on {dayLabel} · {eligible.length} without a {year} code</span>
+    <div className="max-w-5xl grid md:grid-cols-[auto_minmax(0,1fr)] gap-6 items-start">
+      <div className="border border-border justify-self-start">
+        <Calendar mode="single" selected={toDate(day)} onSelect={(d) => d && setDay(ymd(d))} defaultMonth={toDate(today)}
+          disabled={{ before: toDate(today) }}
+          modifiers={{ birthday: (d) => people.some((p) => p.dob && bornOn(p.dob, ymd(d))) }}
+          modifiersClassNames={{ birthday: 'underline decoration-2 underline-offset-4 decoration-[#BB0006]' }}
+          className="[&_button]:rounded-none" />
+        <p className="px-3 pb-3 text-[11px] text-muted-foreground">Underlined days have birthdays.</p>
       </div>
 
-      <div className="border border-border overflow-x-auto">
-        <table className="w-full text-sm min-w-[600px]">
-          <thead className="bg-secondary"><tr>
-            <th className="p-3 w-10"><input type="checkbox" checked={eligible.length > 0 && picked.length === eligible.length}
-              onChange={(e) => setPicked(e.target.checked ? eligible.map((p) => p.id) : [])} aria-label="Tick all" /></th>
-            {['Customer', 'Birthday', `${year} code`].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}
-          </tr></thead>
-          <tbody>
-            {born.map((p) => {
-              const code = codeOf(p.id);
-              return (
+      <div className="space-y-5">
+        <div>
+          <h2 className="font-display text-2xl">{dayLabel}</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {born.length} customer{born.length === 1 ? '' : 's'} born on this day. Each gets their own one-time BDAY code, valid on {dayLabel} only (IST).
+          </p>
+        </div>
+
+        <div className="border border-border overflow-x-auto">
+          <table className="w-full text-sm min-w-[480px]">
+            <thead className="bg-secondary"><tr>{['Customer', 'Birthday', `${year} code`].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}</tr></thead>
+            <tbody>
+              {born.map((p) => (
                 <tr key={p.id} className="border-t border-border">
-                  <td className="p-3"><input type="checkbox" disabled={!!code} checked={picked.includes(p.id)}
-                    onChange={(e) => setPicked(e.target.checked ? [...picked, p.id] : picked.filter((x) => x !== p.id))} /></td>
                   <td className="p-3">{p.name || '—'}<div className="text-[11px] text-muted-foreground">{[p.email, p.phone].filter(Boolean).join(' · ')}</div></td>
                   <td className="p-3">{fmtCalendarDate(p.dob)}</td>
-                  <td className="p-3 text-xs">{code || '—'}</td>
+                  <td className="p-3 text-xs">{codeOf(p.id) || '—'}</td>
                 </tr>
-              );
-            })}
-            {!born.length && (
-              <tr><td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">
-                No customers born on {dayLabel}.
-                <div className="text-[11px] mt-1">Customers add their birthday under Account; you can set one under Customers.</div>
-              </td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              ))}
+              {!born.length && (
+                <tr><td colSpan={3} className="p-8 text-center text-muted-foreground text-sm">
+                  No customers born on {dayLabel}.
+                  <div className="text-[11px] mt-1">Customers add their birthday under Account; you can set one under Customers.</div>
+                </td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      <div className="border border-border p-5 space-y-5">
-        <div className="text-xs uppercase tracking-widest text-muted-foreground">Offer</div>
-        <OfferFields form={offer} patch={patch}
-          lead={<>
-            <Field label="Code prefix *" hint="Each customer gets PREFIX-XXXXXX. 2–12 letters or digits.">
-              <input value={offer.code_prefix} onChange={(e) => setOffer({ ...offer, code_prefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })} className={`${inputCls} uppercase`} />
-            </Field>
-            <Field label="Admin note" hint={`Only admins see this. Blank = “Birthday ${year}”.`}>
-              <input value={offer.description} onChange={(e) => setOffer({ ...offer, description: e.target.value })} className={inputCls} />
-            </Field>
-          </>} />
-        <ScopeFields form={offer} patch={patch} scope={options} />
-        <button onClick={release} disabled={busy || !picked.length} className={btn}>{busy ? 'Releasing…' : `Release to ${picked.length} customer${picked.length === 1 ? '' : 's'}`}</button>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="text-xs uppercase tracking-widest text-muted-foreground">
+            Discount
+            <div className="mt-1.5 flex">
+              {(['PERCENT', 'FLAT'] as const).map((t) => (
+                <button key={t} type="button" onClick={() => setType(t)}
+                  className={`px-3 py-2 text-xs border ${type === t ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
+                  {t === 'PERCENT' ? '% off' : '₹ off'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <Field label={type === 'PERCENT' ? 'Percent' : 'Rupees'}>
+            <input type="number" min={0} value={value} onChange={(e) => setValue(e.target.value)} className={`${inputCls} w-28`} />
+          </Field>
+          <button onClick={release} disabled={busy || !toRelease.length} className={btn}>
+            {busy ? 'Releasing…' : `Release to ${toRelease.length} customer${toRelease.length === 1 ? '' : 's'}`}
+          </button>
+        </div>
       </div>
     </div>
   );
