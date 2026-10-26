@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { inr, slugify } from '@/lib/format';
 import { toast } from 'sonner';
 import { Copy, Eye, EyeOff, Pencil, Plus, Trash2, Wand2, X } from 'lucide-react';
+import { askText } from '@/components/shared/AskDialog';
 import { MediaListField } from '@/components/admin/MediaField';
 import { isVideoUrl } from '@/lib/media';
 import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
@@ -430,8 +431,10 @@ export default function AdminProducts() {
                             <input type="color" value={c.hex || '#000000'} onChange={(e) => setColours(colours.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))} className="h-4 w-4 border-0 p-0 bg-transparent" />
                             {c.name}
                             <button type="button" onClick={() => setPhotoColour(photoColour === c.name ? null : c.name)}
-                              className={`text-[10px] uppercase tracking-widest underline ${photoColour === c.name ? 'font-bold' : ''}`}>
-                              Photos ({editing.color_images[c.name]?.length || 0})
+                              title={`Photos for ${c.name}`}
+                              className={`inline-flex items-center gap-1 border px-2 py-0.5 text-[10px] uppercase tracking-widest ${photoColour === c.name || editing.color_images[c.name]?.length ? 'bg-foreground text-background border-foreground' : 'border-foreground hover:bg-secondary'}`}>
+                              <Plus className="h-3 w-3" />
+                              {editing.color_images[c.name]?.length ? `${editing.color_images[c.name].length} photo${editing.color_images[c.name].length === 1 ? '' : 's'}` : 'Add photos'}
                             </button>
                             <button type="button" onClick={() => setColours(colours.filter((_, j) => j !== i))} aria-label={`Remove ${c.name}`}><X className="h-3 w-3" /></button>
                           </span>
@@ -473,8 +476,16 @@ export default function AdminProducts() {
                       <span>{editing.variants.length} variant{editing.variants.length === 1 ? '' : 's'} · {editing.variants.reduce((s, v) => s + v.stock, 0)} in stock</span>
                       <span className="flex gap-3">
                         <button type="button" className="underline" onClick={() => applyToAll({ price: null, compare_price: null })}>All use product price</button>
-                        <button type="button" className="underline" onClick={() => { const v = prompt('Price for all variants (₹):'); if (v !== null && Number(v) > 0) applyToAll({ price: Number(v) }); }}>Set all prices</button>
-                        <button type="button" className="underline" onClick={() => { const v = prompt('Stock for all variants:'); if (v !== null && Number(v) >= 0) applyToAll({ stock: Math.floor(Number(v)) }); }}>Set all stock</button>
+                        <button type="button" className="underline" onClick={async () => {
+                          const v = await askText({ title: 'Set all prices', body: `Every variant of this product gets this price.`, okLabel: 'Set prices',
+                            input: { label: 'Price (₹)', type: 'number', validate: (x) => (Number(x) > 0 ? null : 'Enter a price above ₹0') } });
+                          if (v !== null) applyToAll({ price: Number(v) });
+                        }}>Set all prices</button>
+                        <button type="button" className="underline" onClick={async () => {
+                          const v = await askText({ title: 'Set all stock', body: `Every variant of this product gets this stock.`, okLabel: 'Set stock',
+                            input: { label: 'Stock', type: 'number', validate: (x) => (x.trim() !== '' && Number(x) >= 0 ? null : 'Enter 0 or more') } });
+                          if (v !== null) applyToAll({ stock: Math.floor(Number(v)) });
+                        }}>Set all stock</button>
                       </span>
                     </div>
                     <table className="w-full text-sm min-w-[620px]">

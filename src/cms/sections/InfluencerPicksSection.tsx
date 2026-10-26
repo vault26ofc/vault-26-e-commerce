@@ -78,14 +78,7 @@ function Media({ pick }: { pick: Pick }) {
  */
 export default function InfluencerPicksSection({ section }: { section?: CMSSection }) {
   const [picks, setPicks] = useState<Pick[]>([]);
-  const [active, setActive] = useState(0);
-  const heading = section?.config?.heading;
-  const subtitle = section?.config?.subtitle;
   const products = useShopProducts(12);
-  const ref = useRef<HTMLElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const rowA = useTransform(scrollYProgress, [0, 1], ['0%', '-40%']);
-  const rowB = useTransform(scrollYProgress, [0, 1], ['-40%', '0%']);
 
   useEffect(() => {
     supabase
@@ -96,7 +89,20 @@ export default function InfluencerPicksSection({ section }: { section?: CMSSecti
       .then(({ data }) => setPicks((data as unknown as Pick[]) || []));
   }, []);
 
+  // The board mounts only once picks exist: useScroll binds to the ref present on its first mount,
+  // so an empty first render would leave the marquee rows following the whole page instead.
   if (!picks.length) return null;
+  return <PicksBoard picks={picks} products={products} heading={section?.config?.heading} subtitle={section?.config?.subtitle} />;
+}
+
+function PicksBoard({ picks, products, heading, subtitle }: {
+  picks: Pick[]; products: ReturnType<typeof useShopProducts>; heading?: string; subtitle?: string;
+}) {
+  const [active, setActive] = useState(0);
+  const ref = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const rowA = useTransform(scrollYProgress, [0, 1], ['0%', '-40%']);
+  const rowB = useTransform(scrollYProgress, [0, 1], ['-40%', '0%']);
 
   const pick = picks[active % picks.length];
   const offset = (active * 3) % Math.max(products.length, 1);

@@ -24,9 +24,24 @@ type Photo = {
  */
 export default function CommunitySection({ section }: { section?: CMSSection }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('community_photos' as any)
+      .select('id, image_url, media_type, handle, bento_size')
+      .eq('is_active', true)
+      .order('position')
+      .then(({ data }) => setPhotos((data as unknown as Photo[]) || []));
+  }, []);
+
+  // The wall mounts only once photos exist: useScroll binds to the ref present on its first mount,
+  // so an empty first render would leave the zoom following the whole page (already finished here).
+  if (!photos.length) return null;
+  return <CommunityWall photos={photos} heading={section?.config?.heading} subtitle={section?.config?.subtitle} />;
+}
+
+function CommunityWall({ photos, heading, subtitle }: { photos: Photo[]; heading?: string; subtitle?: string }) {
   const brand = useBrandSettings();
-  const heading = section?.config?.heading;
-  const subtitle = section?.config?.subtitle;
   const ref = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
   const sheetScale = useTransform(scrollYProgress, [0.3, 0.7], [1, 6], { ease: (t) => t * t });
@@ -43,19 +58,9 @@ export default function CommunitySection({ section }: { section?: CMSSection }) 
     return () => mq.removeEventListener('change', on);
   }, []);
 
-  useEffect(() => {
-    supabase
-      .from('community_photos' as any)
-      .select('id, image_url, media_type, handle, bento_size')
-      .eq('is_active', true)
-      .order('position')
-      .then(({ data }) => setPhotos((data as unknown as Photo[]) || []));
-  }, []);
-
   // Only real community photos; a short list repeats to fill the six tiles.
-  const wall = photos.length ? Array.from({ length: 6 }, (_, i) => ({ ...photos[i % photos.length], id: `${photos[i % photos.length].id}-${i}` })) : [];
+  const wall = Array.from({ length: 6 }, (_, i) => ({ ...photos[i % photos.length], id: `${photos[i % photos.length].id}-${i}` }));
   const insta = instagramUrl(brand?.social_instagram);
-  if (!wall.length) return null;
 
   return (
     <section ref={ref} className="relative bg-[#0F0F0F] h-[320vh] overflow-clip">

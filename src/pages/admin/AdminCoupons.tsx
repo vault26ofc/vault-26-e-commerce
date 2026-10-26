@@ -7,6 +7,7 @@ import { fetchAllRows } from '@/lib/fetchAll';
 import { fmtCalendarDate, fmtDate, fromIstInput, inr, istDay, toIstInput } from '@/lib/format';
 import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
 import { bornOn } from '@/lib/birthday';
+import { askConfirm } from '@/components/shared/AskDialog';
 
 type Kind = 'general' | 'welcome' | 'birthday';
 type Coupon = {
@@ -479,7 +480,11 @@ function BirthdayCoupons() {
     const ends = fromIstInput(offer.expires_at);
     const starts = fromIstInput(offer.starts_at);
     if (ends && Date.parse(ends) <= Math.max(Date.now(), starts ? Date.parse(starts) : 0)) return toast.error('The expiry must be after now and after the start');
-    if (!confirm(`Release ${picked.length} birthday code${picked.length === 1 ? '' : 's'} for ${dayLabel}?`)) return;
+    if (!(await askConfirm({
+      title: `Release ${picked.length} birthday code${picked.length === 1 ? '' : 's'}?`,
+      body: `Each ticked customer born on ${dayLabel} gets their own ${offer.code_prefix}- code, shown under Account → My Coupons.`,
+      okLabel: 'Release',
+    }))) return;
     setBusy(true);
     const { data, error } = await supabase.rpc('issue_birthday_coupons' as any, {
       p_user_ids: picked,

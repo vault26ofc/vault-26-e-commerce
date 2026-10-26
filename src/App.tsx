@@ -9,6 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import StoreLayout from "@/components/layout/StoreLayout";
 import Preloader from "@/components/shared/Preloader";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { AskDialogHost } from "@/components/shared/AskDialog";
 
 // ─── Store pages (statically imported for instant back/forward navigation) ──
 import Home from "@/pages/Home";
@@ -92,6 +93,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner position="top-center" />
+        <AskDialogHost />
         <AnimatePresence>
           {loading && <Preloader onComplete={handlePreloaderComplete} />}
         </AnimatePresence>
