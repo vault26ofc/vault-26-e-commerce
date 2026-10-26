@@ -435,16 +435,26 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 /** Calendar Date ⇄ "YYYY-MM-DD" by its calendar parts (no time-zone shift). */
 const ymd = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const toDate = (day: string) => { const [y, m, d] = day.split('-').map(Number); return new Date(y, m - 1, d); };
+/** Start/expiry inputs for "that day only". */
+const dayInputs = (day: string) => { const w = dayWindow(day); return { starts_at: toIstInput(w.starts_at), expires_at: toIstInput(w.expires_at) }; };
+
+type BirthdayOffer = Offer & { code_prefix: string; description: string };
 
 function BirthdayCoupons() {
   const today = istDay();
+  const options = useScope();
   const [day, setDay] = useState(today);
   const year = Number(day.slice(0, 4));
   const [people, setPeople] = useState<Person[]>([]);
   const [issued, setIssued] = useState<Map<string, string>>(new Map()); // "<user>|<year>" → code
-  const [type, setType] = useState<Offer['type']>('PERCENT');
-  const [value, setValue] = useState('15');
+  const [offer, setOffer] = useState<BirthdayOffer>(() => ({
+    code_prefix: 'BDAY', description: '', type: 'PERCENT', value: '15', max_discount: '', min_order: '0',
+    max_uses: '1', per_user_limit: '1', first_order_only: false, ...dayInputs(today), is_active: true, categories: [], excluded: [],
+  }));
   const [busy, setBusy] = useState(false);
+  const patch = (p: Partial<Offer>) => setOffer({ ...offer, ...p });
+  // A new date moves the start/expiry to that day.
+  const pickDay = (d: string) => { setDay(d); setOffer({ ...offer, ...dayInputs(d) }); };
 
   const load = async () => {
     try {
@@ -465,15 +475,18 @@ function BirthdayCoupons() {
   const dayLabel = `${Number(day.slice(8, 10))} ${MONTHS[Number(day.slice(5, 7)) - 1]}`;
 
   const release = async () => {
-    const problem = offerProblem({ type, value });
+    const problem = offerProblem(offer);
     if (problem) return toast.error(problem);
+    if (!/^[A-Z0-9]{2,12}$/.test(offer.code_prefix)) return toast.error('The code prefix needs 2–12 letters or digits');
+    const ends = fromIstInput(offer.expires_at);
+    const starts = fromIstInput(offer.starts_at);
+    if (ends && Date.parse(ends) <= Math.max(Date.now(), starts ? Date.parse(starts) : 0)) return toast.error('The expiry must be after now and after the start');
     setBusy(true);
     const { data, error } = await supabase.rpc('issue_birthday_coupons' as any, {
       p_user_ids: toRelease.map((p) => p.id),
-      // One use, whole store, valid on that day only (IST).
-      p_fields: { type, value: Number(value), max_uses: 1, per_user_limit: 1, ...dayWindow(day), is_active: true, birthday: day },
-      p_categories: [],
-      p_excluded: [],
+      p_fields: { ...offerFields(offer), code_prefix: offer.code_prefix, description: offer.description, birthday: day },
+      p_categories: offer.categories,
+      p_excluded: offer.excluded,
     });
     setBusy(false);
     if (error) return toast.error(describeError(error));
@@ -484,7 +497,7 @@ function BirthdayCoupons() {
   return (
     <div className="max-w-5xl grid md:grid-cols-[auto_minmax(0,1fr)] gap-6 items-start">
       <div className="border border-border justify-self-start">
-        <Calendar mode="single" selected={toDate(day)} onSelect={(d) => d && setDay(ymd(d))} defaultMonth={toDate(today)}
+        <Calendar mode="single" selected={toDate(day)} onSelect={(d) => d && pickDay(ymd(d))} defaultMonth={toDate(today)}
           disabled={{ before: toDate(today) }}
           modifiers={{ birthday: (d) => people.some((p) => p.dob && bornOn(p.dob, ymd(d))) }}
           modifiersClassNames={{ birthday: 'underline decoration-2 underline-offset-4 decoration-[#BB0006]' }}
@@ -496,7 +509,7 @@ function BirthdayCoupons() {
         <div>
           <h2 className="font-display text-2xl">{dayLabel}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            {born.length} customer{born.length === 1 ? '' : 's'} born on this day. Each gets their own one-time BDAY code, valid on {dayLabel} only (IST).
+            {born.length} customer{born.length === 1 ? '' : 's'} born on this day. Each gets their own {offer.code_prefix || 'BDAY'}- code under Account → My Coupons.
           </p>
         </div>
 
@@ -521,21 +534,19 @@ function BirthdayCoupons() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground">
-            Discount
-            <div className="mt-1.5 flex">
-              {(['PERCENT', 'FLAT'] as const).map((t) => (
-                <button key={t} type="button" onClick={() => setType(t)}
-                  className={`px-3 py-2 text-xs border ${type === t ? 'bg-foreground text-background border-foreground' : 'border-border hover:border-foreground'}`}>
-                  {t === 'PERCENT' ? '% off' : '₹ off'}
-                </button>
-              ))}
-            </div>
-          </div>
-          <Field label={type === 'PERCENT' ? 'Percent' : 'Rupees'}>
-            <input type="number" min={0} value={value} onChange={(e) => setValue(e.target.value)} className={`${inputCls} w-28`} />
-          </Field>
+        <div className="border border-border p-5 space-y-5">
+          <div className="text-xs uppercase tracking-widest text-muted-foreground">Offer</div>
+          <OfferFields form={offer} patch={patch}
+            lead={<>
+              <Field label="Code prefix *" hint="Each customer gets PREFIX-XXXXXX. 2–12 letters or digits.">
+                <input value={offer.code_prefix} onChange={(e) => setOffer({ ...offer, code_prefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })} className={`${inputCls} uppercase`} />
+              </Field>
+              <Field label="Admin note" hint={`Only admins see this. Blank = “Birthday ${year}”.`}>
+                <input value={offer.description} onChange={(e) => setOffer({ ...offer, description: e.target.value })} className={inputCls} />
+              </Field>
+            </>} />
+          <p className="text-[11px] text-muted-foreground -mt-2">Start and expiry follow the date you pick: {dayLabel} only, until 00:00 the next day. Change them if you want longer.</p>
+          <ScopeFields form={offer} patch={patch} scope={options} />
           <button onClick={release} disabled={busy || !toRelease.length} className={btn}>
             {busy ? 'Releasing…' : `Release to ${toRelease.length} customer${toRelease.length === 1 ? '' : 's'}`}
           </button>
