@@ -2226,12 +2226,10 @@ export type Database = {
       }
       issue_birthday_coupons: {
         Args: {
-          p_discount_type: string
-          p_discount_value: number
-          p_max_discount: number
-          p_min_order: number
+          p_categories: string[]
+          p_excluded: string[]
+          p_fields: Json
           p_user_ids: string[]
-          p_valid_days: number
         }
         Returns: number
       }

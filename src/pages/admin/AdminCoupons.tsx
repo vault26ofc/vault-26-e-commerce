@@ -6,6 +6,7 @@ import { describeError } from '@/lib/errors';
 import { fetchAllRows } from '@/lib/fetchAll';
 import { fmtCalendarDate, fmtDate, fromIstInput, inr, istDay, toIstInput } from '@/lib/format';
 import { MultiSearchSelect, SearchSelect } from '@/components/admin/SearchSelect';
+import { bornOn } from '@/lib/birthday';
 
 type Kind = 'general' | 'welcome' | 'birthday';
 type Coupon = {
@@ -15,13 +16,16 @@ type Coupon = {
   starts_at: string | null; expires_at: string | null; is_active: boolean; is_listed: boolean; created_at: string;
 };
 type Person = { id: string; name: string | null; email: string | null; phone?: string | null; dob?: string | null };
-type Form = {
-  id?: string; code: string; kind: Kind; assigned_user_id: string; description: string;
+/** The settings every coupon has, whatever its kind. */
+type Offer = {
   type: 'PERCENT' | 'FLAT'; value: string; max_discount: string; min_order: string;
   max_uses: string; per_user_limit: string; first_order_only: boolean;
-  starts_at: string; expires_at: string; is_active: boolean; is_listed: boolean;
+  starts_at: string; expires_at: string; is_active: boolean;
   categories: string[]; excluded: string[];
 };
+type Form = Offer & { id?: string; code: string; kind: Kind; assigned_user_id: string; description: string; is_listed: boolean };
+type Category = { id: string; name: string; parent_id: string | null };
+type Scope = { categories: Category[]; products: { id: string; name: string }[]; catName: (id: string) => string };
 
 const inputCls = 'w-full border border-border bg-transparent px-3 py-2 text-sm';
 const btn = 'bg-foreground text-background px-4 py-2 text-xs uppercase tracking-widest disabled:opacity-50';
@@ -41,6 +45,85 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
       <div className="mt-1.5 normal-case tracking-normal text-foreground">{children}</div>
       {hint && <div className="mt-1 normal-case tracking-normal text-[11px]">{hint}</div>}
     </label>
+  );
+}
+
+const offerProblem = (f: Offer) => {
+  const value = Number(f.value);
+  if (!(value > 0)) return 'The discount must be above 0';
+  if (f.type === 'PERCENT' && value > 100) return 'A percent discount can be at most 100';
+  return null;
+};
+const offerFields = (f: Offer) => ({
+  type: f.type, value: Number(f.value), max_discount: f.max_discount || null, min_order: f.min_order || 0,
+  max_uses: f.max_uses || null, per_user_limit: f.per_user_limit || null, first_order_only: f.first_order_only,
+  starts_at: fromIstInput(f.starts_at), expires_at: fromIstInput(f.expires_at), is_active: f.is_active,
+});
+
+/** Categories and products for the "Applies to" pickers. */
+function useScope(): Scope {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    supabase.from('categories').select('id, name, parent_id').order('position').order('name').then(({ data }) => setCategories((data as any) || []));
+    fetchAllRows<any>(() => supabase.from('products').select('id, name').order('name').order('id')).then(setProducts).catch(() => {});
+  }, []);
+  return { categories, products, catName: (id) => categories.find((c) => c.id === id)?.name || '?' };
+}
+
+/** Discount, limits, dates and switches. `lead` fields go first in the grid, `toggles` after the switches. */
+function OfferFields({ form, patch, lead, toggles }: { form: Offer; patch: (p: Partial<Offer>) => void; lead?: React.ReactNode; toggles?: React.ReactNode }) {
+  return (
+    <>
+      <div className="grid sm:grid-cols-2 gap-4">
+        {lead}
+        <Field label="Discount type">
+          <SearchSelect value={form.type} onChange={(v) => patch({ type: v as Offer['type'] })} options={[{ value: 'PERCENT', label: 'Percent off' }, { value: 'FLAT', label: 'Flat ₹ off' }]} />
+        </Field>
+        <Field label={form.type === 'PERCENT' ? 'Percent off *' : 'Rupees off *'}>
+          <input type="number" min={0} value={form.value} onChange={(e) => patch({ value: e.target.value })} className={inputCls} />
+        </Field>
+        <Field label="Maximum discount (₹)" hint="Optional cap for percent coupons.">
+          <input type="number" min={0} value={form.max_discount} onChange={(e) => patch({ max_discount: e.target.value })} className={inputCls} />
+        </Field>
+        <Field label="Minimum order (₹)" hint="Counted on the items the coupon covers.">
+          <input type="number" min={0} value={form.min_order} onChange={(e) => patch({ min_order: e.target.value })} className={inputCls} />
+        </Field>
+        <Field label="Total uses" hint="Blank = unlimited.">
+          <input type="number" min={1} value={form.max_uses} onChange={(e) => patch({ max_uses: e.target.value })} className={inputCls} />
+        </Field>
+        <Field label="Uses per customer" hint="Blank = unlimited.">
+          <input type="number" min={1} value={form.per_user_limit} onChange={(e) => patch({ per_user_limit: e.target.value })} className={inputCls} />
+        </Field>
+        <Field label="Starts (IST)">
+          <input type="datetime-local" value={form.starts_at} onChange={(e) => patch({ starts_at: e.target.value })} className={inputCls} />
+        </Field>
+        <Field label="Expires (IST)">
+          <input type="datetime-local" value={form.expires_at} onChange={(e) => patch({ expires_at: e.target.value })} className={inputCls} />
+        </Field>
+      </div>
+      <div className="flex flex-wrap gap-6 text-sm">
+        <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => patch({ is_active: e.target.checked })} /> Active</label>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={form.first_order_only} onChange={(e) => patch({ first_order_only: e.target.checked })} /> First order only</label>
+        {toggles}
+      </div>
+    </>
+  );
+}
+
+function ScopeFields({ form, patch, scope }: { form: Offer; patch: (p: Partial<Offer>) => void; scope: Scope }) {
+  return (
+    <div className="border-t border-border pt-5 space-y-4">
+      <div className="text-xs uppercase tracking-widest text-muted-foreground">Applies to</div>
+      <MultiSearchSelect values={form.categories} onChange={(categories) => patch({ categories })} placeholder="Whole store — or search categories to limit it…"
+        options={scope.categories.map((c) => ({ value: c.id, label: c.parent_id ? `${scope.catName(c.parent_id)} › ${c.name}` : c.name }))} />
+      <p className="text-[11px] text-muted-foreground">
+        {form.categories.length ? 'Products in these categories and their subcategories (main or extra category), including ones added later. The discount and minimum order count only these items.' : 'No categories: the whole store.'}
+      </p>
+      <div className="text-xs uppercase tracking-widest text-muted-foreground">Leave out these products</div>
+      <MultiSearchSelect values={form.excluded} onChange={(excluded) => patch({ excluded })} placeholder="Search products to leave out…"
+        options={scope.products.map((p) => ({ value: p.id, label: p.name }))} />
+    </div>
   );
 }
 
@@ -67,8 +150,7 @@ export default AdminCoupons;
 function CouponList() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [scope, setScope] = useState<Map<string, { cats: string[]; ex: string[] }>>(new Map());
-  const [categories, setCategories] = useState<{ id: string; name: string; parent_id: string | null }[]>([]);
-  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const options = useScope();
   const [people, setPeople] = useState<Person[]>([]);
   const [filter, setFilter] = useState<'general' | 'welcome' | 'birthday' | 'all'>('general');
   const [search, setSearch] = useState('');
@@ -93,13 +175,11 @@ function CouponList() {
 
   useEffect(() => {
     load();
-    supabase.from('categories').select('id, name, parent_id').order('position').order('name').then(({ data }) => setCategories((data as any) || []));
-    fetchAllRows<any>(() => supabase.from('products').select('id, name').order('name').order('id')).then(setProducts).catch(() => {});
     fetchAllRows<Person>(() => supabase.from('profiles').select('id, name, email').order('created_at').order('id')).then(setPeople).catch(() => {});
   }, []);
 
   const byPerson = useMemo(() => new Map(people.map((p) => [p.id, p])), [people]);
-  const catName = (id: string) => categories.find((c) => c.id === id)?.name || '?';
+  const { catName } = options;
 
   const shown = coupons.filter((c) => (filter === 'all' || c.kind === filter)
     && (!search || c.code.includes(search.toUpperCase()) || (c.description || '').toLowerCase().includes(search.toLowerCase())));
@@ -116,9 +196,8 @@ function CouponList() {
     if (!form) return;
     const code = form.code.trim().toUpperCase();
     if (!/^[A-Z0-9_-]{2,40}$/.test(code)) return toast.error('Codes use 2–40 letters, digits, - or _');
-    const value = Number(form.value);
-    if (!(value > 0)) return toast.error('The discount must be above 0');
-    if (form.type === 'PERCENT' && value > 100) return toast.error('A percent discount can be at most 100');
+    const problem = offerProblem(form);
+    if (problem) return toast.error(problem);
     if (form.kind !== 'general' && !form.assigned_user_id) return toast.error('Welcome and birthday codes need an owner');
     setSaving(true);
     // Coupon + its category scope are saved in ONE transaction: a coupon saved without its
@@ -126,10 +205,8 @@ function CouponList() {
     const { error } = await supabase.rpc('save_coupon' as any, {
       p_id: form.id ?? null,
       p_fields: {
-        code, kind: form.kind, assigned_user_id: form.assigned_user_id || null, description: form.description,
-        type: form.type, value, max_discount: form.max_discount || null, min_order: form.min_order || 0,
-        max_uses: form.max_uses || null, per_user_limit: form.per_user_limit || null, first_order_only: form.first_order_only,
-        starts_at: fromIstInput(form.starts_at), expires_at: fromIstInput(form.expires_at), is_active: form.is_active, is_listed: form.is_listed,
+        ...offerFields(form), code, kind: form.kind, assigned_user_id: form.assigned_user_id || null, description: form.description,
+        is_listed: form.is_listed,
       },
       p_categories: form.categories,
       p_excluded: form.excluded,
@@ -217,60 +294,23 @@ function CouponList() {
               </div>
             </div>
             <div className="p-6 space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Code *" hint="Letters, digits, - and _. Saved in capitals.">
-                  <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '') })} className={`${inputCls} uppercase`} />
-                </Field>
-                <Field label="Admin note" hint="Only admins see this.">
-                  <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Discount type">
-                  <SearchSelect value={form.type} onChange={(v) => setForm({ ...form, type: v as Form['type'] })} options={[{ value: 'PERCENT', label: 'Percent off' }, { value: 'FLAT', label: 'Flat ₹ off' }]} />
-                </Field>
-                <Field label={form.type === 'PERCENT' ? 'Percent off *' : 'Rupees off *'}>
-                  <input type="number" min={0} value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Maximum discount (₹)" hint="Optional cap for percent coupons.">
-                  <input type="number" min={0} value={form.max_discount} onChange={(e) => setForm({ ...form, max_discount: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Minimum order (₹)" hint="Counted on the items the coupon covers.">
-                  <input type="number" min={0} value={form.min_order} onChange={(e) => setForm({ ...form, min_order: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Total uses" hint="Blank = unlimited.">
-                  <input type="number" min={1} value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Uses per customer" hint="Blank = unlimited.">
-                  <input type="number" min={1} value={form.per_user_limit} onChange={(e) => setForm({ ...form, per_user_limit: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Starts (IST)">
-                  <input type="datetime-local" value={form.starts_at} onChange={(e) => setForm({ ...form, starts_at: e.target.value })} className={inputCls} />
-                </Field>
-                <Field label="Expires (IST)">
-                  <input type="datetime-local" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} className={inputCls} />
-                </Field>
-              </div>
-              <div className="flex flex-wrap gap-6 text-sm">
-                <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /> Active</label>
-                <label className="flex items-center gap-2"><input type="checkbox" checked={form.first_order_only} onChange={(e) => setForm({ ...form, first_order_only: e.target.checked })} /> First order only</label>
-                {form.kind === 'general' && !form.assigned_user_id && (
+              <OfferFields form={form} patch={(p) => setForm({ ...form, ...p })}
+                lead={<>
+                  <Field label="Code *" hint="Letters, digits, - and _. Saved in capitals.">
+                    <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '') })} className={`${inputCls} uppercase`} />
+                  </Field>
+                  <Field label="Admin note" hint="Only admins see this.">
+                    <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputCls} />
+                  </Field>
+                </>}
+                toggles={form.kind === 'general' && !form.assigned_user_id && (
                   <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_listed} onChange={(e) => setForm({ ...form, is_listed: e.target.checked })} /> Show in the checkout coupon list</label>
-                )}
-              </div>
+                )} />
               <Field label={form.kind === 'general' ? 'Only for one customer (optional)' : 'Owner *'} hint="A personal code works only for its owner; for anyone else it answers like an unknown code.">
                 <SearchSelect value={form.assigned_user_id} onChange={(v) => setForm({ ...form, assigned_user_id: v })} emptyLabel={form.kind === 'general' ? '— everyone —' : undefined}
                   placeholder="Search a customer…" options={people.map((p) => ({ value: p.id, label: personLabel(p) }))} />
               </Field>
-              <div className="border-t border-border pt-5 space-y-4">
-                <div className="text-xs uppercase tracking-widest text-muted-foreground">Applies to</div>
-                <MultiSearchSelect values={form.categories} onChange={(categories) => setForm({ ...form, categories })} placeholder="Whole store — or search categories to limit it…"
-                  options={categories.map((c) => ({ value: c.id, label: c.parent_id ? `${catName(c.parent_id)} › ${c.name}` : c.name }))} />
-                <p className="text-[11px] text-muted-foreground">
-                  {form.categories.length ? 'Products in these categories and their subcategories (main or extra category), including ones added later. The discount and minimum order count only these items.' : 'No categories: the whole store.'}
-                </p>
-                <div className="text-xs uppercase tracking-widest text-muted-foreground">Leave out these products</div>
-                <MultiSearchSelect values={form.excluded} onChange={(excluded) => setForm({ ...form, excluded })} placeholder="Search products to leave out…"
-                  options={products.map((p) => ({ value: p.id, label: p.name }))} />
-              </div>
+              <ScopeFields form={form} patch={(p) => setForm({ ...form, ...p })} scope={options} />
             </div>
           </div>
         </div>
@@ -392,60 +432,78 @@ function WelcomeOffer() {
 // ─────────────────────────────────────────────────────────────────── birthday coupons
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+type BirthdayOffer = Offer & { code_prefix: string; description: string };
+const birthdayDefaults = (): BirthdayOffer => ({
+  code_prefix: 'BDAY', description: '', type: 'PERCENT', value: '15', max_discount: '', min_order: '0',
+  max_uses: '1', per_user_limit: '1', first_order_only: false, starts_at: '',
+  expires_at: toIstInput(new Date(Date.now() + 30 * 86_400_000).toISOString()), is_active: true, categories: [], excluded: [],
+});
+
 function BirthdayCoupons() {
-  const year = Number(istDay().slice(0, 4));
-  const [month, setMonth] = useState(Number(istDay().slice(5, 7)));
+  const options = useScope();
+  const [day, setDay] = useState(istDay());
+  const year = Number(day.slice(0, 4));
   const [people, setPeople] = useState<Person[]>([]);
-  const [issued, setIssued] = useState<Map<string, string>>(new Map());
+  const [issued, setIssued] = useState<Map<string, string>>(new Map()); // "<user>|<year>" → code
   const [picked, setPicked] = useState<string[]>([]);
-  const [offerForm, setOfferForm] = useState({ type: 'PERCENT', value: 15, max_discount: '', min_order: 0, valid_days: 30 });
+  const [offer, setOffer] = useState<BirthdayOffer>(birthdayDefaults);
   const [busy, setBusy] = useState(false);
+  const patch = (p: Partial<Offer>) => setOffer({ ...offer, ...p });
 
   const load = async () => {
     try {
       const [ps, cs] = await Promise.all([
         fetchAllRows<Person>(() => supabase.from('profiles').select('id, name, email, phone, dob').not('dob', 'is', null).order('id')),
-        fetchAllRows<any>(() => supabase.from('coupons' as any).select('id, code, assigned_user_id').eq('kind', 'birthday').eq('bday_year', year).order('id')),
+        fetchAllRows<any>(() => supabase.from('coupons' as any).select('id, code, assigned_user_id, bday_year').eq('kind', 'birthday').order('id')),
       ]);
       setPeople(ps);
-      setIssued(new Map(cs.map((c) => [c.assigned_user_id, c.code])));
+      setIssued(new Map(cs.map((c) => [`${c.assigned_user_id}|${c.bday_year}`, c.code])));
     } catch (e) { toast.error(describeError(e)); }
   };
   useEffect(() => { load(); }, []);
-  useEffect(() => { setPicked([]); }, [month]);
 
-  const inMonth = people
-    .filter((p) => p.dob && Number(p.dob.slice(5, 7)) === month)
-    .sort((a, b) => a.dob!.slice(8, 10).localeCompare(b.dob!.slice(8, 10)));
-  const eligible = inMonth.filter((p) => !issued.has(p.id));
+  const born = useMemo(() => people.filter((p) => p.dob && bornOn(p.dob, day))
+    .sort((a, b) => (a.name || a.email || '').localeCompare(b.name || b.email || '')), [people, day]);
+  const codeOf = (id: string) => issued.get(`${id}|${year}`);
+  const eligible = useMemo(() => born.filter((p) => !issued.has(`${p.id}|${year}`)), [born, issued, year]);
+  // Everyone born that day is ticked; untick anyone to leave them out.
+  useEffect(() => { setPicked(eligible.map((p) => p.id)); }, [eligible]);
+
+  const dayLabel = `${Number(day.slice(8, 10))} ${MONTHS[Number(day.slice(5, 7)) - 1]}`;
 
   const release = async () => {
     if (!picked.length) return toast.error('Tick at least one customer');
-    if (!(offerForm.value > 0)) return toast.error('Set the discount');
-    if (!confirm(`Create ${picked.length} birthday code${picked.length === 1 ? '' : 's'}?`)) return;
+    const problem = offerProblem(offer);
+    if (problem) return toast.error(problem);
+    if (!/^[A-Z0-9]{2,12}$/.test(offer.code_prefix)) return toast.error('The code prefix needs 2–12 letters or digits');
+    const ends = fromIstInput(offer.expires_at);
+    const starts = fromIstInput(offer.starts_at);
+    if (ends && Date.parse(ends) <= Math.max(Date.now(), starts ? Date.parse(starts) : 0)) return toast.error('The expiry must be after now and after the start');
+    if (!confirm(`Release ${picked.length} birthday code${picked.length === 1 ? '' : 's'} for ${dayLabel}?`)) return;
     setBusy(true);
     const { data, error } = await supabase.rpc('issue_birthday_coupons' as any, {
-      p_user_ids: picked, p_discount_type: offerForm.type, p_discount_value: offerForm.value,
-      p_max_discount: offerForm.max_discount === '' ? null : Number(offerForm.max_discount),
-      p_min_order: offerForm.min_order, p_valid_days: offerForm.valid_days,
+      p_user_ids: picked,
+      p_fields: { ...offerFields(offer), code_prefix: offer.code_prefix, description: offer.description, birthday: day },
+      p_categories: offer.categories,
+      p_excluded: offer.excluded,
     });
     setBusy(false);
     if (error) return toast.error(describeError(error));
     toast.success(`${data} birthday code${data === 1 ? '' : 's'} created`);
-    setPicked([]);
     load();
   };
 
   return (
     <div className="max-w-4xl space-y-6">
-      <p className="text-sm text-muted-foreground">One single-use BDAY code per customer per year ({year}, IST). Customers see it under Account → My Coupons.</p>
+      <p className="text-sm text-muted-foreground">
+        Pick a birthday, check who was born that day, set the offer and release. Each customer gets their own code
+        (like {offer.code_prefix || 'BDAY'}-7KQ2XA), one per birthday year, under Account → My Coupons.
+      </p>
       <div className="flex flex-wrap items-end gap-4">
-        <Field label="Birth month">
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className={`${inputCls} w-44`}>
-            {MONTHS.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
-          </select>
+        <Field label="Birthday">
+          <input type="date" value={day} onChange={(e) => e.target.value && setDay(e.target.value)} className={`${inputCls} w-48`} />
         </Field>
-        <span className="text-sm text-muted-foreground pb-2">{inMonth.length} customer{inMonth.length === 1 ? '' : 's'} · {eligible.length} without a {year} code</span>
+        <span className="text-sm text-muted-foreground pb-2">{born.length} customer{born.length === 1 ? '' : 's'} born on {dayLabel} · {eligible.length} without a {year} code</span>
       </div>
 
       <div className="border border-border overflow-x-auto">
@@ -456,36 +514,40 @@ function BirthdayCoupons() {
             {['Customer', 'Birthday', `${year} code`].map((h) => <th key={h} className="text-left p-3 font-medium">{h}</th>)}
           </tr></thead>
           <tbody>
-            {inMonth.map((p) => {
-              const code = issued.get(p.id);
+            {born.map((p) => {
+              const code = codeOf(p.id);
               return (
                 <tr key={p.id} className="border-t border-border">
                   <td className="p-3"><input type="checkbox" disabled={!!code} checked={picked.includes(p.id)}
                     onChange={(e) => setPicked(e.target.checked ? [...picked, p.id] : picked.filter((x) => x !== p.id))} /></td>
-                  <td className="p-3">{p.name || '—'}<div className="text-[11px] text-muted-foreground">{p.email}</div></td>
+                  <td className="p-3">{p.name || '—'}<div className="text-[11px] text-muted-foreground">{[p.email, p.phone].filter(Boolean).join(' · ')}</div></td>
                   <td className="p-3">{fmtCalendarDate(p.dob)}</td>
                   <td className="p-3 text-xs">{code || '—'}</td>
                 </tr>
               );
             })}
-            {!inMonth.length && <tr><td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">No customers with a birthday in {MONTHS[month - 1]}.</td></tr>}
+            {!born.length && (
+              <tr><td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">
+                No customers born on {dayLabel}.
+                <div className="text-[11px] mt-1">Customers add their birthday under Account; you can set one under Customers.</div>
+              </td></tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      <div className="border border-border p-5 space-y-4">
+      <div className="border border-border p-5 space-y-5">
         <div className="text-xs uppercase tracking-widest text-muted-foreground">Offer</div>
-        <div className="grid sm:grid-cols-5 gap-3">
-          <Field label="Type">
-            <select value={offerForm.type} onChange={(e) => setOfferForm({ ...offerForm, type: e.target.value })} className={inputCls}>
-              <option value="PERCENT">Percent</option><option value="FLAT">Flat ₹</option>
-            </select>
-          </Field>
-          <Field label="Value"><input type="number" min={0} value={offerForm.value} onChange={(e) => setOfferForm({ ...offerForm, value: Number(e.target.value) })} className={inputCls} /></Field>
-          <Field label="Max ₹ off"><input type="number" min={0} value={offerForm.max_discount} onChange={(e) => setOfferForm({ ...offerForm, max_discount: e.target.value })} className={inputCls} /></Field>
-          <Field label="Min order ₹"><input type="number" min={0} value={offerForm.min_order} onChange={(e) => setOfferForm({ ...offerForm, min_order: Number(e.target.value) })} className={inputCls} /></Field>
-          <Field label="Valid days"><input type="number" min={1} max={365} value={offerForm.valid_days} onChange={(e) => setOfferForm({ ...offerForm, valid_days: Number(e.target.value) })} className={inputCls} /></Field>
-        </div>
+        <OfferFields form={offer} patch={patch}
+          lead={<>
+            <Field label="Code prefix *" hint="Each customer gets PREFIX-XXXXXX. 2–12 letters or digits.">
+              <input value={offer.code_prefix} onChange={(e) => setOffer({ ...offer, code_prefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })} className={`${inputCls} uppercase`} />
+            </Field>
+            <Field label="Admin note" hint={`Only admins see this. Blank = “Birthday ${year}”.`}>
+              <input value={offer.description} onChange={(e) => setOffer({ ...offer, description: e.target.value })} className={inputCls} />
+            </Field>
+          </>} />
+        <ScopeFields form={offer} patch={patch} scope={options} />
         <button onClick={release} disabled={busy || !picked.length} className={btn}>{busy ? 'Releasing…' : `Release to ${picked.length} customer${picked.length === 1 ? '' : 's'}`}</button>
       </div>
     </div>
