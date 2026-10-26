@@ -101,7 +101,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
         loading="lazy"
         className="absolute right-0 md:right-auto md:left-1/2 md:-translate-x-1/2 top-[40vh] h-[230vh] w-[56vw] md:w-[30vw] object-cover object-[50%_20%] grayscale contrast-[1.1] pointer-events-none [mask-image:linear-gradient(to_right,transparent,black_14%,black_86%,transparent),linear-gradient(to_bottom,black_88%,transparent)] [mask-composite:intersect]"
       />
-      <div className="sticky top-0 h-screen overflow-hidden z-[2] pointer-events-none [&_a]:pointer-events-auto">
+      <div className="sticky top-0 h-svh lg:h-screen overflow-hidden z-[2] pointer-events-none [&_a]:pointer-events-auto">
 
         <div className="relative mx-auto max-w-[1440px] h-full">
           {/* Phone 1 — catalogue */}
@@ -165,7 +165,7 @@ export default function PhoneShowcaseSection({ section }: { section?: CMSSection
 
           <Link
             to={resolveHref(cfg.cta_link, '/shop')}
-            className="absolute left-[4%] md:left-auto md:right-[4%] bottom-[5%] z-10 h-12 px-8 bg-white text-[#BB0006] font-sans text-[15px] flex items-center hover:bg-[#F1F1F1] transition-colors"
+            className="absolute left-[4%] md:left-auto md:right-[4%] bottom-[calc(72px+4%)] lg:bottom-[5%] z-10 h-12 px-8 bg-white text-[#BB0006] font-sans text-[15px] flex items-center hover:bg-[#F1F1F1] transition-colors"
           >
             {cfg.cta_label}
           </Link>

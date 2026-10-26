@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Instagram, Heart, MessageCircle, Share2, Volume2, VolumeX, Play, Pause, ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import type { CMSSection } from '../types';
 import { RedTag, TornEdge } from '@/components/polka/Polka';
+import { useIsPhone } from '@/components/shared/Media';
 
 type Reel = {
   id: string;
@@ -35,7 +36,9 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
   const [playingId, setPlayingId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
-  // Reels drift sideways as the section passes through the viewport.
+  // Reels drift sideways as the section passes through the viewport. Not on phones: there the
+  // belt is swiped, and a drifted belt slices the first card and hides cards you can't swipe back to.
+  const phone = useIsPhone();
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
   const beltX = useTransform(scrollYProgress, [0, 1], ['6%', '-28%']);
 
@@ -121,7 +124,7 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
           className="w-full overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory px-4 md:px-8 pb-4 relative z-[3]"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          <motion.div style={{ x: beltX }} className="flex gap-2 md:gap-3 w-max will-change-transform">
+          <motion.div style={{ x: phone ? 0 : beltX }} className="flex gap-2 md:gap-3 w-max will-change-transform">
             {[...reels, ...reels.map((r) => ({ ...r, id: `${r.id}-b` }))].map((reel) => {
               const isPlaying = playingId === reel.id;
 
@@ -200,8 +203,8 @@ export default function InstagramReelsSection({ section }: { section?: CMSSectio
                           to={`/products/${reel.productSlug}`}
                           className="w-full h-9 px-3 bg-[#BB0006] hover:bg-[#AA0001] text-white text-[13px] font-sans flex items-center justify-center gap-1.5 transition-colors"
                         >
-                          <ShoppingBag className="w-3.5 h-3.5" />
-                          {cfg.button_prefix} {reel.productName}
+                          <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{cfg.button_prefix} {reel.productName}</span>
                         </Link>
                       </div>
                     )}

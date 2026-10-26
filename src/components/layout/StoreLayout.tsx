@@ -12,7 +12,9 @@ export default function StoreLayout() {
   const loc = useLocation();
   useEffect(() => { window.scrollTo(0, 0); }, [loc.pathname]);
   return (
-    <div className="min-h-screen flex flex-col">
+    // overflow-x: clip — nothing wider than the screen can widen the page on phones (which zooms out
+    // and slices the navbar and tab bar). Unlike hidden, clip keeps sticky sections working.
+    <div className="min-h-screen flex flex-col [overflow-x:clip]">
       <AnnouncementBar />
       <Navbar />
       <main className="flex-1 pb-20 lg:pb-0">

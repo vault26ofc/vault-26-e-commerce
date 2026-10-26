@@ -65,11 +65,11 @@ function CommunityWall({ photos, heading, subtitle }: { photos: Photo[]; heading
   return (
     <section ref={ref} className="relative bg-[#0F0F0F] h-[320vh] overflow-clip">
       <TornEdge color="#FFFFFF" position="top" seed={121} />
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Revealed board: paper, gutters, red title tile + uneven photo tiles */}
+      <div className="sticky top-0 h-svh lg:h-screen overflow-hidden">
+        {/* Revealed board: paper, gutters, red title tile + uneven photo tiles (below lg, clear of the bottom tab bar) */}
         <motion.div style={{ scale: wallScale }} className="absolute inset-0 bg-[#F4F4F2]">
           <img src="/hero_paper_texture.jpg" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
-          <div className="relative h-full mx-auto max-w-[1440px] px-4 md:px-8 lg:px-[30px] pt-[80px] md:pt-[90px] pb-6 grid grid-cols-2 md:grid-cols-4 grid-rows-3 md:grid-rows-2 gap-3 md:gap-4">
+          <div className="relative h-full mx-auto max-w-[1440px] px-4 md:px-8 lg:px-[30px] pt-[80px] md:pt-[90px] pb-[84px] lg:pb-6 grid grid-cols-2 md:grid-cols-4 grid-rows-3 md:grid-rows-2 gap-3 md:gap-4">
             <div className="relative col-span-2 md:col-span-1 md:row-span-2 text-white overflow-hidden bg-[#0F0F0F]">
               {/* Photo behind the tile while the type is readable; the red tile fades in after the reveal */}
               {wall[5] && <img src={wall[5].image_url} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover grayscale contrast-[1.1]" />}

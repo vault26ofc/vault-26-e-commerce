@@ -50,7 +50,12 @@ export const useCart = create<CartState>()(
       setCoupon: (code) => set({ couponCode: code }),
       subtotal: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     }),
-    { name: 'vault26-cart' }
+    {
+      name: 'vault26-cart',
+      // Only the bag itself is remembered; a remembered open drawer popped up on every page load.
+      partialize: (s) => ({ items: s.items, couponCode: s.couponCode }),
+      merge: (saved, current) => ({ ...current, ...(saved as Partial<CartState>), drawerOpen: false }),
+    }
   )
 );
 

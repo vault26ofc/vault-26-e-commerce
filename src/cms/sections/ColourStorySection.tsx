@@ -76,7 +76,8 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
 
   return (
     <section ref={ref} className="relative h-[300vh] bg-white" data-section="colour-story">
-      <div className="sticky top-14 md:top-[62px] h-[calc(100vh-56px)] md:h-[calc(100vh-62px)] overflow-hidden flex bg-white border-y border-[#0F0F0F]/10">
+      {/* Below lg the bottom tab bar (72px) covers the screen's foot, so the board stops above it. */}
+      <div className="sticky top-14 md:top-[62px] h-[calc(100svh-56px-72px)] md:h-[calc(100svh-62px-72px)] lg:h-[calc(100vh-62px)] overflow-hidden flex bg-white border-y border-[#0F0F0F]/10">
         {swatches.map((s, i) => (
           <Bar key={s.hex} s={s} i={i} progress={scrollYProgress} onOpen={() => setOpen(i)} />
         ))}
@@ -85,7 +86,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
             <motion.p {...fade} className="self-end font-sans text-[13px] md:text-[14px] text-white/80">{cfg.eyebrow}</motion.p>
             <div>
               <motion.p {...fade} className="font-sans uppercase text-[13px] md:text-[15px] mb-2">{cfg.meta}</motion.p>
-              <h2 className="font-display font-[800] uppercase leading-[0.85] text-[clamp(44px,9vw,140px)]" aria-label={title}>
+              <h2 className="font-display font-[800] uppercase leading-[0.85] text-[clamp(30px,9vw,140px)]" aria-label={title}>
                 {title.split(' ').map((word, w, arr) => {
                   const before = arr.slice(0, w).join(' ').length + (w ? 1 : 0);
                   return (
@@ -128,7 +129,7 @@ export default function ColourStorySection({ section }: { section?: CMSSection }
                     initial={{ y: 40, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.5, delay: 0.35 }}
-                    className="font-display font-[800] uppercase leading-[0.82] text-[clamp(48px,11vw,190px)]"
+                    className="font-display font-[800] uppercase leading-[0.82] text-[clamp(34px,11vw,190px)] break-words"
                   >
                     {sw.name}
                   </motion.h3>

@@ -616,14 +616,14 @@ export default function Navbar() {
             )}
 
             {/* Bottom Fixed Footer Bar */}
-            <div className="px-8 md:px-12 py-4 flex items-center justify-between border-t border-white/40 shrink-0 bg-[#BB0006] text-[12px] font-sans uppercase text-white/85">
-              {/* Left Statement */}
-              <div className="leading-tight">
+            <div className="px-4 md:px-12 py-4 flex items-center justify-center md:justify-between border-t border-white/40 shrink-0 bg-[#BB0006] text-[12px] font-sans uppercase text-white/85">
+              {/* Left Statement (phones show just the links, so nothing wraps) */}
+              <div className="hidden md:block leading-tight">
                 {(overlay.statement || 'THE ARCHIVE\nIS ALWAYS OPEN').split('\n').map((l, i) => <div key={i}>{l}</div>)}
               </div>
 
               {/* Center / Right Links */}
-              <div className="flex items-center gap-8 text-white">
+              <div className="flex items-center gap-8 text-white whitespace-nowrap">
                 <button onClick={() => { setMenuOpen(false); setDrawer(true); }} className="hover:underline underline-offset-4 transition-colors cursor-pointer">
                   BAG ({cartCount})
                 </button>
@@ -636,7 +636,7 @@ export default function Navbar() {
               </div>
 
               {/* Far Right Copyright */}
-              <div className="text-right leading-tight">
+              <div className="hidden md:block text-right leading-tight">
                 <div>© VAULT 26</div>
                 <div>EST. 2026</div>
               </div>

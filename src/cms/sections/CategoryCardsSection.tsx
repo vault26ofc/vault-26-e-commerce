@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform, type MotionValue } from 'framer-motion';
+import { motion, useScroll, useTransform, type MotionStyle, type MotionValue } from 'framer-motion';
 import type { CMSSection } from '../types';
 import { TextColumns } from '@/components/polka/Polka';
 import { resolveHref, type LinkValue } from '@/lib/links';
@@ -28,15 +28,16 @@ function StackCard({ card, i, n, progress }: { card: Card; i: number; n: number;
   const image = (phone && card.image_mobile) || card.image;
 
   return (
-    <div className="sticky top-[56px] md:top-[62px] h-[calc(100vh-56px)] md:h-[calc(100vh-62px)]" style={{ zIndex: i + 1 }}>
+    // Below lg the bottom tab bar (72px) covers the screen's foot, so the card stops above it.
+    <div className="sticky top-[56px] md:top-[62px] h-[calc(100svh-56px-72px)] md:h-[calc(100svh-62px-72px)] lg:h-[calc(100vh-62px)]" style={{ zIndex: i + 1 }}>
       <motion.div style={{ scale, background: t.bg, color: t.ink }} className="relative h-full overflow-hidden origin-top">
         <TextColumns count={12} color={card.tone === 'paper' ? 'rgba(187,0,6,0.08)' : 'rgba(255,255,255,0.06)'} className="absolute inset-0" />
 
-        {/* Giant word behind the photo */}
+        {/* Giant word behind the photo; on phones sized to its length so long words fit the width */}
         <motion.p
-          style={{ x: wordX }}
+          style={{ x: wordX, '--fit': `${(170 / Math.max(card.title.length, 1)).toFixed(2)}vw` } as MotionStyle}
           aria-hidden="true"
-          className="absolute left-0 bottom-[6%] font-display font-[800] uppercase whitespace-nowrap leading-[0.78] text-[27vw] md:text-[clamp(140px,26vw,420px)] pointer-events-none"
+          className="absolute left-4 md:left-0 bottom-[6%] font-display font-[800] uppercase whitespace-nowrap leading-[0.78] text-[length:min(27vw,var(--fit))] md:text-[clamp(140px,26vw,420px)] pointer-events-none"
         >
           {card.title}
         </motion.p>

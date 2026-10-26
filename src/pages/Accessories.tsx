@@ -114,7 +114,7 @@ export default function AccessoriesPage() {
                 className="w-full h-full object-cover grayscale brightness-110 contrast-125"
               />
             </div>
-            <div className="absolute -bottom-8 -right-8 w-48 h-48 bg-accent/5 backdrop-blur-3xl -z-10" />
+            <div className="hidden lg:block absolute -bottom-8 -right-8 w-48 h-48 bg-accent/5 backdrop-blur-3xl -z-10" />
           </div>
         </div>
       </section>

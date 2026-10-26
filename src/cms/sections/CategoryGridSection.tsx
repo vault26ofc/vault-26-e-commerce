@@ -89,7 +89,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
               viewport={{ once: true }}
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 0.8, y: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
-              className="absolute left-[53%] -top-[6%] w-[9%] aspect-[3/4] object-cover shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+              className="hidden md:block absolute left-[53%] -top-[6%] w-[9%] aspect-[3/4] object-cover shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
             />
           )}
           {floatB && (
@@ -102,7 +102,7 @@ export default function CategoryGridSection({ section }: { section?: CMSSection 
               viewport={{ once: true }}
               animate={{ y: [0, 8, 0] }}
               transition={{ duration: 0.8, delay: 0.15, y: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
-              className="absolute right-[4%] top-[42%] w-[9%] aspect-[3/4] object-cover shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
+              className="hidden md:block absolute right-[4%] top-[42%] w-[9%] aspect-[3/4] object-cover shadow-[0_8px_24px_rgba(0,0,0,0.18)]"
             />
           )}
         </div>
