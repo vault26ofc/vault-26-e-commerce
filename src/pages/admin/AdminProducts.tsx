@@ -19,6 +19,8 @@ type ProductForm = {
   brand_id: string | null; category_id: string | null; extra_category_ids: string[];
   material: string; care: string;
   is_active: boolean; is_featured: boolean;
+  /** Sold only in the shop (billing app); never shown or sold on the website. */
+  store_only: boolean;
   images: string[]; videos: string[];
   /** Base price: variants with a blank price use it (and follow it when it changes). */
   price: number | null; compare_at: number | null;
@@ -29,7 +31,7 @@ type ProductForm = {
 
 const empty: ProductForm = {
   name: '', slug: '', description: '', brand_id: null, category_id: null, extra_category_ids: [],
-  material: '', care: '', is_active: true, is_featured: false, images: [], videos: [],
+  material: '', care: '', is_active: true, is_featured: false, store_only: false, images: [], videos: [],
   price: null, compare_at: null, color_images: {}, variants: [],
 };
 
@@ -80,7 +82,7 @@ export default function AdminProducts() {
       const [data, extras] = await Promise.all([
         fetchAllRows<any>(() => supabase
           .from('products')
-          .select('id, name, slug, is_active, is_featured, images, videos, category_id, stock, brands(name), categories!products_category_id_fkey(name), product_variants(id, price, stock)')
+          .select('id, name, slug, is_active, is_featured, store_only, images, videos, category_id, stock, brands(name), categories!products_category_id_fkey(name), product_variants(id, price, stock)')
           .order('created_at', { ascending: false }).order('id')),
         // product_categories has no FK (keeps storefront embeds unambiguous), so join it here.
         fetchAllRows<{ product_id: string; category_id: string }>(() => supabase.from('product_categories')
@@ -135,7 +137,7 @@ export default function AdminProducts() {
       id: p.id, name: p.name, slug: p.slug, description: p.description || '',
       brand_id: p.brand_id, category_id: p.category_id, extra_category_ids: extras.map((e) => e.category_id),
       material: p.material || '', care: p.care || '',
-      is_active: p.is_active, is_featured: p.is_featured, images: p.images || [], videos: pp.videos || [],
+      is_active: p.is_active, is_featured: p.is_featured, store_only: !!pp.store_only, images: p.images || [], videos: pp.videos || [],
       price: base, compare_at: cmp, color_images: pp.color_images || {},
       // A variant at the product price shows blank ("uses the product price").
       variants: (v || []).map((x) => ({
@@ -222,7 +224,7 @@ export default function AdminProducts() {
     if (dups.length) return toast.error(`Duplicate variants: ${dups.join(', ')}`);
     if (!editing.images.length && !confirm('This product has no images. Save anyway?')) return;
     setSaving(true);
-    const { error } = await supabase.rpc('save_product', {
+    const { data: savedId, error } = await supabase.rpc('save_product', {
       p_product: {
         id: editing.id ?? null, name: editing.name.trim(), slug: editing.slug.trim() || slugify(editing.name),
         description: editing.description, brand_id: editing.brand_id, category_id: editing.category_id,
@@ -241,8 +243,14 @@ export default function AdminProducts() {
         ...(v.original_stock !== undefined ? { original_stock: v.original_stock } : {}),
       })),
     });
+    if (error) {
+      setSaving(false);
+      return toast.error(error.message.includes('duplicate key') ? 'That slug is already used by another product' : error.message);
+    }
+    // save_product keeps its own fixed column list, so the store-only flag is saved right after it.
+    const { error: storeOnlyError } = await supabase.from('products').update({ store_only: editing.store_only }).eq('id', savedId as string);
     setSaving(false);
-    if (error) return toast.error(error.message.includes('duplicate key') ? 'That slug is already used by another product' : error.message);
+    if (storeOnlyError) return toast.error(`Product saved, but "Store only" was not: ${describeError(storeOnlyError)}`);
     toast.success('Product saved');
     setEditing(null);
     load();
@@ -295,6 +303,7 @@ export default function AdminProducts() {
                   <td className="p-3">
                     <button onClick={() => openEdit(p.id)} className="text-left hover:underline">{p.name}</button>
                     {p.is_featured && <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">Featured</span>}
+                    {p.store_only && <span className="ml-2 text-[10px] uppercase tracking-widest text-accent font-medium" title="Sold only in the shop through billing. Never shown on the website.">Store only</span>}
                     {(p.videos?.length ?? 0) > 0 && <span className="ml-2 text-[10px] uppercase tracking-widest text-muted-foreground">Video</span>}
                   </td>
                   <td className="p-3 text-muted-foreground">
@@ -389,6 +398,13 @@ export default function AdminProducts() {
                   <label className="flex items-center gap-2"><input type="checkbox" checked={editing.is_active} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} /> Live in store</label>
                   <label className="flex items-center gap-2"><input type="checkbox" checked={editing.is_featured} onChange={(e) => setEditing({ ...editing, is_featured: e.target.checked })} /> Featured</label>
                 </div>
+                <label className="flex items-start gap-2 text-sm border border-border p-3">
+                  <input type="checkbox" className="mt-0.5" checked={editing.store_only} onChange={(e) => setEditing({ ...editing, store_only: e.target.checked })} />
+                  <span>
+                    <span className="font-medium">Store only</span>
+                    <span className="block text-[11px] text-muted-foreground">Sold only in the shop through the billing app. Never shown or sold on the website.</span>
+                  </span>
+                </label>
               </Step>
 
               <Step n={2} title="Photos & videos">

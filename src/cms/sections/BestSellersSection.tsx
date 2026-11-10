@@ -9,7 +9,7 @@ import { resolveHref, type LinkValue } from '@/lib/links';
 export default function BestSellersSection({ section }: { section: CMSSection }) {
   const cfg = section.config as BestSellersConfig & ProductPickConfig & { cta_link?: LinkValue };
   const { products } = useSectionProducts(cfg, async () => {
-    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).limit(Math.max(cfg.product_count || 0, 6));
+    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).eq('store_only', false).limit(Math.max(cfg.product_count || 0, 6));
     return (data || []).map(toProductCard);
   }, [cfg.product_count]);
 

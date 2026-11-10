@@ -96,7 +96,7 @@ export default function ProductListing({ mode }: { mode: Mode }) {
         setBrands(brs || []);
 
         // Every matching product, in pages (newest first, id as the tie-breaker).
-        const base = () => supabase.from('products').select(LIST_SELECT).eq('is_active', true);
+        const base = () => supabase.from('products').select(LIST_SELECT).eq('is_active', true).eq('store_only', false);
         const newest = <Q extends { order: (c: string, o?: object) => Q }>(q: Q) => q.order('created_at', { ascending: false }).order('id');
         let rows: any[] = [];
         let order: string[] = [];

@@ -20,7 +20,7 @@ export function useShopProducts(limit = 8, pick: ProductPickConfig = {}) {
     supabase
       .from('products')
       .select(PRODUCT_CARD_SELECT)
-      .eq('is_active', true)
+      .eq('is_active', true).eq('store_only', false)
       .order('created_at', { ascending: false })
       .order('id')
       .limit(limit)

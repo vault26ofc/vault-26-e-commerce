@@ -1384,6 +1384,7 @@ export type Database = {
           discount: number
           email: string
           id: string
+          invoice_no: string | null
           notes: string | null
           order_number: string
           payment_amount_paise: number | null
@@ -1436,6 +1437,7 @@ export type Database = {
           discount?: number
           email: string
           id?: string
+          invoice_no?: string | null
           notes?: string | null
           order_number?: string
           payment_amount_paise?: number | null
@@ -1488,6 +1490,7 @@ export type Database = {
           discount?: number
           email?: string
           id?: string
+          invoice_no?: string | null
           notes?: string | null
           order_number?: string
           payment_amount_paise?: number | null
@@ -1669,6 +1672,7 @@ export type Database = {
           sizes: string[]
           slug: string
           stock: number
+          store_only: boolean
           videos: string[]
         }
         Insert: {
@@ -1689,6 +1693,7 @@ export type Database = {
           sizes?: string[]
           slug: string
           stock?: number
+          store_only?: boolean
           videos?: string[]
         }
         Update: {
@@ -1709,6 +1714,7 @@ export type Database = {
           sizes?: string[]
           slug?: string
           stock?: number
+          store_only?: boolean
           videos?: string[]
         }
         Relationships: [

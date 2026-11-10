@@ -119,7 +119,7 @@ export default function Navbar() {
       const ov = ((overlaySetting as any)?.value as OverlaySettings) || {};
       setOverlay(ov);
       if (ov.product_slugs?.length) {
-        const { data: ps } = await supabase.from('products').select('slug, name, images').eq('is_active', true).in('slug', ov.product_slugs);
+        const { data: ps } = await supabase.from('products').select('slug, name, images').eq('is_active', true).eq('store_only', false).in('slug', ov.product_slugs);
         const bySlug = new Map((ps || []).map((p: any) => [p.slug, p]));
         setOverlayProducts(ov.product_slugs.map((s) => bySlug.get(s)).filter((p: any) => p?.images?.[0]).slice(0, 4)
           .map((p: any, i) => ({ num: String(i + 1).padStart(2, '0'), label: p.name, type: 'image' as const, src: p.images[0], href: `/products/${p.slug}` })));
@@ -186,7 +186,7 @@ export default function Navbar() {
       const { data } = await supabase
         .from('products')
         .select('id, name, slug, images, price, brands(name), product_variants(price)')
-        .eq('is_active', true)
+        .eq('is_active', true).eq('store_only', false)
         .or(filter)
         .limit(6);
       if (cancelled) return;

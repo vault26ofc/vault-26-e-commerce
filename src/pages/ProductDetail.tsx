@@ -46,8 +46,8 @@ export default function ProductDetail() {
         .select('*, brands(name, slug), categories!products_category_id_fkey(name, slug, id), product_variants(*)')
         .eq('slug', slug).maybeSingle();
       if (cancelled) return;
-      // Hidden products are only previewable by admins.
-      if (!p || (!(p as any).is_active && !isAdmin)) { setMissing(true); return; }
+      // Hidden and store-only products are only previewable by admins.
+      if (!p || ((!(p as any).is_active || (p as any).store_only) && !isAdmin)) { setMissing(true); return; }
 
       // Variants in the product's size order (Admin → Sizes, kept in products.sizes).
       const order: string[] = (p as any).sizes || [];
@@ -66,7 +66,7 @@ export default function ProductDetail() {
 
       if ((p as any).category_id) {
         const { data: rel } = await supabase.from('products').select(PRODUCT_CARD_SELECT)
-          .eq('category_id', (p as any).category_id).eq('is_active', true).neq('id', (p as any).id).limit(4);
+          .eq('category_id', (p as any).category_id).eq('is_active', true).eq('store_only', false).neq('id', (p as any).id).limit(4);
         if (!cancelled) setRelated((rel || []).map(toProductCard));
       }
     })();

@@ -39,7 +39,7 @@ export default function NewArrivals() {
         supabase
           .from('products')
           .select('id, slug, name, images, brands(name), product_variants(price, compare_price)')
-          .eq('is_active', true)
+          .eq('is_active', true).eq('store_only', false)
           .eq('is_featured', true)
           .order('created_at', { ascending: false })
           .limit(8),

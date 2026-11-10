@@ -34,7 +34,7 @@ export function toProductCard(p: any): ProductCardData {
 
 /** Admin-picked products (in the picked order), only active ones. */
 export async function fetchPickedProducts(slugs: string[]): Promise<ProductCardData[]> {
-  const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).in('slug', slugs);
+  const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).eq('store_only', false).in('slug', slugs);
   return orderBySlugs((data || []) as any[], slugs).map(toProductCard);
 }
 

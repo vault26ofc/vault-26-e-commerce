@@ -9,7 +9,7 @@ import { resolveHref, type LinkValue } from '@/lib/links';
 export default function LinenCollectionSection({ section }: { section?: CMSSection }) {
   const cfg = (section?.config || {}) as ProductPickConfig & { title?: string; subtitle?: string; cta_label?: string; cta_link?: LinkValue };
   const { products } = useSectionProducts(cfg, async () => {
-    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).ilike('name', '%linen%').limit(4);
+    const { data } = await supabase.from('products').select(PRODUCT_CARD_SELECT).eq('is_active', true).eq('store_only', false).ilike('name', '%linen%').limit(4);
     return (data || []).map((p) => ({ ...toProductCard(p), isNew: true }));
   });
 
