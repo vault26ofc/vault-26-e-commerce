@@ -61,7 +61,9 @@ export default function Invoice() {
   const total = Number(order.total);
   const primary = tpl.primary_color || '#0f172a';
   const accent = tpl.accent_color || '#b08d57';
-  const invoiceNo = `${tpl.invoice_prefix || 'INV-'}${order.order_number}`;
+  // Delivered orders carry a V26W-YYMM-NNNN invoice number (assigned by the
+  // billing database trigger) - the same number the monthly GST report lists.
+  const invoiceNo = order.invoice_no || `${tpl.invoice_prefix || 'INV-'}${order.order_number}`;
 
   return (
     <div className="min-h-screen bg-neutral-100 print:bg-white py-8 print:py-0">
